@@ -55,6 +55,48 @@ const HeroSection = () => {
                 </Button>
               </Link>
             </div>
+            
+            {/* Quick Search Options */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground mb-3">Popular searches:</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Link to="/browse?category=timber">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Timber
+                  </Button>
+                </Link>
+                <Link to="/browse?category=insulation">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Insulation
+                  </Button>
+                </Link>
+                <Link to="/browse?category=plasterboard">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Plasterboard
+                  </Button>
+                </Link>
+                <Link to="/browse?category=bricks">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Bricks
+                  </Button>
+                </Link>
+                <Link to="/browse?category=steel">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Steel
+                  </Button>
+                </Link>
+                <Link to="/browse?category=roofing">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Roofing
+                  </Button>
+                </Link>
+                <Link to="/browse?category=doors">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Doors & Windows
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Stats */}
