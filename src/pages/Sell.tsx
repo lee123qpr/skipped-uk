@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CarbonBadge from "@/components/CarbonBadge";
@@ -63,23 +64,38 @@ const Sell = () => {
     console.log("Listing submitted:", { ...formData, images, carbonSaved: calculateCarbonSavings() });
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Sell Construction Materials",
+    "description": "List your surplus construction materials for sale on Skipped marketplace",
+    "url": "https://skipped.com/sell"
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Sell Your Materials</h1>
-            <p className="text-muted-foreground">List your surplus construction materials and help others while earning money</p>
-          </div>
+    <>
+      <SEOHead
+        title="Sell Your Construction Materials - Skipped"
+        description="List your surplus construction materials for sale on Skipped. Reach thousands of buyers across UK & Ireland with complete seller protection and fair fees."
+        keywords="sell construction materials, list building materials, surplus materials marketplace, sell timber, sell bricks, construction equipment for sale"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <header className="mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Sell Your Materials</h1>
+              <p className="text-muted-foreground">List your surplus construction materials and help others while earning money</p>
+            </header>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Images */}
-            <Card className="p-6 bg-card border-border">
-              <h2 className="text-xl font-semibold text-foreground mb-4">Photos</h2>
-              <p className="text-muted-foreground mb-4">Add at least 2 photos. The first photo will be your main image.</p>
+            <Card className="p-4 md:p-6 bg-card border-border">
+              <h2 className="text-lg md:text-xl font-semibold text-foreground mb-4">Photos</h2>
+              <p className="text-muted-foreground mb-4 text-sm md:text-base">Add at least 2 photos. The first photo will be your main image.</p>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {images.map((image, index) => (
@@ -377,22 +393,23 @@ const Sell = () => {
             </Card>
 
             {/* Submit */}
-            <div className="flex justify-between items-center pt-4">
-              <Button variant="outline" size="lg">
+            <div className="flex flex-col sm:flex-row justify-between items-center pt-4 gap-4">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 <Calendar className="h-4 w-4 mr-2" />
                 Save as Draft
               </Button>
               
-              <Button type="submit" variant="marketplace" size="lg">
+              <Button type="submit" variant="marketplace" size="lg" className="w-full sm:w-auto">
                 Publish Listing
               </Button>
             </div>
           </form>
-        </div>
-      </main>
+          </div>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 };
 

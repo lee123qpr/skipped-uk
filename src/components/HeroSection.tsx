@@ -33,17 +33,17 @@ const HeroSection = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
+          <div className="flex-1 max-w-2xl mx-6">
             <div className="flex bg-card border border-border rounded-2xl p-2 shadow-medium">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search timber, bricks, steel, insulation..."
-                  className="pl-12 pr-4 py-3 text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="pl-12 pr-4 py-3 text-base md:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <Link to="/browse">
-                <Button size="lg" variant="marketplace" className="px-8">
+                <Button size="lg" variant="marketplace" className="px-6 md:px-8">
                   Search
                   <ArrowRight className="h-5 w-5" />
                 </Button>

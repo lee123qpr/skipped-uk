@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SEOHead from "@/components/SEOHead";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,8 +25,8 @@ const SignUp = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign up logic here
-    console.log("Sign up attempt:", { ...formData, accountType });
+    // Handle sign up logic here - all users get 'user' role by default
+    console.log("Sign up attempt:", { ...formData, accountType, role: "user" });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -33,23 +34,29 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Skipped</span>
-        </Link>
+    <>
+      <SEOHead
+        title="Join Skipped - Create Your Account"
+        description="Create your Skipped account to buy and sell construction materials with complete buyer protection across UK & Ireland. Join thousands saving money and reducing waste."
+        keywords="sign up, create account, construction materials marketplace, UK building materials, sustainable construction"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Back to Home */}
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Skipped</span>
+          </Link>
 
-        <Card className="p-8 shadow-strong bg-card border-border">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <div className="w-10 h-10 bg-primary rounded-xl transform rotate-45"></div>
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Join Skipped</h1>
-            <p className="text-muted-foreground">Create your account and start saving</p>
-          </div>
+          <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
+            {/* Header */}
+            <header className="text-center mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <div className="w-10 h-10 bg-primary rounded-xl transform rotate-45"></div>
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Join Skipped</h1>
+              <p className="text-muted-foreground">Create your account and start saving</p>
+            </header>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -62,9 +69,12 @@ const SignUp = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="company">Company</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                All users can buy and sell materials. Business accounts get verification badges.
+              </p>
             </div>
 
             {/* Name Fields */}
@@ -97,17 +107,17 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Company Fields (if company account) */}
-            {accountType === "company" && (
+            {/* Business Fields (if business account) */}
+            {accountType === "business" && (
               <>
                 <div className="space-y-2">
-                  <label htmlFor="companyName" className="text-sm font-medium text-foreground">Company Name</label>
+                  <label htmlFor="companyName" className="text-sm font-medium text-foreground">Business Name</label>
                   <div className="relative">
                     <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="companyName"
                       type="text"
-                      placeholder="Your Company Ltd"
+                      placeholder="Your Business Ltd"
                       value={formData.companyName}
                       onChange={(e) => handleInputChange("companyName", e.target.value)}
                       className="pl-10"
@@ -259,10 +269,11 @@ const SignUp = () => {
             <Link to="/sign-in" className="text-primary hover:text-primary-hover font-medium transition-smooth">
               Sign in
             </Link>
-          </div>
-        </Card>
+            </div>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

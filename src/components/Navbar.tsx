@@ -19,7 +19,7 @@ const Navbar = () => {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-8">
+          <div className="flex-1 max-w-2xl mx-4 md:mx-8">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -31,27 +31,43 @@ const Navbar = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
-            <Link to="/sell">
-              <Button variant="marketplace" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Sell Item
+            <div className="hidden sm:flex items-center space-x-2">
+              <Link to="/sell">
+                <Button variant="marketplace" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Sell Item
+                </Button>
+              </Link>
+              
+              <Button variant="ghost" size="sm">
+                <Heart className="h-4 w-4" />
               </Button>
-            </Link>
-            
-            <Button variant="ghost" size="sm">
-              <Heart className="h-4 w-4" />
-            </Button>
-            
-            <Button variant="ghost" size="sm">
-              <ShoppingBag className="h-4 w-4" />
-            </Button>
-            
-            <Link to="/sign-in">
-              <Button variant="outline" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Sign In
+              
+              <Button variant="ghost" size="sm">
+                <ShoppingBag className="h-4 w-4" />
               </Button>
-            </Link>
+              
+              <Link to="/sign-in">
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <div className="flex sm:hidden items-center space-x-1">
+              <Link to="/sell">
+                <Button variant="marketplace" size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/sign-in">
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

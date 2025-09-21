@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
@@ -84,36 +85,61 @@ const Browse = () => {
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Browse Materials</h1>
-          <p className="text-muted-foreground">Find quality construction materials while saving money and the environment</p>
-        </div>
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Construction Materials Marketplace",
+    "description": "Browse surplus and second-hand construction materials",
+    "numberOfItems": listings.length,
+    "itemListElement": listings.map((listing, index) => ({
+      "@type": "Product",
+      "position": index + 1,
+      "name": listing.title,
+      "offers": {
+        "@type": "Offer",
+        "price": listing.price,
+        "priceCurrency": "GBP"
+      }
+    }))
+  };
 
-        {/* Search and Filters */}
-        <div className="space-y-4 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search materials, location, seller..."
-                className="pl-10"
-              />
+  return (
+    <>
+      <SEOHead
+        title="Browse Construction Materials - Skipped Marketplace"
+        description="Browse thousands of surplus and second-hand construction materials across UK & Ireland. Find timber, bricks, insulation, steel and more with buyer protection."
+        keywords="browse construction materials, buy building materials, surplus construction materials, second hand building supplies, UK construction marketplace"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        
+        <main className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <header className="mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Browse Materials</h1>
+            <p className="text-muted-foreground">Find quality construction materials while saving money and the environment</p>
+          </header>
+
+          {/* Search and Filters */}
+          <section className="space-y-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search materials, location, seller..."
+                  className="pl-10"
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFilters(!showFilters)}
+                className="shrink-0 w-full sm:w-auto"
+              >
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowFilters(!showFilters)}
-              className="shrink-0"
-            >
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </div>
 
           {/* Filters Panel */}
           {showFilters && (
@@ -175,70 +201,71 @@ const Browse = () => {
               </div>
             </Card>
           )}
-        </div>
+          </section>
 
-        {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-muted-foreground">
-            Showing {listings.length} results
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Select defaultValue="newest">
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="carbon">Highest Carbon Savings</SelectItem>
-                <SelectItem value="distance">Closest to Me</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex border border-border rounded-lg">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className="rounded-r-none"
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className="rounded-l-none"
-              >
-                <List className="h-4 w-4" />
-              </Button>
+          {/* Results Header */}
+          <section className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div className="text-muted-foreground">
+              Showing {listings.length} results
             </div>
+            
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+              <Select defaultValue="newest">
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="carbon">Highest Carbon Savings</SelectItem>
+                  <SelectItem value="distance">Closest to Me</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex border border-border rounded-lg">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className="rounded-r-none flex-1 sm:flex-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="rounded-l-none flex-1 sm:flex-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* Results Grid */}
+          <section className={`grid gap-6 mb-12 ${
+            viewMode === "grid" 
+              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
+              : "grid-cols-1"
+          }`}>
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} {...listing} />
+            ))}
+          </section>
+
+          {/* Load More */}
+          <div className="text-center">
+            <Button variant="outline" size="lg">
+              Load More Results
+            </Button>
           </div>
-        </div>
+        </main>
 
-        {/* Results Grid */}
-        <div className={`grid gap-6 mb-12 ${
-          viewMode === "grid" 
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
-            : "grid-cols-1"
-        }`}>
-          {listings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} />
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center">
-          <Button variant="outline" size="lg">
-            Load More Results
-          </Button>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 };
 
