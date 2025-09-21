@@ -13,7 +13,7 @@ const Navbar = () => {
               <div className="w-6 h-6 bg-primary-foreground rounded transform rotate-45"></div>
             </div>
             <div className="font-semibold text-xl text-foreground">
-              Build<span className="text-accent">Reuse</span>
+              <span className="text-primary">Skipped</span>
             </div>
           </div>
 

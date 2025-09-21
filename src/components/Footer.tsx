@@ -14,7 +14,7 @@ const Footer = () => {
                 <div className="w-6 h-6 bg-primary-foreground rounded transform rotate-45"></div>
               </div>
               <div className="font-semibold text-xl text-foreground">
-                Build<span className="text-accent">Reuse</span>
+                <span className="text-primary">Skipped</span>
               </div>
             </div>
             <p className="text-muted-foreground leading-relaxed">
@@ -69,7 +69,7 @@ const Footer = () => {
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>support@buildreuse.co.uk</span>
+                <span>support@skipped.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
@@ -85,7 +85,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 BuildReuse. All rights reserved.
+            © 2024 Skipped. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm text-muted-foreground mt-4 md:mt-0">
             <a href="#" className="hover:text-primary transition-smooth">Privacy Policy</a>
