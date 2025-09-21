@@ -20,20 +20,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 25 15% 15%;
 
-    /* Primary - Construction Orange/Terracotta */
-    --primary: 18 65% 48%;
+    /* Primary - Deep Forest Green */
+    --primary: 155 85% 25%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 18 65% 42%;
+    --primary-hover: 155 85% 20%;
 
     /* Secondary - Warm Earth */
     --secondary: 32 15% 92%;
     --secondary-foreground: 25 15% 25%;
     --secondary-hover: 32 15% 88%;
 
-    /* Accent - Sustainability Green */
-    --accent: 142 55% 45%;
+    /* Accent - Bright Sustainability Green */
+    --accent: 142 70% 45%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 142 55% 40%;
+    --accent-hover: 142 70% 40%;
 
     /* Muted Tones */
     --muted: 32 8% 95%;
@@ -52,7 +52,7 @@
     /* Border & Input */
     --border: 32 15% 88%;
     --input: 32 15% 95%;
-    --ring: 18 65% 48%;
+    --ring: 155 85% 25%;
 
     /* Design System Extensions */
     --radius: 0.75rem;
@@ -61,6 +61,7 @@
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
     --gradient-carbon: linear-gradient(90deg, hsl(var(--accent)) 0%, hsl(142 70% 35%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 70% 35%) 100%);
     
     /* Shadows */
     --shadow-soft: 0 2px 8px -2px hsl(var(--foreground) / 0.1);
@@ -84,17 +85,17 @@
     --popover: 25 15% 12%;
     --popover-foreground: 32 12% 95%;
 
-    --primary: 18 65% 55%;
-    --primary-foreground: 25 15% 8%;
-    --primary-hover: 18 65% 60%;
+    --primary: 155 85% 30%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 155 85% 35%;
 
     --secondary: 25 8% 18%;
     --secondary-foreground: 32 12% 85%;
     --secondary-hover: 25 8% 22%;
 
-    --accent: 142 55% 50%;
-    --accent-foreground: 25 15% 8%;
-    --accent-hover: 142 55% 55%;
+    --accent: 142 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    --accent-hover: 142 70% 55%;
 
     --muted: 25 8% 15%;
     --muted-foreground: 32 8% 65%;
@@ -105,7 +106,7 @@
 
     --border: 25 8% 22%;
     --input: 25 8% 18%;
-    --ring: 18 65% 55%;
+    --ring: 155 85% 30%;
     
     /* Enhanced shadows for dark mode */
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);

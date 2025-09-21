@@ -1,4 +1,5 @@
 import { Search, ArrowRight, Recycle, Shield, Truck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import heroImage from "@/assets/hero-construction.jpg";
@@ -41,10 +42,12 @@ const HeroSection = () => {
                   className="pl-12 pr-4 py-3 text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
-              <Button size="lg" variant="marketplace" className="px-8">
-                Search
-                <ArrowRight className="h-5 w-5" />
-              </Button>
+              <Link to="/browse">
+                <Button size="lg" variant="marketplace" className="px-8">
+                  Search
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -77,13 +80,17 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="xl" variant="marketplace">
-              Start Buying
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-            <Button size="xl" variant="outline">
-              Sell Your Materials
-            </Button>
+            <Link to="/browse">
+              <Button size="xl" variant="marketplace">
+                Start Buying
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/sell">
+              <Button size="xl" variant="outline">
+                Sell Your Materials
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
