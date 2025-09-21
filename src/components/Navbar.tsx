@@ -47,6 +47,12 @@ const Navbar = () => {
                 <ShoppingBag className="h-4 w-4" />
               </Button>
               
+              <Link to="/sign-up">
+                <Button variant="marketplace" size="sm">
+                  Sign Up
+                </Button>
+              </Link>
+              
               <Link to="/sign-in">
                 <Button variant="outline" size="sm">
                   <User className="h-4 w-4 mr-2" />
@@ -60,6 +66,11 @@ const Navbar = () => {
               <Link to="/sell">
                 <Button variant="marketplace" size="sm">
                   <Plus className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/sign-up">
+                <Button variant="marketplace" size="sm">
+                  Sign Up
                 </Button>
               </Link>
               <Link to="/sign-in">
