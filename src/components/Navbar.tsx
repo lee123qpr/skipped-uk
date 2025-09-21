@@ -1,7 +1,6 @@
-import { Search, User, Heart, ShoppingBag, Plus } from "lucide-react";
+import { User, Heart, ShoppingBag, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 const Navbar = () => {
   return (
@@ -17,17 +16,6 @@ const Navbar = () => {
               <span className="text-primary">Skipped</span>
             </div>
           </Link>
-
-          {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-4 md:mx-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search for construction materials..."
-                className="pl-10 pr-4 py-2 w-full bg-input border-border focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
-          </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
