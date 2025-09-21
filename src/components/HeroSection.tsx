@@ -21,6 +21,12 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Main Heading */}
           <div className="space-y-4">
+            {/* Large Recycling Symbol */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+                <Recycle className="h-12 w-12 text-primary" strokeWidth={2.5} />
+              </div>
+            </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
               Save Money. <span className="text-primary">Save Waste.</span>
               <br />
