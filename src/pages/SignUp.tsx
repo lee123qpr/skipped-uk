@@ -11,22 +11,19 @@ import SEOHead from "@/components/SEOHead";
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [accountType, setAccountType] = useState("individual");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     password: "",
-    confirmPassword: "",
-    companyName: "",
-    vatNumber: ""
+    confirmPassword: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle sign up logic here - all users get 'user' role by default
-    console.log("Sign up attempt:", { ...formData, accountType, role: "user" });
+    console.log("Sign up attempt:", { ...formData, role: "user" });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -60,23 +57,6 @@ const SignUp = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Account Type */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Account Type</label>
-              <Select value={accountType} onValueChange={setAccountType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                All users can buy and sell materials. Business accounts get verification badges.
-              </p>
-            </div>
-
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -106,37 +86,6 @@ const SignUp = () => {
                 />
               </div>
             </div>
-
-            {/* Business Fields (if business account) */}
-            {accountType === "business" && (
-              <>
-                <div className="space-y-2">
-                  <label htmlFor="companyName" className="text-sm font-medium text-foreground">Business Name</label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="companyName"
-                      type="text"
-                      placeholder="Your Business Ltd"
-                      value={formData.companyName}
-                      onChange={(e) => handleInputChange("companyName", e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="vatNumber" className="text-sm font-medium text-foreground">VAT Number (Optional)</label>
-                  <Input
-                    id="vatNumber"
-                    type="text"
-                    placeholder="GB123456789"
-                    value={formData.vatNumber}
-                    onChange={(e) => handleInputChange("vatNumber", e.target.value)}
-                  />
-                </div>
-              </>
-            )}
 
             {/* Contact Fields */}
             <div className="space-y-2">
