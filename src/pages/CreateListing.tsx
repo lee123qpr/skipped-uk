@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MapPin, Truck, Package, Calendar, Save } from 'lucide-react';
+import { Loader2, MapPin, Truck, Package, Calendar, Save, Leaf } from 'lucide-react';
 import { z } from 'zod';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
@@ -85,6 +85,15 @@ const CreateListing = () => {
     minimum_offer_percentage: '80',
   });
 
+  const [carbonCalculation, setCarbonCalculation] = useState<{
+    totalCarbon: number;
+    carbonPerUnit: number;
+    materialType: string;
+    calculationMethod: string;
+    explanation: string;
+  } | null>(null);
+  const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
+
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
@@ -113,14 +122,83 @@ const CreateListing = () => {
     }
   };
 
-  const calculateCarbonSavings = () => {
-    const category = categories.find(c => c.id === formData.category_id);
-    const baseCarbon = category?.name.toLowerCase().includes('timber') ? 500 : 
-                      category?.name.toLowerCase().includes('brick') ? 200 : 
-                      category?.name.toLowerCase().includes('steel') ? 800 : 300;
-    const quantity = parseInt(formData.quantity) || 1;
-    return Math.round(baseCarbon * Math.log(quantity + 1));
+  const calculateCarbonSavings = async () => {
+    if (!formData.title || !formData.category_id || !formData.condition || !formData.quantity) {
+      return 0;
+    }
+
+    try {
+      setIsCalculatingCarbon(true);
+      
+      const category = categories.find(c => c.id === formData.category_id);
+      const requestData = {
+        categoryName: category?.name || '',
+        condition: formData.condition,
+        quantity: parseInt(formData.quantity) || 1,
+        dimensions: formData.dimensions.length || formData.dimensions.width || formData.dimensions.height 
+          ? {
+              length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : undefined,
+              width: formData.dimensions.width ? parseFloat(formData.dimensions.width) : undefined,
+              height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : undefined,
+              unit: formData.dimensions.unit
+            }
+          : undefined,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        title: formData.title,
+        description: formData.description
+      };
+
+      const { data, error } = await supabase.functions.invoke('calculate-carbon', {
+        body: requestData
+      });
+
+      if (error) {
+        console.error('Carbon calculation error:', error);
+        throw error;
+      }
+
+      if (data && data.success) {
+        setCarbonCalculation({
+          totalCarbon: data.totalCarbon,
+          carbonPerUnit: data.carbonPerUnit,
+          materialType: data.materialType,
+          calculationMethod: data.calculationMethod,
+          explanation: data.explanation
+        });
+        return data.totalCarbon;
+      }
+      
+      return 0;
+    } catch (error) {
+      console.error('Failed to calculate carbon:', error);
+      toast({
+        title: 'Carbon calculation failed',
+        description: 'Using estimated carbon savings. Please check your listing details.',
+        variant: 'destructive',
+      });
+      
+      // Fallback to simple calculation
+      const category = categories.find(c => c.id === formData.category_id);
+      const baseCarbon = category?.name.toLowerCase().includes('timber') ? 500 : 
+                        category?.name.toLowerCase().includes('brick') ? 200 : 
+                        category?.name.toLowerCase().includes('steel') ? 800 : 300;
+      const quantity = parseInt(formData.quantity) || 1;
+      return Math.round(baseCarbon * Math.log(quantity + 1));
+    } finally {
+      setIsCalculatingCarbon(false);
+    }
   };
+
+  // Auto-calculate carbon savings when key fields change
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (formData.title && formData.category_id && formData.condition && formData.quantity) {
+        await calculateCarbonSavings();
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight]);
 
   const handleMediaFilesChange = (files: MediaFile[]) => {
     setMediaFiles(files);
@@ -158,7 +236,7 @@ const CreateListing = () => {
         location: formData.location,
         category_id: formData.category_id,
         quantity: parseInt(formData.quantity),
-        carbon_saved: formData.carbon_saved ? parseFloat(formData.carbon_saved) : calculateCarbonSavings(),
+        carbon_saved: carbonCalculation?.totalCarbon || 0,
         dimensions,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         delivery_available: formData.delivery_available,
@@ -172,6 +250,12 @@ const CreateListing = () => {
       setIsLoading(true);
       setIsDraft(saveAsDraft);
 
+      // If we don't have a carbon calculation yet, calculate it now
+      let finalCarbonSaved = carbonCalculation?.totalCarbon;
+      if (!finalCarbonSaved) {
+        finalCarbonSaved = await calculateCarbonSavings();
+      }
+
       // Collect uploaded media URLs
       const uploadedImages = mediaFiles
         .filter(f => f.uploaded && f.url)
@@ -184,6 +268,7 @@ const CreateListing = () => {
           seller_id: user.id,
           images: uploadedImages,
           status: saveAsDraft ? 'draft' : 'active',
+          carbon_saved: finalCarbonSaved || 0,
         } as any)
         .select()
         .single();
@@ -419,6 +504,47 @@ const CreateListing = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Carbon Impact Display */}
+                  {(carbonCalculation || isCalculatingCarbon) && (
+                    <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+                            <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            {isCalculatingCarbon ? (
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+                                <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                                  Calculating carbon impact...
+                                </span>
+                              </div>
+                            ) : carbonCalculation ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                                    Estimated Carbon Saved
+                                  </span>
+                                  <span className="text-lg font-bold text-green-700 dark:text-green-300">
+                                    {carbonCalculation.totalCarbon.toLocaleString()} kg CO₂
+                                  </span>
+                                </div>
+                                <p className="text-xs text-green-600 dark:text-green-400">
+                                  {carbonCalculation.explanation}
+                                </p>
+                                <div className="text-xs text-green-600 dark:text-green-400">
+                                  Material: {carbonCalculation.materialType.replace(/_/g, ' ')} • 
+                                  Method: {carbonCalculation.calculationMethod.replace(/_/g, ' ')}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </CardContent>
               </Card>
 
@@ -607,11 +733,11 @@ const CreateListing = () => {
 
                   <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                     <CarbonBadge 
-                      carbonSaved={formData.carbon_saved ? parseFloat(formData.carbon_saved) : calculateCarbonSavings()} 
+                      carbonSaved={carbonCalculation?.totalCarbon || (formData.carbon_saved ? parseFloat(formData.carbon_saved) : 0)} 
                       size="lg" 
                     />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Estimated environmental impact of selling this item instead of disposing of it
+                      {carbonCalculation ? 'Calculated environmental impact' : 'Estimated environmental impact'} of selling this item instead of disposing of it
                     </p>
                   </div>
                 </CardContent>

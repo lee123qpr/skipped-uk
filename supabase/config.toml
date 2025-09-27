@@ -1,1 +1,4 @@
 project_id = "whfjfwxjtujfntwukzih"
+
+[functions.calculate-carbon]
+verify_jwt = false
