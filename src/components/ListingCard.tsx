@@ -1,6 +1,7 @@
 import { Heart, MapPin, User, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import CarbonBadge from "./CarbonBadge";
 
 interface ListingCardProps {
@@ -22,6 +23,7 @@ interface ListingCardProps {
 }
 
 const ListingCard = ({ 
+  id,
   title, 
   price, 
   location, 
@@ -33,6 +35,8 @@ const ListingCard = ({
   isFavorited = false,
   className = "" 
 }: ListingCardProps) => {
+  const navigate = useNavigate();
+  
   const conditionColors = {
     new: "text-success",
     excellent: "text-success",
@@ -40,8 +44,15 @@ const ListingCard = ({
     fair: "text-muted-foreground"
   };
 
+  const handleCardClick = () => {
+    navigate(`/listing/${id}`);
+  };
+
   return (
-    <Card className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${className}`}>
+    <Card 
+      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${className}`}
+      onClick={handleCardClick}
+    >
       {/* Image */}
       <div className="relative h-48 bg-muted overflow-hidden">
         {images[0] ? (
@@ -61,6 +72,10 @@ const ListingCard = ({
           size="icon" 
           variant="ghost"
           className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm hover:bg-background"
+          onClick={(e) => {
+            e.stopPropagation();
+            // TODO: Implement favourite functionality
+          }}
         >
           <Heart className={`h-4 w-4 ${isFavorited ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} />
         </Button>
@@ -79,7 +94,7 @@ const ListingCard = ({
             {title}
           </h3>
           <div className="text-lg font-bold text-primary">
-            £{price.toLocaleString()}
+            {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
           </div>
         </div>
 
