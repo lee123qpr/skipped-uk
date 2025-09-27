@@ -723,7 +723,7 @@ const CreateListing = () => {
                       min="0"
                       value={formData.carbon_saved}
                       onChange={(e) => handleInputChange('carbon_saved', e.target.value)}
-                      placeholder={calculateCarbonSavings().toString()}
+                      placeholder={carbonCalculation?.totalCarbon?.toString() || "0"}
                       disabled={isLoading}
                     />
                     <p className="text-sm text-muted-foreground">
