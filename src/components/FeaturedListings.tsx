@@ -1,71 +1,98 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import ListingCard from "./ListingCard";
 
-const featuredListings = [
-  {
-    id: "1",
-    title: "Reclaimed Oak Beams - Grade A Quality",
-    price: 2450,
-    location: "Birmingham",
-    condition: "excellent" as const,
-    images: ["/api/placeholder/400/300"],
-    carbonSaved: 847,
-    seller: {
-      name: "Heritage Timber Co.",
-      verified: true,
-      rating: 4.9
-    },
-    postedDate: "2 days ago"
-  },
-  {
-    id: "2", 
-    title: "Engineering Bricks - Red Stock, 5000 units",
-    price: 890,
-    location: "London",
-    condition: "new" as const,
-    images: ["/api/placeholder/400/300"],
-    carbonSaved: 324,
-    seller: {
-      name: "Metro Building Supplies",
-      verified: true,
-      rating: 4.7
-    },
-    postedDate: "1 day ago"
-  },
-  {
-    id: "3",
-    title: "Kingspan Insulation Boards - 100mm Thickness",
-    price: 1200,
-    location: "Manchester",
-    condition: "good" as const,
-    images: ["/api/placeholder/400/300"],
-    carbonSaved: 456,
-    seller: {
-      name: "Green Build Solutions",
-      verified: false,
-      rating: 4.5
-    },
-    postedDate: "3 days ago"
-  },
-  {
-    id: "4",
-    title: "Steel I-Beams - Various Lengths Available",
-    price: 3200,
-    location: "Glasgow",
-    condition: "excellent" as const,
-    images: ["/api/placeholder/400/300"],
-    carbonSaved: 1230,
-    seller: {
-      name: "Scottish Steel Reclaim",
-      verified: true,
-      rating: 4.8
-    },
-    postedDate: "1 day ago"
-  }
-];
+interface Listing {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  condition: "excellent" | "good" | "fair" | "new";
+  images: string[];
+  carbonSaved: number;
+  seller: {
+    name: string;
+    verified: boolean;
+    rating: number;
+  };
+  postedDate: string;
+}
 
 const FeaturedListings = () => {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedListings();
+  }, []);
+
+  const fetchFeaturedListings = async () => {
+    try {
+      const { data: listingsData, error } = await supabase
+        .from('listings')
+        .select(`
+          id,
+          title,
+          price,
+          location,
+          condition,
+          images,
+          carbon_saved,
+          created_at,
+          profiles:seller_id (
+            display_name,
+            company_name,
+            verified
+          )
+        `)
+        .eq('status', 'active')
+        .eq('available', true)
+        .order('carbon_saved', { ascending: false })
+        .limit(4);
+
+      if (error) {
+        console.error('Error fetching listings:', error);
+        return;
+      }
+
+      const formattedListings: Listing[] = listingsData?.map((listing: any) => ({
+        id: listing.id,
+        title: listing.title,
+        price: Number(listing.price),
+        location: listing.location,
+        condition: listing.condition as "excellent" | "good" | "fair" | "new",
+        images: listing.images?.length > 0 ? listing.images : ["/api/placeholder/400/300"],
+        carbonSaved: Number(listing.carbon_saved || 0),
+        seller: {
+          name: listing.profiles?.display_name || listing.profiles?.company_name || "Anonymous Seller",
+          verified: listing.profiles?.verified || false,
+          rating: 4.5 // Default rating - you might want to add a ratings system later
+        },
+        postedDate: formatPostedDate(listing.created_at)
+      })) || [];
+
+      setListings(formattedListings);
+    } catch (error) {
+      console.error('Error fetching featured listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPostedDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "1 day ago";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return `${Math.ceil(diffDays / 30)} months ago`;
+  };
+
   return (
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -78,11 +105,23 @@ const FeaturedListings = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {featuredListings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-96 bg-muted rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : listings.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} {...listing} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No featured listings available at the moment.</p>
+          </div>
+        )}
 
         <div className="text-center">
           <Button variant="default" size="lg">
