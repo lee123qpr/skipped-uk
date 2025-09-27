@@ -428,23 +428,46 @@ const CreateListing = () => {
                   <CardTitle>Pricing</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price (£) *</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="0.00"
-                      required
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="space-y-1">
+                      <Label>Free Item</Label>
+                      <p className="text-sm text-muted-foreground">Help others while clearing space - offer this item for free</p>
+                    </div>
+                    <Switch
+                      checked={formData.price === '0'}
+                      onCheckedChange={(checked) => handleInputChange('price', checked ? '0' : '')}
                       disabled={isLoading}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      This is the price buyers will pay. You'll receive the full amount after our protection period.
-                    </p>
                   </div>
+
+                  {formData.price !== '0' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price (£) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        placeholder="0.00"
+                        required
+                        disabled={isLoading}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        This is the price buyers will pay. You'll receive the full amount after our protection period.
+                      </p>
+                    </div>
+                  )}
+
+                  {formData.price === '0' && (
+                    <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                        <span className="text-green-600 dark:text-green-400">🌱</span>
+                        Great choice! Free items help reduce waste and support the community.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">

@@ -13,7 +13,6 @@ import ListingCard from "@/components/ListingCard";
 const Browse = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 5000]);
 
   // Sample listings data
   const listings = [
@@ -187,16 +186,21 @@ const Browse = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-foreground">
-                    Price Range: £{priceRange[0]} - £{priceRange[1]}
-                  </label>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={5000}
-                    step={50}
-                    className="w-full"
-                  />
+                  <label className="text-sm font-medium text-foreground">Price</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any price" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any Price</SelectItem>
+                      <SelectItem value="free">Free Items Only</SelectItem>
+                      <SelectItem value="under-100">Under £100</SelectItem>
+                      <SelectItem value="100-500">£100 - £500</SelectItem>
+                      <SelectItem value="500-1000">£500 - £1,000</SelectItem>
+                      <SelectItem value="1000-2500">£1,000 - £2,500</SelectItem>
+                      <SelectItem value="over-2500">Over £2,500</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </Card>
