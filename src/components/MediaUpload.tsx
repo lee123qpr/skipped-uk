@@ -204,13 +204,18 @@ const MediaUpload = ({
     if (newFiles.length > 0) {
       const updatedFiles = [...files, ...newFiles];
       setFiles(updatedFiles);
+      onFilesChange(updatedFiles); // Notify parent immediately when files are added
       
       // Start uploading files asynchronously
       newFiles.forEach(async (mediaFile) => {        
         // Update uploading state
-        setFiles(prev => prev.map(f => 
-          f.id === mediaFile.id ? { ...f, uploading: true } : f
-        ));
+        setFiles(prev => {
+          const updated = prev.map(f => 
+            f.id === mediaFile.id ? { ...f, uploading: true } : f
+          );
+          onFilesChange(updated); // Notify parent of uploading state
+          return updated;
+        });
 
         const uploadedUrl = await uploadFileToStorage(mediaFile.file, mediaFile);
         
@@ -220,6 +225,7 @@ const MediaUpload = ({
               ? { ...f, uploading: false, uploaded: uploadedUrl ? true : false, url: uploadedUrl || undefined }
               : f
           );
+          onFilesChange(updated); // Notify parent of upload completion
           return updated;
         });
         
@@ -232,7 +238,7 @@ const MediaUpload = ({
         }
       });
     }
-  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, generateVideoThumbnail]);
+  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, generateVideoThumbnail, onFilesChange]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -277,7 +283,8 @@ const MediaUpload = ({
     
     const updatedFiles = files.filter(f => f.id !== id).map((f, index) => ({ ...f, order: index }));
     setFiles(updatedFiles);
-  }, [files, user]);
+    onFilesChange(updatedFiles); // Notify parent when file is removed
+  }, [files, user, onFilesChange]);
 
   // Drag and drop reordering
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -312,6 +319,7 @@ const MediaUpload = ({
       // Update order property
       const reorderedFiles = newFiles.map((f, index) => ({ ...f, order: index }));
       setFiles(reorderedFiles);
+      onFilesChange(reorderedFiles); // Notify parent when files are reordered
     }
     
     setDraggedIndex(null);
@@ -323,11 +331,6 @@ const MediaUpload = ({
   const canAddImages = imageCount < maxImages;
   const canAddVideos = videoCount < maxVideos;
   const canAddFiles = canAddImages || canAddVideos;
-
-  // Sync files with parent when they change
-  useEffect(() => {
-    onFilesChange(files);
-  }, [files, onFilesChange]);
 
   return (
     <div className="space-y-3">
