@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Mail, ArrowLeft } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -25,6 +25,8 @@ const Auth = () => {
   const [usernameLoading, setUsernameLoading] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -127,9 +129,12 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
+        setRegisteredEmail(validatedData.email);
+        setShowEmailVerification(true);
         toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link to complete your registration.",
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account.",
+          className: "bg-success text-success-foreground border-success",
         });
       }
     } catch (error) {
@@ -176,6 +181,62 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  if (showEmailVerification) {
+    return (
+      <>
+        <SEOHead
+          title="Check Your Email | Skipped"
+          description="Please check your email to verify your account and complete registration."
+          keywords="email verification, account confirmation"
+        />
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <Link to="/" className="text-2xl font-bold text-primary">
+                Skipped
+              </Link>
+              <p className="text-muted-foreground mt-2">
+                UK's sustainable construction marketplace
+              </p>
+            </div>
+
+            <Card className="text-center">
+              <CardHeader>
+                <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
+                  <Mail className="h-6 w-6 text-success" />
+                </div>
+                <CardTitle className="text-xl">Check Your Email</CardTitle>
+                <CardDescription>
+                  We've sent a confirmation link to <br />
+                  <span className="font-medium text-foreground">{registeredEmail}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p>Click the link in your email to verify your account and start using Skipped.</p>
+                  <p>The link will expire in 24 hours for security.</p>
+                </div>
+                <div className="space-y-3 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEmailVerification(false)}
+                    className="w-full"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sign In
+                  </Button>
+                  <Button variant="ghost" asChild className="w-full">
+                    <Link to="/">Return to Homepage</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
