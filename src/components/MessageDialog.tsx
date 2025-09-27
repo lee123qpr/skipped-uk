@@ -16,7 +16,7 @@ import { Loader2, Send } from 'lucide-react';
 import { z } from 'zod';
 
 const messageSchema = z.object({
-  message: z.string().min(10, 'Message must be at least 10 characters').max(1000, 'Message must be less than 1000 characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters'),
 });
 
 interface MessageDialogProps {
@@ -40,11 +40,16 @@ const MessageDialog = ({ listingId, sellerId, listingTitle, open, onOpenChange }
       const validatedData = messageSchema.parse({ message });
       setIsLoading(true);
 
-      // TODO: Implement messaging system in database
-      // For now, we'll simulate sending a message
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          listing_id: listingId,
+          sender_id: user.id,
+          receiver_id: sellerId,
+          content: validatedData.message,
+        });
+
+      if (error) throw error;
 
       toast({
         title: 'Message sent!',
@@ -94,7 +99,7 @@ const MessageDialog = ({ listingId, sellerId, listingTitle, open, onOpenChange }
               disabled={isLoading}
             />
             <p className="text-xs text-muted-foreground">
-              {message.length}/1000 characters
+              {message.length}/2000 characters
             </p>
           </div>
           

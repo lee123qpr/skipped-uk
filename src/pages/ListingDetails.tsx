@@ -21,12 +21,14 @@ import {
   Star,
   Shield,
   Leaf,
-  Ruler
+  Ruler,
+  PoundSterling
 } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MessageDialog from '@/components/MessageDialog';
+import OfferDialog from '@/components/OfferDialog';
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -34,6 +36,7 @@ const ListingDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
 
   const { data: listing, isLoading, error } = useQuery({
@@ -64,6 +67,29 @@ const ListingDetails = () => {
     enabled: !!id,
   });
 
+  // Check if listing is favourited by current user
+  const { data: favouriteData } = useQuery({
+    queryKey: ['favourite', id, user?.id],
+    queryFn: async () => {
+      if (!user || !id) return null;
+      
+      const { data, error } = await supabase
+        .from('favourites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_id', id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!id,
+  });
+
+  useEffect(() => {
+    setIsFavourited(!!favouriteData);
+  }, [favouriteData]);
+
   const handleContact = () => {
     if (!user) {
       toast({
@@ -77,6 +103,19 @@ const ListingDetails = () => {
     setShowMessageDialog(true);
   };
 
+  const handleMakeOffer = () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to make offers.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    setShowOfferDialog(true);
+  };
+
   const handleFavourite = async () => {
     if (!user) {
       toast({
@@ -88,12 +127,46 @@ const ListingDetails = () => {
       return;
     }
     
-    // TODO: Implement favourites functionality
-    setIsFavourited(!isFavourited);
-    toast({
-      title: isFavourited ? "Removed from favourites" : "Added to favourites",
-      description: isFavourited ? "Item removed from your favourites" : "Item saved to your favourites",
-    });
+    try {
+      if (isFavourited) {
+        // Remove from favourites
+        const { error } = await supabase
+          .from('favourites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('listing_id', id);
+          
+        if (error) throw error;
+        
+        setIsFavourited(false);
+        toast({
+          title: "Removed from favourites",
+          description: "Item removed from your favourites",
+        });
+      } else {
+        // Add to favourites
+        const { error } = await supabase
+          .from('favourites')
+          .insert({
+            user_id: user.id,
+            listing_id: id!,
+          });
+          
+        if (error) throw error;
+        
+        setIsFavourited(true);
+        toast({
+          title: "Added to favourites",
+          description: "Item saved to your favourites",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = async () => {
@@ -324,6 +397,17 @@ const ListingDetails = () => {
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </div>
+
+                    {listing.allow_offers && listing.price > 0 && user?.id !== listing.seller_id && (
+                      <Button 
+                        variant="outline" 
+                        onClick={handleMakeOffer}
+                        className="w-full"
+                      >
+                        <PoundSterling className="mr-2 h-4 w-4" />
+                        Make an Offer
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -409,6 +493,18 @@ const ListingDetails = () => {
             listingTitle={listing.title}
             open={showMessageDialog}
             onOpenChange={setShowMessageDialog}
+          />
+        )}
+
+        {showOfferDialog && (
+          <OfferDialog
+            listingId={listing.id}
+            sellerId={listing.seller_id}
+            listingTitle={listing.title}
+            listingPrice={listing.price}
+            minimumOfferPercentage={listing.minimum_offer_percentage}
+            open={showOfferDialog}
+            onOpenChange={setShowOfferDialog}
           />
         )}
       </div>
