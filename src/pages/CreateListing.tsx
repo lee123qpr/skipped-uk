@@ -432,6 +432,9 @@ const CreateListing = () => {
                     <div className="space-y-1">
                       <Label>Free Item</Label>
                       <p className="text-sm text-muted-foreground">Help others while clearing space - offer this item for free</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        💡 Your item may have some value to another user. Don"t skip it, put it up for free!
+                      </p>
                     </div>
                     <Switch
                       checked={formData.price === '0'}
