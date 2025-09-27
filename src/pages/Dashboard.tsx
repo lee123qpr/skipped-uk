@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Package, Settings, LogOut } from "lucide-react";
+import { User, Package, Settings, LogOut, MessageCircle, PoundSterling, Heart } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
+import MyListings from "@/components/MyListings";
+import MessagesInbox from "@/components/MessagesInbox";
+import FavouritesTab from "@/components/FavouritesTab";
 
 interface UserProfile {
   display_name: string | null;
@@ -137,10 +140,18 @@ const Dashboard = () => {
           </div>
 
           <Tabs defaultValue="listings" className="w-full">
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="listings" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 My Listings
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Messages & Offers
+              </TabsTrigger>
+              <TabsTrigger value="favourites" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                Favourites
               </TabsTrigger>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -149,21 +160,15 @@ const Dashboard = () => {
             </TabsList>
             
             <TabsContent value="listings" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Listings</CardTitle>
-                  <CardDescription>Manage your construction material listings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-4">You haven't created any listings yet</p>
-                    <Button onClick={() => navigate("/sell")}>
-                      Create Your First Listing
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <MyListings />
+            </TabsContent>
+            
+            <TabsContent value="messages" className="space-y-4">
+              <MessagesInbox />
+            </TabsContent>
+            
+            <TabsContent value="favourites" className="space-y-4">
+              <FavouritesTab />
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4">
