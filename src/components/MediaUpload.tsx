@@ -40,7 +40,7 @@ const MediaUpload = ({
   const draggedOverIndex = useRef<number | null>(null);
 
   // Generate video thumbnail
-  const generateVideoThumbnail = (file: File): Promise<string> => {
+  const generateVideoThumbnail = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
       const canvas = document.createElement('canvas');
@@ -95,7 +95,7 @@ const MediaUpload = ({
       video.src = URL.createObjectURL(file);
       video.muted = true;
     });
-  };
+  }, []);
 
   const validateFile = (file: File): string | null => {
     const isImage = file.type.startsWith('image/');
