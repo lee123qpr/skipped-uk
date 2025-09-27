@@ -1,8 +1,24 @@
-import { User, Heart, ShoppingBag, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { User, Heart, ShoppingBag, Plus, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-sm border-b shadow-soft">
       <div className="container mx-auto px-4">
@@ -27,26 +43,53 @@ const Navbar = () => {
                 </Button>
               </Link>
               
-              <Button variant="ghost" size="sm">
-                <Heart className="h-4 w-4" />
-              </Button>
+              {user && (
+                <>
+                  <Button variant="ghost" size="sm">
+                    <Heart className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button variant="ghost" size="sm">
+                    <ShoppingBag className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
               
-              <Button variant="ghost" size="sm">
-                <ShoppingBag className="h-4 w-4" />
-              </Button>
-              
-              <Link to="/sign-up">
-                <Button variant="marketplace" size="sm">
-                  Sign Up
-                </Button>
-              </Link>
-              
-              <Link to="/sign-in">
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-              </Link>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Account
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    <DropdownMenuItem>My Listings</DropdownMenuItem>
+                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="marketplace" size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/auth">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
             
             {/* Mobile Menu Button */}
@@ -56,16 +99,30 @@ const Navbar = () => {
                   <Plus className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/sign-up">
-                <Button variant="marketplace" size="sm">
-                  Sign Up
-                </Button>
-              </Link>
-              <Link to="/sign-in">
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4" />
-                </Button>
-              </Link>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    <DropdownMenuItem>My Listings</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="marketplace" size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
