@@ -49,58 +49,82 @@ export type Database = {
       }
       listings: {
         Row: {
+          allow_offers: boolean | null
           available: boolean | null
           carbon_saved: number | null
           category_id: string | null
           condition: string | null
           created_at: string
+          delivery_available: boolean | null
+          delivery_cost: number | null
+          delivery_radius: number | null
           description: string | null
+          dimensions: Json | null
           featured: boolean | null
           id: string
           images: string[] | null
           location: string
+          minimum_offer_percentage: number | null
+          pickup_available: boolean | null
           price: number
           quantity: number | null
           seller_id: string
           status: string | null
           title: string
           updated_at: string
+          weight: number | null
         }
         Insert: {
+          allow_offers?: boolean | null
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
           condition?: string | null
           created_at?: string
+          delivery_available?: boolean | null
+          delivery_cost?: number | null
+          delivery_radius?: number | null
           description?: string | null
+          dimensions?: Json | null
           featured?: boolean | null
           id?: string
           images?: string[] | null
           location: string
+          minimum_offer_percentage?: number | null
+          pickup_available?: boolean | null
           price: number
           quantity?: number | null
           seller_id: string
           status?: string | null
           title: string
           updated_at?: string
+          weight?: number | null
         }
         Update: {
+          allow_offers?: boolean | null
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
           condition?: string | null
           created_at?: string
+          delivery_available?: boolean | null
+          delivery_cost?: number | null
+          delivery_radius?: number | null
           description?: string | null
+          dimensions?: Json | null
           featured?: boolean | null
           id?: string
           images?: string[] | null
           location?: string
+          minimum_offer_percentage?: number | null
+          pickup_available?: boolean | null
           price?: number
           quantity?: number | null
           seller_id?: string
           status?: string | null
           title?: string
           updated_at?: string
+          weight?: number | null
         }
         Relationships: [
           {
