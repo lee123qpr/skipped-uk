@@ -10,11 +10,25 @@ const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle password reset logic here
-    console.log("Password reset requested for:", email);
-    setIsSubmitted(true);
+    
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        console.error("Password reset error:", error);
+        // Still show success message to avoid revealing if email exists
+      }
+      
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Password reset error:", error);
+      setIsSubmitted(true);
+    }
   };
 
   if (isSubmitted) {
