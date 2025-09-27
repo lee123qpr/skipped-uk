@@ -1,6 +1,7 @@
 import { Leaf, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const Footer = () => {
   return (
@@ -9,13 +10,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <div className="w-6 h-6 bg-primary-foreground rounded transform rotate-45"></div>
-              </div>
-              <div className="font-semibold text-xl text-foreground">
-                <span className="text-primary">Skipped</span>
-              </div>
+            <div>
+              <img 
+                src={skippedLogo} 
+                alt="Skipped - Construction Materials Marketplace" 
+                className="h-8 w-auto object-contain"
+              />
             </div>
             <p className="text-muted-foreground leading-relaxed">
               The UK & Ireland's premier marketplace for sustainable construction materials. 

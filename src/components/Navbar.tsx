@@ -2,6 +2,7 @@ import { User, Heart, ShoppingBag, Plus, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthContext";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,13 +25,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <div className="w-6 h-6 bg-primary-foreground rounded transform rotate-45"></div>
-            </div>
-            <div className="font-semibold text-xl text-foreground">
-              <span className="text-primary">Skipped</span>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img 
+              src={skippedLogo} 
+              alt="Skipped - Construction Materials Marketplace" 
+              className="h-8 w-auto object-contain"
+            />
           </Link>
 
           {/* Right Side Actions */}
