@@ -148,6 +148,7 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
+          username: string | null
           verified: boolean | null
         }
         Insert: {
@@ -161,6 +162,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
           verified?: boolean | null
         }
         Update: {
@@ -174,6 +176,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
           verified?: boolean | null
         }
         Relationships: []
@@ -204,6 +207,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_username_suggestions: {
+        Args: { base_username: string }
+        Returns: string[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
