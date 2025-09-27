@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Upload, X, Video, Image as ImageIcon, GripVertical, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -204,10 +204,9 @@ const MediaUpload = ({
     if (newFiles.length > 0) {
       const updatedFiles = [...files, ...newFiles];
       setFiles(updatedFiles);
-      onFilesChange(updatedFiles);
-
-      // Start uploading files
-      for (const mediaFile of newFiles) {        
+      
+      // Start uploading files asynchronously
+      newFiles.forEach(async (mediaFile) => {        
         // Update uploading state
         setFiles(prev => prev.map(f => 
           f.id === mediaFile.id ? { ...f, uploading: true } : f
@@ -215,36 +214,25 @@ const MediaUpload = ({
 
         const uploadedUrl = await uploadFileToStorage(mediaFile.file, mediaFile);
         
-        if (uploadedUrl) {
-          setFiles(prev => {
-            const updated = prev.map(f => 
-              f.id === mediaFile.id 
-                ? { ...f, uploading: false, uploaded: true, url: uploadedUrl }
-                : f
-            );
-            onFilesChange(updated);
-            return updated;
-          });
-        } else {
-          setFiles(prev => {
-            const updated = prev.map(f => 
-              f.id === mediaFile.id 
-                ? { ...f, uploading: false, uploaded: false }
-                : f
-            );
-            onFilesChange(updated);
-            return updated;
-          });
-          
+        setFiles(prev => {
+          const updated = prev.map(f => 
+            f.id === mediaFile.id 
+              ? { ...f, uploading: false, uploaded: uploadedUrl ? true : false, url: uploadedUrl || undefined }
+              : f
+          );
+          return updated;
+        });
+        
+        if (!uploadedUrl) {
           toast({
             title: 'Upload failed',
             description: `Failed to upload ${mediaFile.file.name}`,
             variant: 'destructive',
           });
         }
-      }
+      });
     }
-  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, onFilesChange, generateVideoThumbnail]);
+  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, generateVideoThumbnail]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -289,8 +277,7 @@ const MediaUpload = ({
     
     const updatedFiles = files.filter(f => f.id !== id).map((f, index) => ({ ...f, order: index }));
     setFiles(updatedFiles);
-    onFilesChange(updatedFiles);
-  }, [files, user, onFilesChange]);
+  }, [files, user]);
 
   // Drag and drop reordering
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -325,7 +312,6 @@ const MediaUpload = ({
       // Update order property
       const reorderedFiles = newFiles.map((f, index) => ({ ...f, order: index }));
       setFiles(reorderedFiles);
-      onFilesChange(reorderedFiles);
     }
     
     setDraggedIndex(null);
@@ -337,6 +323,11 @@ const MediaUpload = ({
   const canAddImages = imageCount < maxImages;
   const canAddVideos = videoCount < maxVideos;
   const canAddFiles = canAddImages || canAddVideos;
+
+  // Sync files with parent when they change
+  useEffect(() => {
+    onFilesChange(files);
+  }, [files, onFilesChange]);
 
   return (
     <div className="space-y-3">

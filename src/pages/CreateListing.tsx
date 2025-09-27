@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -200,9 +200,9 @@ const CreateListing = () => {
     return () => clearTimeout(timeoutId);
   }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight]);
 
-  const handleMediaFilesChange = (files: MediaFile[]) => {
+  const handleMediaFilesChange = useCallback((files: MediaFile[]) => {
     setMediaFiles(files);
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
     e.preventDefault();
