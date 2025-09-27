@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Upload, X, Video, Image as ImageIcon } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Upload, X, Video, Image as ImageIcon, GripVertical, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,10 +9,12 @@ interface MediaFile {
   id: string;
   file: File;
   preview: string;
+  thumbnail?: string; // Video thumbnail
   type: 'image' | 'video';
   uploading?: boolean;
   uploaded?: boolean;
   url?: string;
+  order: number; // For drag & drop ordering
 }
 
 interface MediaUploadProps {
@@ -34,6 +36,66 @@ const MediaUpload = ({
   const { toast } = useToast();
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const draggedOverIndex = useRef<number | null>(null);
+
+  // Generate video thumbnail
+  const generateVideoThumbnail = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      video.onloadedmetadata = () => {
+        try {
+          canvas.width = 200; // Smaller thumbnail
+          canvas.height = 200;
+          video.currentTime = Math.min(2, video.duration / 2); // Seek to middle or 2 seconds
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      video.onseeked = () => {
+        try {
+          // Calculate aspect ratio for cropping
+          const aspectRatio = video.videoWidth / video.videoHeight;
+          let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+          
+          if (aspectRatio > 1) {
+            // Wide video - crop sides
+            sw = video.videoHeight;
+            sx = (video.videoWidth - sw) / 2;
+          } else {
+            // Tall video - crop top/bottom  
+            sh = video.videoWidth;
+            sy = (video.videoHeight - sh) / 2;
+          }
+          
+          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        } catch (error) {
+          reject(error);
+        } finally {
+          video.remove();
+        }
+      };
+
+      video.onerror = () => {
+        video.remove();
+        reject(new Error('Failed to load video'));
+      };
+
+      video.preload = 'metadata';
+      video.src = URL.createObjectURL(file);
+      video.muted = true;
+    });
+  };
 
   const validateFile = (file: File): string | null => {
     const isImage = file.type.startsWith('image/');
@@ -95,7 +157,8 @@ const MediaUpload = ({
   const processFiles = useCallback(async (fileList: FileList) => {
     const newFiles: MediaFile[] = [];
 
-    for (const file of Array.from(fileList)) {
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
       const error = validateFile(file);
       if (error) {
         toast({
@@ -106,16 +169,36 @@ const MediaUpload = ({
         continue;
       }
 
-      const mediaFile: MediaFile = {
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        preview: URL.createObjectURL(file),
-        type: file.type.startsWith('image/') ? 'image' : 'video',
-        uploading: false,
-        uploaded: false,
-      };
+      try {
+        const mediaFile: MediaFile = {
+          id: Math.random().toString(36).substr(2, 9),
+          file,
+          preview: URL.createObjectURL(file),
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          uploading: false,
+          uploaded: false,
+          order: files.length + newFiles.length,
+        };
 
-      newFiles.push(mediaFile);
+        // Generate video thumbnail
+        if (mediaFile.type === 'video') {
+          try {
+            mediaFile.thumbnail = await generateVideoThumbnail(file);
+          } catch (error) {
+            console.warn('Failed to generate video thumbnail:', error);
+            // Continue without thumbnail - will show video icon instead
+          }
+        }
+
+        newFiles.push(mediaFile);
+      } catch (error) {
+        console.error('Error processing file:', error);
+        toast({
+          title: 'File processing error',
+          description: `Failed to process ${file.name}`,
+          variant: 'destructive',
+        });
+      }
     }
 
     if (newFiles.length > 0) {
@@ -124,9 +207,7 @@ const MediaUpload = ({
       onFilesChange(updatedFiles);
 
       // Start uploading files
-      for (const mediaFile of newFiles) {
-        const fileIndex = updatedFiles.findIndex(f => f.id === mediaFile.id);
-        
+      for (const mediaFile of newFiles) {        
         // Update uploading state
         setFiles(prev => prev.map(f => 
           f.id === mediaFile.id ? { ...f, uploading: true } : f
@@ -163,7 +244,7 @@ const MediaUpload = ({
         }
       }
     }
-  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, onFilesChange]);
+  }, [files, maxImages, maxVideos, maxImageSize, maxVideoSize, toast, user, onFilesChange, generateVideoThumbnail]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -171,7 +252,8 @@ const MediaUpload = ({
     }
   }, [processFiles]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  // File upload drag and drop
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     if (e.dataTransfer.files) {
@@ -179,7 +261,7 @@ const MediaUpload = ({
     }
   }, [processFiles]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
   }, []);
@@ -201,19 +283,54 @@ const MediaUpload = ({
       }
     }
 
-    URL.revokeObjectURL(fileToRemove?.preview || '');
-    const updatedFiles = files.filter(f => f.id !== id);
+    // Clean up object URLs to prevent memory leaks
+    if (fileToRemove?.preview) URL.revokeObjectURL(fileToRemove.preview);
+    if (fileToRemove?.thumbnail) URL.revokeObjectURL(fileToRemove.thumbnail);
+    
+    const updatedFiles = files.filter(f => f.id !== id).map((f, index) => ({ ...f, order: index }));
     setFiles(updatedFiles);
     onFilesChange(updatedFiles);
   }, [files, user, onFilesChange]);
 
-  const reorderFiles = useCallback((fromIndex: number, toIndex: number) => {
-    const newFiles = [...files];
-    const [reorderedFile] = newFiles.splice(fromIndex, 1);
-    newFiles.splice(toIndex, 0, reorderedFile);
-    setFiles(newFiles);
-    onFilesChange(newFiles);
-  }, [files, onFilesChange]);
+  // Drag and drop reordering
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    draggedOverIndex.current = null;
+  };
+
+  const handleDragEnter = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    draggedOverIndex.current = index;
+  };
+
+  const handleReorderDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleReorderDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+      const newFiles = [...files];
+      const draggedFile = newFiles[draggedIndex];
+      newFiles.splice(draggedIndex, 1);
+      newFiles.splice(dropIndex, 0, draggedFile);
+      
+      // Update order property
+      const reorderedFiles = newFiles.map((f, index) => ({ ...f, order: index }));
+      setFiles(reorderedFiles);
+      onFilesChange(reorderedFiles);
+    }
+    
+    setDraggedIndex(null);
+    draggedOverIndex.current = null;
+  };
 
   const imageCount = files.filter(f => f.type === 'image').length;
   const videoCount = files.filter(f => f.type === 'video').length;
@@ -222,33 +339,33 @@ const MediaUpload = ({
   const canAddFiles = canAddImages || canAddVideos;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Media ({imageCount} images, {videoCount} videos)</h3>
-        <div className="text-sm text-muted-foreground">
+        <h3 className="text-base font-medium">Media ({imageCount} images, {videoCount} videos)</h3>
+        <div className="text-xs text-muted-foreground">
           Max {maxImages} images, {maxVideos} videos
         </div>
       </div>
 
-      {/* Upload area */}
+      {/* Compact Upload area */}
       {canAddFiles && (
         <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
+          onDrop={handleFileDrop}
+          onDragOver={handleFileDragOver}
           onDragLeave={handleDragLeave}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
             isDragOver 
               ? 'border-primary bg-primary/5' 
               : 'border-border hover:border-primary/50'
           }`}
         >
-          <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h4 className="text-lg font-medium mb-2">Upload Images & Videos</h4>
-          <p className="text-muted-foreground mb-4">
-            Drag and drop your files here, or click to browse
+          <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+          <h4 className="text-sm font-medium mb-1">Upload Images & Videos</h4>
+          <p className="text-xs text-muted-foreground mb-2">
+            Drag files here or click to browse
           </p>
-          <div className="text-sm text-muted-foreground mb-4">
-            Images: max {maxImageSize}MB each • Videos: max {maxVideoSize}MB each
+          <div className="text-xs text-muted-foreground mb-3">
+            Images: max {maxImageSize}MB • Videos: max {maxVideoSize}MB
           </div>
           <input
             type="file"
@@ -258,7 +375,7 @@ const MediaUpload = ({
             className="hidden"
             id="media-upload"
           />
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <label htmlFor="media-upload" className="cursor-pointer">
               Choose Files
             </label>
@@ -266,74 +383,106 @@ const MediaUpload = ({
         </div>
       )}
 
-      {/* Media grid */}
+      {/* Compact Media grid with drag & drop */}
       {files.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {files.map((mediaFile, index) => (
-            <div key={mediaFile.id} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                {mediaFile.type === 'image' ? (
-                  <img
-                    src={mediaFile.preview}
-                    alt={`Upload ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center">
-                    <Video className="h-8 w-8 text-muted-foreground mb-2" />
-                    <div className="text-xs text-muted-foreground text-center px-2">
-                      {mediaFile.file.name}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Overlay for uploading state */}
-                {mediaFile.uploading && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-white text-sm">Uploading...</div>
-                  </div>
-                )}
-                
-                {/* Success indicator */}
-                {mediaFile.uploaded && (
-                  <div className="absolute top-2 left-2">
-                    <div className="bg-green-500 text-white rounded-full p-1">
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Main indicator */}
-                {index === 0 && (
-                  <div className="absolute bottom-2 left-2">
-                    <div className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                      Main
-                    </div>
-                  </div>
-                )}
-                
-                {/* Remove button */}
-                <button
-                  type="button"
-                  onClick={() => removeFile(mediaFile.id)}
-                  className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-                
-                {/* Type indicator */}
-                <div className="absolute bottom-2 right-2">
+        <div>
+          <div className="text-xs text-muted-foreground mb-2">
+            Drag to reorder • First image is the main photo
+          </div>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            {files.map((mediaFile, index) => (
+              <div
+                key={mediaFile.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragEnter={(e) => handleDragEnter(e, index)}
+                onDragOver={handleReorderDragOver}
+                onDrop={(e) => handleReorderDrop(e, index)}
+                className={`relative group cursor-move ${
+                  draggedIndex === index ? 'opacity-50' : ''
+                } ${
+                  draggedOverIndex.current === index && draggedIndex !== index 
+                    ? 'ring-2 ring-primary' 
+                    : ''
+                }`}
+              >
+                <div className="aspect-square rounded-md overflow-hidden border border-border bg-muted">
                   {mediaFile.type === 'image' ? (
-                    <ImageIcon className="h-4 w-4 text-white/80" />
+                    <img
+                      src={mediaFile.preview}
+                      alt={`Upload ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <Video className="h-4 w-4 text-white/80" />
+                    <div className="relative w-full h-full">
+                      {mediaFile.thumbnail ? (
+                        <img
+                          src={mediaFile.thumbnail}
+                          alt={`Video ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-muted">
+                          <Video className="h-4 w-4 text-muted-foreground mb-1" />
+                          <div className="text-xs text-muted-foreground text-center px-1">
+                            Video
+                          </div>
+                        </div>
+                      )}
+                      {/* Play icon overlay for videos */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-black/50 rounded-full p-1">
+                          <Play className="h-3 w-3 text-white fill-white" />
+                        </div>
+                      </div>
+                    </div>
                   )}
+                  
+                  {/* Uploading overlay */}
+                  {mediaFile.uploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="text-white text-xs">...</div>
+                    </div>
+                  )}
+                  
+                  {/* Success indicator */}
+                  {mediaFile.uploaded && (
+                    <div className="absolute top-1 left-1">
+                      <div className="bg-success text-success-foreground rounded-full p-0.5">
+                        <svg className="h-2 w-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Main indicator */}
+                  {index === 0 && (
+                    <div className="absolute bottom-1 left-1">
+                      <div className="bg-primary text-primary-foreground text-xs px-1 py-0.5 rounded text-xs">
+                        Main
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Drag handle */}
+                  <div className="absolute top-1 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical className="h-3 w-3 text-white/80" />
+                  </div>
+                  
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => removeFile(mediaFile.id)}
+                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-2 w-2" />
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
