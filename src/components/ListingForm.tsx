@@ -91,7 +91,7 @@ const ListingForm = () => {
           ...validatedData,
           seller_id: user.id,
           images: formData.images,
-        })
+        } as any)
         .select()
         .single();
 
