@@ -116,6 +116,120 @@ const CreateListing = () => {
     },
   });
 
+  // Fetch existing listing data when editing
+  useEffect(() => {
+    const fetchListingData = async () => {
+      if (!listingId || !user) return;
+
+      try {
+        setIsLoading(true);
+        const { data: listing, error } = await supabase
+          .from('listings')
+          .select(`
+            *,
+            categories (
+              id,
+              name
+            )
+          `)
+          .eq('id', listingId)
+          .eq('seller_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching listing:', error);
+          toast({
+            title: 'Error loading listing',
+            description: 'Could not load listing data for editing.',
+            variant: 'destructive',
+          });
+          navigate('/browse');
+          return;
+        }
+
+        if (!listing) {
+          toast({
+            title: 'Listing not found',
+            description: 'The listing you are trying to edit was not found.',
+            variant: 'destructive',
+          });
+          navigate('/browse');
+          return;
+        }
+
+        // Set editing mode and original listing
+        setIsEditing(true);
+        setOriginalListing(listing);
+
+        // Parse dimensions if they exist
+        const dimensions = listing.dimensions ? (() => {
+          const dims = listing.dimensions as any;
+          return {
+            length: dims?.length?.toString() || '',
+            width: dims?.width?.toString() || '',
+            height: dims?.height?.toString() || '',
+            unit: dims?.unit || 'mm'
+          };
+        })() : {
+          length: '',
+          width: '',
+          height: '',
+          unit: 'mm'
+        };
+
+        // Populate form with existing data
+        setFormData({
+          title: listing.title || '',
+          description: listing.description || '',
+          price: listing.price?.toString() || '',
+          condition: listing.condition || '',
+          location: listing.public_location || listing.location || '',
+          category_id: listing.category_id || '',
+          quantity: listing.quantity?.toString() || '1',
+          carbon_saved: listing.carbon_saved?.toString() || '',
+          dimensions,
+          weight: listing.weight?.toString() || '',
+          delivery_available: listing.delivery_available || false,
+          pickup_available: listing.pickup_available !== false, // Default to true
+          delivery_radius: listing.delivery_radius?.toString() || '10',
+          delivery_cost: listing.delivery_cost?.toString() || '',
+          allow_offers: listing.allow_offers !== false, // Default to true
+          minimum_offer_percentage: listing.minimum_offer_percentage?.toString() || '80',
+          fullAddress: listing.full_address || '',
+          latitude: listing.latitude || 0,
+          longitude: listing.longitude || 0,
+          locationBounds: listing.location_bounds || null
+        });
+
+        // Set up media files if images exist
+        if (listing.images && listing.images.length > 0) {
+          const existingMedia: MediaFile[] = listing.images.map((url, index) => ({
+            id: `existing-${index}`,
+            file: new File([], `image-${index}`, { type: 'image/jpeg' }),
+            preview: url,
+            type: 'image' as const,
+            uploaded: true,
+            url: url
+          }));
+          setMediaFiles(existingMedia);
+        }
+
+      } catch (error) {
+        console.error('Error fetching listing:', error);
+        toast({
+          title: 'Error loading listing',
+          description: 'Could not load listing data for editing.',
+          variant: 'destructive',
+        });
+        navigate('/browse');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchListingData();
+  }, [listingId, user, navigate, toast]);
+
   const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field.startsWith('dimensions.')) {
       const dimensionField = field.split('.')[1];
@@ -835,10 +949,10 @@ const CreateListing = () => {
                   {isLoading && !isDraft ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating listing...
+                      {isEditing ? 'Updating listing...' : 'Creating listing...'}
                     </>
                   ) : (
-                    'Create Listing'
+                    isEditing ? 'Update Listing' : 'Create Listing'
                   )}
                 </Button>
               </div>
