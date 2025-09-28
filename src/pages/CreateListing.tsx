@@ -662,7 +662,7 @@ const CreateListing = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="weight">Weight (kg)</Label>
+                      <Label htmlFor="weight">Weight (kg) (optional)</Label>
                       <Input
                         id="weight"
                         type="number"
