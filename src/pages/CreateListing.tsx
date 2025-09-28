@@ -275,6 +275,12 @@ const CreateListing = () => {
           images: uploadedImages,
           status: saveAsDraft ? 'draft' : 'active',
           carbon_saved: finalCarbonSaved || 0,
+          // Privacy-friendly location storage
+          public_location: formData.location,
+          full_address: formData.fullAddress || null,
+          latitude: formData.latitude || null,
+          longitude: formData.longitude || null,
+          location_bounds: formData.locationBounds || null,
         } as any)
         .select()
         .single();
@@ -514,7 +520,7 @@ const CreateListing = () => {
                             locationBounds: locationData.bounds
                           }));
                         }}
-                        placeholder="Start typing your address..."
+                        placeholder="Enter postcode or town/city..."
                         required
                         disabled={isLoading}
                       />

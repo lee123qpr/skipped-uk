@@ -33,7 +33,7 @@ interface LocationAutocompleteProps {
 const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   value,
   onChange,
-  placeholder = "Start typing an address...",
+  placeholder = "Enter postcode or town/city...",
   label,
   required = false,
   disabled = false,
@@ -70,11 +70,11 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
         await loader.load();
 
-        // Create autocomplete with UK/Ireland bias
+        // Create autocomplete restricted to regions (towns/cities and postcodes)
         const autocompleteInstance = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
-          types: ['address'],
+          types: ['(regions)'],
           componentRestrictions: { country: ['gb', 'ie'] },
-          fields: ['address_components', 'formatted_address', 'geometry', 'place_id']
+          fields: ['address_components', 'formatted_address', 'geometry', 'place_id', 'name']
         });
 
         // Add place changed listener
@@ -182,7 +182,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       </div>
       {!isLoading && autocomplete && (
         <p className="text-xs text-muted-foreground">
-          Start typing to see address suggestions. Only postcode and town will be shown publicly.
+          Enter a postcode or town/city. We never share exact addresses publicly.
         </p>
       )}
     </div>
