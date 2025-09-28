@@ -455,7 +455,7 @@ const MessagesInbox = () => {
               <Card key={offer.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="aspect-square rounded bg-muted flex-shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 rounded bg-muted flex-shrink-0 overflow-hidden">
                       {offer.listing?.images?.[0] ? (
                         <img 
                           src={offer.listing.images[0]} 

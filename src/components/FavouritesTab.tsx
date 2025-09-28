@@ -157,7 +157,7 @@ const FavouritesTab = () => {
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 {/* Image */}
-                <div className="aspect-[4/3] rounded-lg bg-muted flex-shrink-0 overflow-hidden">
+                <div className="w-20 sm:w-24 aspect-[4/3] rounded-lg bg-muted flex-shrink-0 overflow-hidden">
                   {favourite.listing.images && favourite.listing.images.length > 0 ? (
                     <img 
                       src={favourite.listing.images[0]} 

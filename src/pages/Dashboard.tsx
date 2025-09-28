@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Package, Settings, LogOut, MessageCircle, PoundSterling, Heart } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import MyListings from "@/components/MyListings";
@@ -99,14 +100,19 @@ const Dashboard = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 pb-24">
+        <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
           <div className="grid gap-6 mb-8">
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-8 w-8 text-primary" />
-                  </div>
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                      {profile?.display_name?.charAt(0)?.toUpperCase() || 
+                       profile?.username?.charAt(0)?.toUpperCase() || 
+                       user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <CardTitle className="text-xl">
                       Welcome back, {profile?.display_name || profile?.username || 'User'}!
@@ -144,27 +150,27 @@ const Dashboard = () => {
           </div>
 
           <Tabs defaultValue="listings" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 sticky top-20 z-10 bg-muted">
-              <TabsTrigger value="listings" className="flex items-center gap-1 text-xs md:text-sm">
+            <TabsList className="grid w-full grid-cols-4 mb-6 sticky top-20 z-10 bg-muted h-auto p-1">
+              <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
                 <Package className="h-4 w-4" />
                 <span className="hidden sm:inline">My Listings</span>
-                <span className="sm:hidden">Listings</span>
+                <span className="sm:hidden text-xs">Listings</span>
               </TabsTrigger>
-              <TabsTrigger value="messages" className="flex items-center gap-1 text-xs md:text-sm">
+              <TabsTrigger value="messages" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2 relative">
                 <MessageCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Messages</span>
-                <span className="sm:hidden">Messages</span>
+                <span className="sm:hidden text-xs">Messages</span>
                 <NotificationBadge count={counts.unreadMessages + counts.pendingOffers + counts.newOffers} />
               </TabsTrigger>
-              <TabsTrigger value="favourites" className="flex items-center gap-1 text-xs md:text-sm">
+              <TabsTrigger value="favourites" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
                 <Heart className="h-4 w-4" />
                 <span className="hidden sm:inline">Favourites</span>
-                <span className="sm:hidden">Saved</span>
+                <span className="sm:hidden text-xs">Saved</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center gap-1 text-xs md:text-sm">
+              <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
-                <span className="sm:hidden">Profile</span>
+                <span className="sm:hidden text-xs">Profile</span>
               </TabsTrigger>
             </TabsList>
             

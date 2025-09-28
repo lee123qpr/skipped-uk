@@ -168,7 +168,7 @@ const MyListings = () => {
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 {/* Image */}
-                  <div className="w-24 aspect-[4/3] rounded bg-muted flex-shrink-0 overflow-hidden">
+                  <div className="w-20 sm:w-24 aspect-[4/3] rounded bg-muted flex-shrink-0 overflow-hidden">
                     {listing.images && listing.images.length > 0 ? (
                       <img
                         src={listing.images[0]}
