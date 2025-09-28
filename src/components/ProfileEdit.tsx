@@ -261,6 +261,7 @@ const ProfileEdit = () => {
       toast({
         title: 'Profile updated',
         description: 'Your profile has been saved successfully',
+        variant: 'default',
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
