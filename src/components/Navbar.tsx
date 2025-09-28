@@ -129,11 +129,18 @@ const Navbar = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link to="/sign-in">
-                  <Button variant="marketplace" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/sign-up">
+                    <Button variant="marketplace" size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                  <Link to="/sign-in">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>
