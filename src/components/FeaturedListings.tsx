@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ListingCard from "./ListingCard";
+import { ListingCardSkeleton } from "@/components/LoadingSkeletons";
 
 interface Listing {
   id: string;
@@ -108,8 +109,8 @@ const FeaturedListings = () => {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-96 bg-muted rounded-lg animate-pulse" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ListingCardSkeleton key={i} />
             ))}
           </div>
         ) : listings.length > 0 ? (

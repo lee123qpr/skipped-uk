@@ -15,6 +15,7 @@ import MessagesInbox from "@/components/MessagesInbox";
 import FavouritesTab from "@/components/FavouritesTab";
 import ProfileEdit from "@/components/ProfileEdit";
 import NotificationBadge from "@/components/NotificationBadge";
+import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 
 interface UserProfile {
   display_name: string | null;
@@ -76,9 +77,35 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
+      <>
+        <SEOHead
+          title="Dashboard - Skipped"
+          description="Manage your Skipped account, listings, and profile"
+          keywords="dashboard, account, profile, listings"
+        />
+        <div className="bg-background">
+          <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+              <Button variant="outline" disabled>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </header>
+          <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
+            <ProfileSkeleton />
+            <div className="mt-6">
+              <div className="grid w-full grid-cols-4 mb-6 h-12 bg-muted rounded-md animate-pulse"></div>
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <MyListingSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      </>
     );
   }
 
@@ -154,29 +181,31 @@ const Dashboard = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={(value) => navigate(`/dashboard?tab=${value}`)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 sticky top-20 z-10 bg-muted h-auto p-1">
-              <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
-                <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">My Listings</span>
-                <span className="sm:hidden text-xs">Listings</span>
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2 relative">
-                <MessageCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Messages</span>
-                <span className="sm:hidden text-xs">Messages</span>
-                <NotificationBadge count={counts.unreadMessages + counts.pendingOffers + counts.newOffers} />
-              </TabsTrigger>
-              <TabsTrigger value="favourites" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
-                <Heart className="h-4 w-4" />
-                <span className="hidden sm:inline">Favourites</span>
-                <span className="sm:hidden text-xs">Saved</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Profile</span>
-                <span className="sm:hidden text-xs">Profile</span>
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto mb-6 sticky top-20 z-10">
+              <TabsList className="grid w-full grid-cols-4 bg-muted/80 backdrop-blur-sm border h-auto p-1 min-w-[320px]">
+                <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <Package className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">My Listings</span>
+                  <span className="sm:hidden text-[10px] truncate">Lists</span>
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 relative min-w-0">
+                  <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Messages</span>
+                  <span className="sm:hidden text-[10px] truncate">Msgs</span>
+                  <NotificationBadge count={counts.unreadMessages + counts.pendingOffers + counts.newOffers} />
+                </TabsTrigger>
+                <TabsTrigger value="favourites" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <Heart className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Favourites</span>
+                  <span className="sm:hidden text-[10px] truncate">Favs</span>
+                </TabsTrigger>
+                <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <Settings className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Profile</span>
+                  <span className="sm:hidden text-[10px] truncate">Profile</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
             
             <TabsContent value="listings" className="space-y-4">
               <MyListings />

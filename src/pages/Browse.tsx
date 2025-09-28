@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import MapSearch from "@/components/MapSearch";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { ListingCardSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -370,8 +371,11 @@ const Browse = () => {
               {isLoading ? (
                 <div className="col-span-full flex items-center justify-center py-12">
                   <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">Loading listings...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <ListingCardSkeleton key={i} />
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : listings.length === 0 ? (

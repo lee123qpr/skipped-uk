@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { MyListingSkeleton } from '@/components/LoadingSkeletons';
 import { 
   Heart, 
   Trash2, 
@@ -108,8 +109,19 @@ const FavouritesTab = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-6 w-32 bg-muted animate-pulse rounded"></div>
+            <div className="h-4 w-48 bg-muted animate-pulse rounded mt-1"></div>
+          </div>
+          <div className="h-9 w-28 bg-muted animate-pulse rounded"></div>
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <MyListingSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -200,31 +212,32 @@ const FavouritesTab = () => {
                         <Badge variant="outline">{favourite.listing.condition}</Badge>
                         <Badge variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1 fill-red-500 text-red-500" />
-                          <span className="hidden xs:inline">Saved {new Date(favourite.created_at).toLocaleDateString('en-GB')}</span>
-                          <span className="xs:hidden">Saved</span>
+                          Saved {new Date(favourite.created_at).toLocaleDateString('en-GB')}
                         </Badge>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-3 sm:mt-0">
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => navigate(`/listing/${favourite.listing.id}`)}
-                        className="text-xs px-3"
+                        className="text-xs px-3 w-full sm:w-auto"
                       >
-                        <Eye className="mr-1 h-4 w-4" />
-                        <span className="hidden xs:inline">View</span>
-                        <span className="xs:hidden">👁</span>
+                        <Eye className="mr-1 h-3 w-3" />
+                        View
                       </Button>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-xs px-3">
-                            <Trash2 className="mr-1 h-4 w-4" />
-                            <span className="hidden xs:inline">Remove</span>
-                            <span className="xs:hidden">🗑</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-xs px-3 w-full sm:w-auto"
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            Remove
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

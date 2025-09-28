@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { MyListingSkeleton } from '@/components/LoadingSkeletons';
 import { 
   Package, 
   Edit3, 
@@ -122,8 +123,19 @@ const MyListings = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-6 w-32 bg-muted animate-pulse rounded"></div>
+            <div className="h-4 w-48 bg-muted animate-pulse rounded mt-1"></div>
+          </div>
+          <div className="h-9 w-36 bg-muted animate-pulse rounded"></div>
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <MyListingSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
