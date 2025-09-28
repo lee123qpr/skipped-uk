@@ -52,7 +52,7 @@ const ListingDetails = () => {
           *,
           profiles!seller_id (
             id,
-            display_name,
+            username,
             avatar_url,
             verified,
             created_at
@@ -444,13 +444,13 @@ const ListingDetails = () => {
                     <Avatar>
                       <AvatarImage src={(listing.profiles as any)?.avatar_url} />
                       <AvatarFallback>
-                        {(listing.profiles as any)?.display_name?.charAt(0)?.toUpperCase() || 'S'}
+                        {(listing.profiles as any)?.username?.charAt(0)?.toUpperCase() || 'S'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          {(listing.profiles as any)?.display_name || 'Anonymous User'}
+                          @{(listing.profiles as any)?.username || 'Anonymous'}
                         </span>
                         {(listing.profiles as any)?.verified && (
                           <Shield className="h-4 w-4 text-blue-500" />
@@ -458,7 +458,7 @@ const ListingDetails = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-muted-foreground">4.5 (12 reviews)</span>
+                        <span className="text-sm text-muted-foreground">No reviews yet</span>
                       </div>
                     </div>
                   </div>

@@ -29,7 +29,6 @@ interface Message {
   receiver_id: string;
   listing_id: string;
   sender_profile: {
-    display_name: string;
     username: string;
     avatar_url: string;
   };
@@ -51,12 +50,10 @@ interface Offer {
   seller_id: string;
   listing_id: string;
   buyer_profile: {
-    display_name: string;
     username: string;
     avatar_url: string;
   };
   seller_profile: {
-    display_name: string;
     username: string;
     avatar_url: string;
   };
@@ -92,7 +89,7 @@ const MessagesInbox = () => {
       const senderIds = [...new Set(messages.map(m => m.sender_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, username, avatar_url')
+        .select('user_id, username, avatar_url')
         .in('user_id', senderIds);
       
       if (profilesError) throw profilesError;
@@ -136,7 +133,7 @@ const MessagesInbox = () => {
       const buyerIds = [...new Set(offers.map(o => o.buyer_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, username, avatar_url')
+        .select('user_id, username, avatar_url')
         .in('user_id', buyerIds);
       
       if (profilesError) throw profilesError;
@@ -180,7 +177,7 @@ const MessagesInbox = () => {
       const sellerIds = [...new Set(offers.map(o => o.seller_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, username, avatar_url')
+        .select('user_id, username, avatar_url')
         .in('user_id', sellerIds);
       
       if (profilesError) throw profilesError;
@@ -321,9 +318,9 @@ const MessagesInbox = () => {
                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                      <Avatar className="w-10 h-10 flex-shrink-0">
                        <AvatarImage src={message.sender_profile?.avatar_url} />
-                       <AvatarFallback>
-                         {message.sender_profile?.display_name?.charAt(0)?.toUpperCase() || 'U'}
-                       </AvatarFallback>
+                        <AvatarFallback>
+                          {message.sender_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
                      </Avatar>
                      
                      <div className="flex-1 min-w-0 w-full">

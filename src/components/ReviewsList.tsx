@@ -12,9 +12,8 @@ interface Review {
   comment: string | null;
   created_at: string;
   profiles: {
-    display_name: string | null;
-    avatar_url: string | null;
     username: string | null;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -43,9 +42,8 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
           comment,
           created_at,
           profiles!reviews_reviewer_id_fkey (
-            display_name,
-            avatar_url,
-            username
+            username,
+            avatar_url
           )
         `)
         .eq('listing_id', listingId)
@@ -128,12 +126,12 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={review.profiles?.avatar_url || ""} />
                     <AvatarFallback>
-                      {(review.profiles?.display_name || review.profiles?.username || "U").charAt(0).toUpperCase()}
+                      {(review.profiles?.username || "U").charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
-                      {review.profiles?.display_name || review.profiles?.username || "Anonymous User"}
+                      @{review.profiles?.username || "Anonymous"}
                     </p>
                     <div className="flex items-center gap-2">
                       <StarRating rating={review.rating} readonly size="sm" />
