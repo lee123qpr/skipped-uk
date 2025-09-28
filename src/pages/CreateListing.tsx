@@ -23,7 +23,7 @@ import LocationAutocomplete from '@/components/LocationAutocomplete';
 const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
-  price: z.number().positive('Price must be positive').max(999999, 'Price must be less than £1,000,000'),
+  price: z.number().nonnegative('Price must be zero (free) or a positive amount').max(999999, 'Price must be less than £1,000,000'),
   condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'poor']),
   location: z.string().min(2, 'Location is required').max(100, 'Location must be less than 100 characters'),
   category_id: z.string().uuid('Please select a category'),
@@ -400,7 +400,7 @@ const CreateListing = () => {
         category_id: formData.category_id,
         quantity: quantity,
         carbon_saved: carbonCalculation?.totalCarbon || 0,
-        dimensions,
+        dimensions: dimensions || undefined,
         weight: weight,
         delivery_available: formData.delivery_available,
         pickup_available: formData.pickup_available,
