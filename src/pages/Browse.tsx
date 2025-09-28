@@ -181,8 +181,10 @@ const Browse = () => {
     seller: {
       name: listing.profiles?.display_name || listing.profiles?.username || 'Anonymous',
       verified: listing.profiles?.verified || false,
-      avatar: listing.profiles?.avatar_url || null
-    }
+      rating: 4.5, // TODO: Calculate from reviews
+      reviewCount: 0 // TODO: Get from reviews count
+    },
+    postedDate: new Date(listing.created_at).toLocaleDateString('en-GB')
   });
 
   return (
