@@ -131,13 +131,13 @@ const Navbar = () => {
               ) : (
                 <>
                   <Link to="/sign-up">
-                    <Button variant="marketplace" size="sm">
+                    <Button variant="marketplace" size="sm" className="text-xs px-2">
                       Sign Up
                     </Button>
                   </Link>
                   <Link to="/sign-in">
-                    <Button variant="outline" size="sm">
-                      <User className="h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-xs px-2">
+                      Sign In
                     </Button>
                   </Link>
                 </>
