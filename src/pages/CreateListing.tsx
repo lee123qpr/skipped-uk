@@ -24,7 +24,7 @@ const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
   price: z.number().positive('Price must be positive').max(999999, 'Price must be less than £1,000,000'),
-  condition: z.enum(['new', 'excellent', 'good', 'fair']),
+  condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'poor']),
   location: z.string().min(2, 'Location is required').max(100, 'Location must be less than 100 characters'),
   category_id: z.string().uuid('Please select a category'),
   quantity: z.number().int().positive('Quantity must be at least 1'),
@@ -42,6 +42,7 @@ const listingSchema = z.object({
   delivery_cost: z.number().nonnegative().optional(),
   allow_offers: z.boolean(),
   minimum_offer_percentage: z.number().int().min(50).max(95).optional(),
+  reason_for_selling: z.string().optional(),
 });
 
 interface MediaFile {
@@ -100,6 +101,7 @@ const CreateListing = () => {
     delivery_cost: '',
     allow_offers: true,
     minimum_offer_percentage: '80',
+    reason_for_selling: '',
     // Additional location fields for privacy and mapping
     fullAddress: '',
     latitude: 0,
@@ -208,6 +210,7 @@ const CreateListing = () => {
           delivery_cost: listing.delivery_cost?.toString() || '',
           allow_offers: listing.allow_offers !== false, // Default to true
           minimum_offer_percentage: listing.minimum_offer_percentage?.toString() || '80',
+          reason_for_selling: listing.reason_for_selling || '',
           fullAddress: listing.full_address || '',
           latitude: listing.latitude || 0,
           longitude: listing.longitude || 0,
@@ -374,6 +377,7 @@ const CreateListing = () => {
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
         allow_offers: formData.allow_offers,
         minimum_offer_percentage: formData.allow_offers && formData.minimum_offer_percentage ? parseInt(formData.minimum_offer_percentage) : undefined,
+        reason_for_selling: formData.reason_for_selling || undefined,
       });
 
       setIsLoading(true);
@@ -569,13 +573,38 @@ const CreateListing = () => {
                           <SelectValue placeholder="Select condition" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="excellent">Excellent</SelectItem>
-                          <SelectItem value="good">Good</SelectItem>
-                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="new">New (unopened/unused)</SelectItem>
+                          <SelectItem value="like_new">Like New (minimal use, excellent condition)</SelectItem>
+                          <SelectItem value="excellent">Excellent (lightly used, very good condition)</SelectItem>
+                          <SelectItem value="good">Good (used with normal wear)</SelectItem>
+                          <SelectItem value="fair">Fair (used with visible wear but functional)</SelectItem>
+                          <SelectItem value="poor">Poor (heavily used, may need repair)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reason_for_selling">Reason for Selling (optional)</Label>
+                    <Select 
+                      value={formData.reason_for_selling} 
+                      onValueChange={(value) => handleInputChange('reason_for_selling', value)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reason (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="surplus">Surplus (excess materials from project)</SelectItem>
+                        <SelectItem value="incorrect_order">Incorrect Order (wrong item ordered)</SelectItem>
+                        <SelectItem value="saving_from_skip">Saving from Skip (rescued from waste)</SelectItem>
+                        <SelectItem value="no_longer_needed">No Longer Needed (project cancelled/changed)</SelectItem>
+                        <SelectItem value="downsizing">Downsizing (clearing space)</SelectItem>
+                        <SelectItem value="end_of_project">End of Project (leftover materials)</SelectItem>
+                        <SelectItem value="upgrading">Upgrading (replacing with better materials)</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
