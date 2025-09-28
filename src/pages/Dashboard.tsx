@@ -80,8 +80,8 @@ const Dashboard = () => {
         description="Manage your Skipped account, listings, and profile"
         keywords="dashboard, account, profile, listings"
       />
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
+      <div className="bg-background">
+        <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             <Button 
@@ -95,7 +95,7 @@ const Dashboard = () => {
           </div>
         </header>
 
-        <div className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 pb-24">
           <div className="grid gap-6 mb-8">
             <Card>
               <CardHeader>
@@ -140,22 +140,26 @@ const Dashboard = () => {
           </div>
 
           <Tabs defaultValue="listings" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="listings" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-4 mb-6 sticky top-20 z-10 bg-muted">
+              <TabsTrigger value="listings" className="flex items-center gap-1 text-xs md:text-sm">
                 <Package className="h-4 w-4" />
-                My Listings
+                <span className="hidden sm:inline">My Listings</span>
+                <span className="sm:hidden">Listings</span>
               </TabsTrigger>
-              <TabsTrigger value="messages" className="flex items-center gap-2">
+              <TabsTrigger value="messages" className="flex items-center gap-1 text-xs md:text-sm">
                 <MessageCircle className="h-4 w-4" />
-                Messages & Offers
+                <span className="hidden sm:inline">Messages</span>
+                <span className="sm:hidden">Messages</span>
               </TabsTrigger>
-              <TabsTrigger value="favourites" className="flex items-center gap-2">
+              <TabsTrigger value="favourites" className="flex items-center gap-1 text-xs md:text-sm">
                 <Heart className="h-4 w-4" />
-                Favourites
+                <span className="hidden sm:inline">Favourites</span>
+                <span className="sm:hidden">Saved</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center gap-2">
+              <TabsTrigger value="profile" className="flex items-center gap-1 text-xs md:text-sm">
                 <Settings className="h-4 w-4" />
-                Profile Settings
+                <span className="hidden sm:inline">Profile</span>
+                <span className="sm:hidden">Profile</span>
               </TabsTrigger>
             </TabsList>
             
@@ -186,7 +190,7 @@ const Dashboard = () => {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
+        </main>
       </div>
     </>
   );
