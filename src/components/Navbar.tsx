@@ -71,7 +71,7 @@ const Navbar = () => {
                       Account
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="z-50 bg-card border-border shadow-lg">
+                      <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
@@ -116,7 +116,7 @@ const Navbar = () => {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="z-50 bg-card border-border shadow-lg">
+                  <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>

@@ -172,12 +172,12 @@ const ProfileEdit = () => {
       // Delete old avatar if exists
       if (profile?.avatar_url) {
         const oldPath = profile.avatar_url.split('/').slice(-2).join('/');
-        await supabase.storage.from('listing-media').remove([oldPath]);
+        await supabase.storage.from('avatars').remove([oldPath]);
       }
 
       // Upload new avatar
       const { data, error } = await supabase.storage
-        .from('listing-media')
+        .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true
@@ -186,7 +186,7 @@ const ProfileEdit = () => {
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('listing-media')
+        .from('avatars')
         .getPublicUrl(data.path);
 
       // Update profile with new avatar URL

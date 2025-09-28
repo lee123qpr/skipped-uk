@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -57,10 +57,13 @@ interface MediaFile {
 const CreateListing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { id: listingId } = useParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalListing, setOriginalListing] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -267,34 +270,65 @@ const CreateListing = () => {
         .filter(f => f.uploaded && f.url)
         .map(f => f.url!);
 
-      const { data, error } = await supabase
-        .from('listings')
-        .insert({
-          ...validatedData,
-          seller_id: user.id,
-          images: uploadedImages,
-          status: saveAsDraft ? 'draft' : 'active',
-          carbon_saved: finalCarbonSaved || 0,
-          // Privacy-friendly location storage
-          public_location: formData.location,
-          full_address: formData.fullAddress || null,
-          latitude: formData.latitude || null,
-          longitude: formData.longitude || null,
-          location_bounds: formData.locationBounds || null,
-        } as any)
-        .select()
-        .single();
+      if (isEditing && listingId) {
+        // Update existing listing
+        const { data, error } = await supabase
+          .from('listings')
+          .update({
+            ...validatedData,
+            images: uploadedImages,
+            carbon_saved: finalCarbonSaved || 0,
+            public_location: formData.location,
+            full_address: formData.fullAddress || null,
+            latitude: formData.latitude || null,
+            longitude: formData.longitude || null,
+            location_bounds: formData.locationBounds || null,
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq('id', listingId)
+          .eq('seller_id', user.id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: saveAsDraft ? 'Draft saved!' : 'Listing created!',
-        description: saveAsDraft 
-          ? 'Your listing has been saved as a draft.' 
-          : 'Your item has been listed successfully.',
-      });
+        toast({
+          title: 'Listing updated!',
+          description: 'Your listing has been updated successfully.',
+        });
 
-      navigate('/browse');
+        navigate(`/listing/${listingId}`);
+      } else {
+        // Create new listing
+        const { data, error } = await supabase
+          .from('listings')
+          .insert({
+            ...validatedData,
+            seller_id: user.id,
+            images: uploadedImages,
+            status: saveAsDraft ? 'draft' : 'active',
+            carbon_saved: finalCarbonSaved || 0,
+            // Privacy-friendly location storage
+            public_location: formData.location,
+            full_address: formData.fullAddress || null,
+            latitude: formData.latitude || null,
+            longitude: formData.longitude || null,
+            location_bounds: formData.locationBounds || null,
+          } as any)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast({
+          title: saveAsDraft ? 'Draft saved!' : 'Listing created!',
+          description: saveAsDraft 
+            ? 'Your listing has been saved as a draft.' 
+            : 'Your item has been listed successfully.',
+        });
+
+        navigate('/browse');
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -318,17 +352,17 @@ const CreateListing = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Create New Listing - Construction Materials",
-    "description": "List your surplus construction materials for sale on Skipped marketplace",
-    "url": "https://skipped.com/sell"
+    "name": isEditing ? "Edit Listing - Construction Materials" : "Create New Listing - Construction Materials",
+    "description": isEditing ? "Edit your construction material listing on Skipped marketplace" : "List your surplus construction materials for sale on Skipped marketplace",
+    "url": isEditing ? `https://skipped.com/listing/${listingId}/edit` : "https://skipped.com/sell"
   };
 
   return (
     <>
       <SEOHead
-        title="Sell Construction Materials - Create Listing | Skipped"
-        description="List your surplus construction materials for sale on Skipped. Upload photos & videos, set delivery options, and reach thousands of buyers across UK & Ireland."
-        keywords="sell construction materials, list building materials, upload construction photos, surplus materials marketplace, sell timber, sell bricks"
+        title={isEditing ? "Edit Listing - Construction Materials | Skipped" : "Sell Construction Materials - Create Listing | Skipped"}
+        description={isEditing ? "Edit your construction material listing on Skipped marketplace. Update photos, pricing, and delivery options." : "List your surplus construction materials for sale on Skipped. Upload photos & videos, set delivery options, and reach thousands of buyers across UK & Ireland."}
+        keywords={isEditing ? "edit listing, update construction materials, modify listing" : "sell construction materials, list building materials, upload construction photos, surplus materials marketplace, sell timber, sell bricks"}
         structuredData={structuredData}
       />
       <div className="min-h-screen bg-background">
@@ -337,8 +371,12 @@ const CreateListing = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Create New Listing</h1>
-              <p className="text-muted-foreground">List your surplus construction materials and help others while earning money</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                {isEditing ? 'Edit Listing' : 'Create New Listing'}
+              </h1>
+              <p className="text-muted-foreground">
+                {isEditing ? 'Update your construction material listing details' : 'List your surplus construction materials and help others while earning money'}
+              </p>
             </header>
 
             <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
