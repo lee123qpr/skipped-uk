@@ -38,6 +38,8 @@ const listingSchema = z.object({
   weight: z.number().positive().optional(),
   delivery_available: z.boolean(),
   pickup_available: z.boolean(),
+  collection_location: z.string().optional(),
+  collection_notes: z.string().optional(),
   delivery_radius: z.number().int().positive().optional(),
   delivery_cost: z.number().nonnegative().optional(),
   allow_offers: z.boolean(),
@@ -97,6 +99,8 @@ const CreateListing = () => {
     weight: '',
     delivery_available: false,
     pickup_available: true,
+    collection_location: '',
+    collection_notes: '',
     delivery_radius: '10',
     delivery_cost: '',
     allow_offers: true,
@@ -206,6 +210,8 @@ const CreateListing = () => {
           weight: listing.weight?.toString() || '',
           delivery_available: listing.delivery_available || false,
           pickup_available: listing.pickup_available !== false, // Default to true
+          collection_location: listing.collection_location || '',
+          collection_notes: listing.collection_notes || '',
           delivery_radius: listing.delivery_radius?.toString() || '10',
           delivery_cost: listing.delivery_cost?.toString() || '',
           allow_offers: listing.allow_offers !== false, // Default to true
@@ -404,6 +410,8 @@ const CreateListing = () => {
         weight: weight,
         delivery_available: formData.delivery_available,
         pickup_available: formData.pickup_available,
+        collection_location: formData.pickup_available && formData.collection_location ? formData.collection_location : undefined,
+        collection_notes: formData.pickup_available && formData.collection_notes ? formData.collection_notes : undefined,
         delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
         allow_offers: formData.allow_offers,
@@ -895,14 +903,14 @@ const CreateListing = () => {
                   <CardTitle>Collection & Delivery</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-6">
-                  {/* Pickup */}
+                  {/* Collection Options */}
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-primary" />
-                        <Label>Pickup Available</Label>
+                        <Label>Collection Available</Label>
                       </div>
-                      <p className="text-sm text-muted-foreground">Buyers can collect the item from your location</p>
+                      <p className="text-sm text-muted-foreground">Allow buyers to collect the item from your location</p>
                     </div>
                     <Switch
                       checked={formData.pickup_available}
@@ -910,6 +918,45 @@ const CreateListing = () => {
                       disabled={isLoading}
                     />
                   </div>
+
+                  {formData.pickup_available && (
+                    <div className="ml-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="collection-location">Collection Location</Label>
+                        <Select 
+                          value={formData.collection_location} 
+                          onValueChange={(value) => handleInputChange('collection_location', value)}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select collection location" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Home">Home</SelectItem>
+                            <SelectItem value="Driveway">Driveway</SelectItem>
+                            <SelectItem value="Rear Garden">Rear Garden</SelectItem>
+                            <SelectItem value="Construction Site">Construction Site</SelectItem>
+                            <SelectItem value="Kerbside">Kerbside</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="collection-notes">Collection Notes (Optional)</Label>
+                        <Textarea
+                          id="collection-notes"
+                          value={formData.collection_notes}
+                          onChange={(e) => handleInputChange('collection_notes', e.target.value)}
+                          placeholder="e.g. Heavy item, labour needed to collect, collecting from upper floor..."
+                          disabled={isLoading}
+                          rows={2}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Add any special requirements or important information for collection
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Delivery */}
                   <div className="flex items-start justify-between">

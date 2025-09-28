@@ -82,6 +82,8 @@ export type Database = {
           available: boolean | null
           carbon_saved: number | null
           category_id: string | null
+          collection_location: string | null
+          collection_notes: string | null
           condition: string | null
           created_at: string
           delivery_available: boolean | null
@@ -114,6 +116,8 @@ export type Database = {
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
+          collection_location?: string | null
+          collection_notes?: string | null
           condition?: string | null
           created_at?: string
           delivery_available?: boolean | null
@@ -146,6 +150,8 @@ export type Database = {
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
+          collection_location?: string | null
+          collection_notes?: string | null
           condition?: string | null
           created_at?: string
           delivery_available?: boolean | null

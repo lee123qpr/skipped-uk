@@ -523,9 +523,22 @@ const ListingDetails = () => {
                     </span>
                   </div>
                   {listing.pickup_available && (
-                    <p className="text-sm text-muted-foreground ml-5">
-                      Item can be collected from {listing.location}
-                    </p>
+                    <div className="ml-5 space-y-2">
+                      <div className="text-sm">
+                        <span className="font-medium">Location:</span> {listing.location}
+                      </div>
+                      {listing.collection_location && (
+                        <div className="text-sm">
+                          <span className="font-medium">Collection from:</span> {listing.collection_location}
+                        </div>
+                      )}
+                      {listing.collection_notes && (
+                        <div className="text-sm p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded">
+                          <span className="font-medium text-amber-700 dark:text-amber-300">Collection Notes:</span>
+                          <p className="text-amber-600 dark:text-amber-400 mt-1">{listing.collection_notes}</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 
