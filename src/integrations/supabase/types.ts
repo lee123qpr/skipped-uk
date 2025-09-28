@@ -90,12 +90,17 @@ export type Database = {
           description: string | null
           dimensions: Json | null
           featured: boolean | null
+          full_address: string | null
           id: string
           images: string[] | null
+          latitude: number | null
           location: string
+          location_bounds: Json | null
+          longitude: number | null
           minimum_offer_percentage: number | null
           pickup_available: boolean | null
           price: number
+          public_location: string | null
           quantity: number | null
           seller_id: string
           status: string | null
@@ -116,12 +121,17 @@ export type Database = {
           description?: string | null
           dimensions?: Json | null
           featured?: boolean | null
+          full_address?: string | null
           id?: string
           images?: string[] | null
+          latitude?: number | null
           location: string
+          location_bounds?: Json | null
+          longitude?: number | null
           minimum_offer_percentage?: number | null
           pickup_available?: boolean | null
           price: number
+          public_location?: string | null
           quantity?: number | null
           seller_id: string
           status?: string | null
@@ -142,12 +152,17 @@ export type Database = {
           description?: string | null
           dimensions?: Json | null
           featured?: boolean | null
+          full_address?: string | null
           id?: string
           images?: string[] | null
+          latitude?: number | null
           location?: string
+          location_bounds?: Json | null
+          longitude?: number | null
           minimum_offer_percentage?: number | null
           pickup_available?: boolean | null
           price?: number
+          public_location?: string | null
           quantity?: number | null
           seller_id?: string
           status?: string | null
@@ -352,6 +367,39 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      saved_searches: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          notification_enabled: boolean
+          search_criteria: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          notification_enabled?: boolean
+          search_criteria: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          notification_enabled?: boolean
+          search_criteria?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

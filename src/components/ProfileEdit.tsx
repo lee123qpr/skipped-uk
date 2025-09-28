@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, Save, User, MapPin, Building, Phone, Mail } from 'lucide-react';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { z } from 'zod';
 
 const profileSchema = z.object({
@@ -425,15 +426,20 @@ const ProfileEdit = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">
-                <MapPin className="h-4 w-4 inline mr-2" />
-                Location
-              </Label>
-              <Input
+              <LocationAutocomplete
                 id="location"
+                label="Location"
                 value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="City, Country"
+                onChange={(locationData) => {
+                  handleInputChange('location', locationData.publicLocation);
+                  setFormData(prev => ({
+                    ...prev,
+                    fullAddress: locationData.fullAddress,
+                    latitude: locationData.latitude,
+                    longitude: locationData.longitude
+                  }));
+                }}
+                placeholder="Start typing your location..."
               />
             </div>
 

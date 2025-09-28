@@ -18,6 +18,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MediaUpload from '@/components/MediaUpload';
 import CarbonBadge from '@/components/CarbonBadge';
+import LocationAutocomplete from '@/components/LocationAutocomplete';
 
 const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
@@ -83,6 +84,11 @@ const CreateListing = () => {
     delivery_cost: '',
     allow_offers: true,
     minimum_offer_percentage: '80',
+    // Additional location fields for privacy and mapping
+    fullAddress: '',
+    latitude: 0,
+    longitude: 0,
+    locationBounds: null as any
   });
 
   const [carbonCalculation, setCarbonCalculation] = useState<{
@@ -493,12 +499,22 @@ const CreateListing = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location *</Label>
-                      <Input
+                      <LocationAutocomplete
                         id="location"
+                        label="Location"
                         value={formData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
-                        placeholder="e.g., London, UK"
+                        onChange={(locationData) => {
+                          handleInputChange('location', locationData.publicLocation);
+                          // Store additional location data if needed
+                          setFormData(prev => ({
+                            ...prev,
+                            fullAddress: locationData.fullAddress,
+                            latitude: locationData.latitude,
+                            longitude: locationData.longitude,
+                            locationBounds: locationData.bounds
+                          }));
+                        }}
+                        placeholder="Start typing your address..."
                         required
                         disabled={isLoading}
                       />
