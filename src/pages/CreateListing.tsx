@@ -350,27 +350,58 @@ const CreateListing = () => {
     e.preventDefault();
     
     try {
-      // Prepare dimensions object
+      // Prepare dimensions object with proper validation
       const dimensions = formData.dimensions.length || formData.dimensions.width || formData.dimensions.height 
-        ? {
-            length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : undefined,
-            width: formData.dimensions.width ? parseFloat(formData.dimensions.width) : undefined,
-            height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : undefined,
-            unit: formData.dimensions.unit
-          }
+        ? (() => {
+            const length = formData.dimensions.length ? parseFloat(formData.dimensions.length) : undefined;
+            const width = formData.dimensions.width ? parseFloat(formData.dimensions.width) : undefined;
+            const height = formData.dimensions.height ? parseFloat(formData.dimensions.height) : undefined;
+            
+            // Check for invalid numbers
+            if ((length !== undefined && isNaN(length)) || 
+                (width !== undefined && isNaN(width)) || 
+                (height !== undefined && isNaN(height))) {
+              throw new Error('Please enter valid numbers for dimensions');
+            }
+            
+            return {
+              length: length,
+              width: width,
+              height: height,
+              unit: formData.dimensions.unit
+            };
+          })()
         : null;
+
+      // Validate price
+      const price = parseFloat(formData.price);
+      if (isNaN(price) || price < 0) {
+        throw new Error('Please enter a valid price');
+      }
+
+      // Validate weight
+      const weight = formData.weight ? parseFloat(formData.weight) : undefined;
+      if (weight !== undefined && isNaN(weight)) {
+        throw new Error('Please enter a valid weight');
+      }
+
+      // Validate quantity
+      const quantity = parseInt(formData.quantity);
+      if (isNaN(quantity) || quantity < 1) {
+        throw new Error('Please enter a valid quantity');
+      }
 
       const validatedData = listingSchema.parse({
         title: formData.title,
         description: formData.description,
-        price: parseFloat(formData.price),
+        price: price,
         condition: formData.condition,
         location: formData.location,
         category_id: formData.category_id,
-        quantity: parseInt(formData.quantity),
+        quantity: quantity,
         carbon_saved: carbonCalculation?.totalCarbon || 0,
         dimensions,
-        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        weight: weight,
         delivery_available: formData.delivery_available,
         pickup_available: formData.pickup_available,
         delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
@@ -454,16 +485,23 @@ const CreateListing = () => {
         navigate('/browse');
       }
     } catch (error) {
+      console.error('Form submission error:', error);
       if (error instanceof z.ZodError) {
         toast({
           title: 'Validation error',
           description: error.errors[0].message,
           variant: 'destructive',
         });
+      } else if (error instanceof Error) {
+        toast({
+          title: 'Validation error',
+          description: error.message,
+          variant: 'destructive',
+        });
       } else {
         toast({
           title: 'Error creating listing',
-          description: 'Please try again later.',
+          description: 'Please check your form and try again.',
           variant: 'destructive',
         });
       }
@@ -625,18 +663,27 @@ const CreateListing = () => {
                       <Label>Dimensions (optional)</Label>
                       <div className="grid grid-cols-4 gap-2">
                         <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
                           placeholder="Length"
                           value={formData.dimensions.length}
                           onChange={(e) => handleInputChange('dimensions.length', e.target.value)}
                           disabled={isLoading}
                         />
                         <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
                           placeholder="Width"
                           value={formData.dimensions.width}
                           onChange={(e) => handleInputChange('dimensions.width', e.target.value)}
                           disabled={isLoading}
                         />
                         <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
                           placeholder="Height"
                           value={formData.dimensions.height}
                           onChange={(e) => handleInputChange('dimensions.height', e.target.value)}
