@@ -16,7 +16,7 @@ import FavouritesTab from "@/components/FavouritesTab";
 import ProfileEdit from "@/components/ProfileEdit";
 import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
-import UserReviews from "@/components/UserReviews";
+import TransactionReviews from "@/components/TransactionReviews";
 
 interface UserProfile {
   display_name: string | null;
@@ -230,7 +230,7 @@ const Dashboard = () => {
             
             <TabsContent value="profile" className="space-y-4">
               <ProfileEdit />
-              <UserReviews />
+              <TransactionReviews />
             </TabsContent>
           </Tabs>
         </main>

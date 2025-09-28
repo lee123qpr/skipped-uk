@@ -325,8 +325,10 @@ export type Database = {
           listing_id: string
           rating: number
           reviewer_id: string
+          reviewer_type: string | null
           seller_id: string
           title: string | null
+          transaction_id: string | null
           updated_at: string
         }
         Insert: {
@@ -336,8 +338,10 @@ export type Database = {
           listing_id: string
           rating: number
           reviewer_id: string
+          reviewer_type?: string | null
           seller_id: string
           title?: string | null
+          transaction_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -347,8 +351,10 @@ export type Database = {
           listing_id?: string
           rating?: number
           reviewer_id?: string
+          reviewer_type?: string | null
           seller_id?: string
           title?: string | null
+          transaction_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -398,6 +404,45 @@ export type Database = {
           search_criteria?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          buyer_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          listing_id: string
+          offer_id: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id: string
+          offer_id?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string
+          offer_id?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

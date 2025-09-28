@@ -106,10 +106,32 @@ const MyListings = () => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Status updated',
-        description: `Listing marked as ${newStatus}.`,
-      });
+      // If marking as sold, complete any pending transactions
+      if (newStatus === 'sold') {
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .update({ 
+            status: 'completed',
+            completed_at: new Date().toISOString()
+          })
+          .eq('listing_id', listingId)
+          .eq('status', 'pending');
+
+        if (transactionError) {
+          console.error('Error completing transactions:', transactionError);
+          // Don't fail the listing status update if transaction completion fails
+        }
+
+        toast({
+          title: 'Listing sold!',
+          description: 'Transaction completed. Both parties can now leave reviews.',
+        });
+      } else {
+        toast({
+          title: 'Status updated',
+          description: `Listing marked as ${newStatus}.`,
+        });
+      }
 
       refetch();
     } catch (error) {
