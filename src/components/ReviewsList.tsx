@@ -11,7 +11,7 @@ interface Review {
   title: string | null;
   comment: string | null;
   created_at: string;
-  reviewer_profiles: {
+  profiles: {
     display_name: string | null;
     avatar_url: string | null;
     username: string | null;
@@ -42,7 +42,7 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
           title,
           comment,
           created_at,
-          reviewer_profiles:profiles!reviewer_id (
+          profiles!reviews_reviewer_id_fkey (
             display_name,
             avatar_url,
             username
@@ -126,14 +126,14 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={review.reviewer_profiles?.avatar_url || ""} />
+                    <AvatarImage src={review.profiles?.avatar_url || ""} />
                     <AvatarFallback>
-                      {(review.reviewer_profiles?.display_name || review.reviewer_profiles?.username || "U").charAt(0).toUpperCase()}
+                      {(review.profiles?.display_name || review.profiles?.username || "U").charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
-                      {review.reviewer_profiles?.display_name || review.reviewer_profiles?.username || "Anonymous User"}
+                      {review.profiles?.display_name || review.profiles?.username || "Anonymous User"}
                     </p>
                     <div className="flex items-center gap-2">
                       <StarRating rating={review.rating} readonly size="sm" />
