@@ -63,6 +63,19 @@ const CreateListing = () => {
   const [isDraft, setIsDraft] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Immediate authentication check - redirect if not signed in
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to create a listing.',
+        variant: 'destructive',
+      });
+      navigate('/sign-in');
+      return;
+    }
+  }, [user, navigate, toast]);
   const [originalListing, setOriginalListing] = useState<any>(null);
   
   const [formData, setFormData] = useState({
@@ -333,16 +346,6 @@ const CreateListing = () => {
   const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
     e.preventDefault();
     
-    if (!user) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to create a listing.',
-        variant: 'destructive',
-      });
-      navigate('/sign-in');
-      return;
-    }
-
     try {
       // Prepare dimensions object
       const dimensions = formData.dimensions.length || formData.dimensions.width || formData.dimensions.height 
