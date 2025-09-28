@@ -13,9 +13,10 @@ interface Listing {
   images: string[];
   carbonSaved: number;
   seller: {
-    name: string;
+    username: string;
     verified: boolean;
     rating: number;
+    reviewCount?: number;
   };
   postedDate: string;
 }
@@ -42,8 +43,7 @@ const FeaturedListings = () => {
           carbon_saved,
           created_at,
           profiles:seller_id (
-            display_name,
-            company_name,
+            username,
             verified
           )
         `)
@@ -66,9 +66,10 @@ const FeaturedListings = () => {
         images: listing.images?.length > 0 ? listing.images : ["/api/placeholder/400/300"],
         carbonSaved: Number(listing.carbon_saved || 0),
         seller: {
-          name: listing.profiles?.display_name || listing.profiles?.company_name || "Anonymous Seller",
+          username: listing.profiles?.username || "Anonymous",
           verified: listing.profiles?.verified || false,
-          rating: 4.5 // Default rating - you might want to add a ratings system later
+          rating: 0, // No ratings yet - will be calculated from reviews later
+          reviewCount: 0 // No reviews yet
         },
         postedDate: formatPostedDate(listing.created_at)
       })) || [];

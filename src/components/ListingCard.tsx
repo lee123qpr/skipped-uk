@@ -14,7 +14,7 @@ interface ListingCardProps {
   images: string[];
   carbonSaved: number;
   seller: {
-    name: string;
+    username: string;
     verified: boolean;
     rating: number;
     reviewCount?: number;
@@ -127,20 +127,22 @@ const ListingCard = ({
             <User className="h-3 w-3 text-primary" />
           </div>
           <span className="text-sm text-muted-foreground">
-            {seller.name}
+            @{seller.username || 'Anonymous'}
             {seller.verified && (
               <span className="ml-1 text-accent">✓</span>
             )}
           </span>
-          <div className="ml-auto">
-            <StarRating 
-              rating={seller.rating} 
-              readonly 
-              size="sm" 
-              showCount 
-              count={seller.reviewCount || 0}
-            />
-          </div>
+          {seller.reviewCount && seller.reviewCount > 0 && (
+            <div className="ml-auto">
+              <StarRating 
+                rating={seller.rating} 
+                readonly 
+                size="sm" 
+                showCount 
+                count={seller.reviewCount}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Card>

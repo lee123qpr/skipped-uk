@@ -67,7 +67,6 @@ const Browse = () => {
           ),
           profiles!listings_seller_id_fkey (
             id,
-            display_name,
             username,
             verified,
             avatar_url
@@ -179,10 +178,10 @@ const Browse = () => {
     images: listing.images || [],
     carbonSaved: listing.carbon_saved || 0,
     seller: {
-      name: listing.profiles?.display_name || listing.profiles?.username || 'Anonymous',
+      username: listing.profiles?.username || 'Anonymous',
       verified: listing.profiles?.verified || false,
-      rating: 4.5, // TODO: Calculate from reviews
-      reviewCount: 0 // TODO: Get from reviews count
+      rating: 0, // No ratings yet - will be calculated from reviews later
+      reviewCount: 0 // No reviews yet
     },
     postedDate: new Date(listing.created_at).toLocaleDateString('en-GB')
   });
