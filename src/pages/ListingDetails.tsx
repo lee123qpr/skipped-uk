@@ -23,7 +23,10 @@ import {
   Shield,
   Leaf,
   Ruler,
-  PoundSterling
+  PoundSterling,
+  Weight,
+  User,
+  CheckCircle
 } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
@@ -34,7 +37,15 @@ import MessageDialog from '@/components/MessageDialog';
 import OfferDialog from '@/components/OfferDialog';
 import { ReviewForm } from '@/components/ReviewForm';
 import { ReviewsList } from '@/components/ReviewsList';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StarRating } from '@/components/StarRating';
+import { SellerOtherItems } from '@/components/SellerOtherItems';
+import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -285,51 +296,48 @@ const ListingDetails = () => {
             Back to Browse
           </Button>
 
-          {/* Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Image Gallery */}
-            <div className="space-y-4">
-              <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  {listing.images && listing.images.length > 0 ? (
-                    <div className="aspect-square bg-muted overflow-hidden">
-                      <img 
-                        src={listing.images[0]} 
-                        alt={listing.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-square bg-muted flex items-center justify-center">
-                      <Package className="h-16 w-16 text-muted-foreground" />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Image Thumbnails */}
-              {listing.images && listing.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {listing.images.slice(1, 5).map((image, index) => (
-                    <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
-                      <img 
-                        src={image} 
-                        alt={`${listing.title} - ${index + 2}`}
-                        className="w-full h-full object-cover hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Image Gallery */}
+          <div className="mb-8">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                {listing.images && listing.images.length > 0 ? (
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {listing.images.map((image, index) => (
+                        <CarouselItem key={index}>
+                          <div className="aspect-[4/3] lg:aspect-[16/9] bg-muted overflow-hidden">
+                            <img 
+                              src={image} 
+                              alt={`${listing.title} - Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {listing.images.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-4" />
+                        <CarouselNext className="right-4" />
+                      </>
+                    )}
+                  </Carousel>
+                ) : (
+                  <div className="aspect-[4/3] lg:aspect-[16/9] bg-muted flex items-center justify-center">
+                    <Package className="h-16 w-16 text-muted-foreground" />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-            {/* Hero Info */}
-            <div className="space-y-6">
-              {/* Title and Category */}
-              <div>
+          {/* Title and Key Information */}
+          <div className="mb-8">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
                 <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
                 {listing.categories && (
-                  <Badge variant="secondary" className="mb-4">
+                  <Badge variant="secondary" className="mb-3">
                     {listing.categories.name}
                   </Badge>
                 )}
@@ -337,70 +345,96 @@ const ListingDetails = () => {
                   {listing.price === 0 ? 'Free' : `£${listing.price.toLocaleString()}`}
                 </div>
               </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-2 ml-4">
+                <Button 
+                  onClick={handleContact} 
+                  disabled={user?.id === listing.seller_id}
+                  className="px-6"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  {user?.id === listing.seller_id ? 'Your Listing' : 'Contact Seller'}
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleFavourite}>
+                  <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleShare}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Listed Date */}
+            <div className="flex items-center gap-2 text-muted-foreground mb-6">
+              <Calendar className="h-4 w-4" />
+              <span className="text-sm">
+                Listed on {new Date(listing.created_at).toLocaleDateString('en-GB', { 
+                  weekday: 'long',
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
+          </div>
 
-              {/* Key Details Card */}
-              <Card className="bg-gradient-to-br from-card to-card/80">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="text-center p-3 bg-background/50 rounded-lg">
-                      <div className="text-lg font-semibold text-primary">{listing.condition}</div>
-                      <div className="text-xs text-muted-foreground">Condition</div>
-                    </div>
-                    <div className="text-center p-3 bg-background/50 rounded-lg">
-                      <div className="text-lg font-semibold text-primary">{listing.quantity}</div>
-                      <div className="text-xs text-muted-foreground">Available</div>
+          {/* Key Information Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Key Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Location:</span>
+                      <p className="font-medium">{listing.location}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Condition:</span>
+                      <p className="font-medium">{listing.condition}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-primary">#{listing.quantity}</span>
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Quantity Available:</span>
+                      <p className="font-medium">{listing.quantity} {listing.quantity === 1 ? 'item' : 'items'}</p>
+                    </div>
+                  </div>
+                  {listing.weight && (
+                    <div className="flex items-center gap-3">
+                      <Weight className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Weight:</span>
+                        <p className="font-medium">{listing.weight}kg</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  {listing.dimensions && typeof listing.dimensions === 'object' && (
+                    <div className="flex items-center gap-3">
+                      <Ruler className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Dimensions:</span>
+                        <p className="font-medium">
+                          {(listing.dimensions as any).length} × {(listing.dimensions as any).width} × {(listing.dimensions as any).height} {(listing.dimensions as any).unit}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{listing.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        Listed {new Date(listing.created_at).toLocaleDateString('en-GB')}
-                      </span>
-                    </div>
-                    {listing.weight && (
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Weight: {listing.weight}kg</span>
-                      </div>
-                    )}
-                    {listing.dimensions && typeof listing.dimensions === 'object' && (
-                      <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {(listing.dimensions as any).length}×{(listing.dimensions as any).width}×{(listing.dimensions as any).height} {(listing.dimensions as any).unit}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Actions Panel */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex gap-2 mb-4">
-                    <Button 
-                      onClick={handleContact} 
-                      className="flex-1"
-                      disabled={user?.id === listing.seller_id}
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Contact Seller
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleFavourite}>
-                      <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleShare}>
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
                   {listing.allow_offers && listing.price > 0 && user?.id !== listing.seller_id && (
                     <Button 
                       variant="outline" 
@@ -411,254 +445,188 @@ const ListingDetails = () => {
                       Make an Offer
                     </Button>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Item Details Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Item Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Description */}
+              <div>
+                <h4 className="font-semibold mb-3 text-primary">Description</h4>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                  {listing.description || 'No description provided.'}
+                </p>
+              </div>
+              
+              {/* Reason for Selling */}
+              {listing.reason_for_selling && (
+                <div>
+                  <h4 className="font-semibold mb-3 text-primary">Reason for Selling</h4>
+                  <p className="text-muted-foreground">{listing.reason_for_selling}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Environmental Impact */}
           {listing.carbon_saved > 0 && (
             <Card className="mb-8 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                    <Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">Environmental Impact</h3>
-                    <p className="text-green-700 dark:text-green-300">
-                      Purchasing this item saves approximately <span className="font-bold">{listing.carbon_saved}kg CO₂</span> from being released into the atmosphere
-                    </p>
-                  </div>
-                </div>
+              <CardHeader>
+                <CardTitle className="text-green-800 dark:text-green-200 flex items-center gap-2">
+                  <Leaf className="h-5 w-5" />
+                  Environmental Impact
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-green-700 dark:text-green-300">
+                  Purchasing this item saves approximately <span className="font-bold">{listing.carbon_saved}kg CO₂</span> from being released into the atmosphere by avoiding new production.
+                </p>
               </CardContent>
             </Card>
           )}
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Description & Specifications */}
-              <Card>
-                <Tabs defaultValue="description" className="w-full">
-                  <CardHeader>
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="description">Description</TabsTrigger>
-                      <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                      <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                    </TabsList>
-                  </CardHeader>
-                  <CardContent>
-                    <TabsContent value="description" className="space-y-4">
-                      <div>
-                        <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                          {listing.description}
-                        </p>
-                      </div>
-                      
-                      {listing.reason_for_selling && (
-                        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                          <h4 className="font-semibold mb-2 text-primary">Reason for Selling</h4>
-                          <p className="text-sm text-muted-foreground">{listing.reason_for_selling}</p>
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="specifications">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-primary">Item Details</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                              <span className="text-sm font-medium">Condition</span>
-                              <Badge variant="outline">{listing.condition}</Badge>
-                            </div>
-                            <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                              <span className="text-sm font-medium">Quantity</span>
-                              <span className="text-sm">{listing.quantity} unit{listing.quantity !== 1 ? 's' : ''}</span>
-                            </div>
-                            {listing.weight && (
-                              <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                                <span className="text-sm font-medium">Weight</span>
-                                <span className="text-sm">{listing.weight}kg</span>
-                              </div>
-                            )}
-                            {listing.dimensions && typeof listing.dimensions === 'object' && (
-                              <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                                <span className="text-sm font-medium">Dimensions</span>
-                                <span className="text-sm">
-                                  {(listing.dimensions as any).length}×{(listing.dimensions as any).width}×{(listing.dimensions as any).height} {(listing.dimensions as any).unit}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-primary">Availability</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                              <span className="text-sm font-medium">Status</span>
-                              <Badge variant={listing.available ? "default" : "secondary"}>
-                                {listing.available ? "Available" : "Unavailable"}
-                              </Badge>
-                            </div>
-                            <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                              <span className="text-sm font-medium">Pickup</span>
-                              <Badge variant={listing.pickup_available ? "default" : "outline"}>
-                                {listing.pickup_available ? "Available" : "Not Available"}
-                              </Badge>
-                            </div>
-                            <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                              <span className="text-sm font-medium">Delivery</span>
-                              <Badge variant={listing.delivery_available ? "default" : "outline"}>
-                                {listing.delivery_available ? "Available" : "Not Available"}
-                              </Badge>
-                            </div>
-                            {listing.allow_offers && (
-                              <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
-                                <span className="text-sm font-medium">Offers</span>
-                                <Badge variant="default">Accepted</Badge>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="reviews" className="space-y-6">
-                      <ReviewsList 
-                        listingId={listing.id} 
-                        refreshTrigger={reviewsRefreshTrigger}
-                      />
-                      <ReviewForm 
-                        listingId={listing.id}
-                        sellerId={listing.seller_id}
-                        onReviewSubmitted={() => setReviewsRefreshTrigger(prev => prev + 1)}
-                      />
-                    </TabsContent>
-                  </CardContent>
-                </Tabs>
-              </Card>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Delivery & Collection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" />
-                    Delivery & Collection
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+          {/* Delivery & Collection Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Delivery & Collection Options</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${listing.pickup_available ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="font-medium">Collection Available:</span>
+                    <span className={listing.pickup_available ? 'text-green-600' : 'text-red-600'}>
+                      {listing.pickup_available ? 'Yes' : 'No'}
+                    </span>
+                  </div>
                   {listing.pickup_available && (
-                    <div className="flex items-start gap-3 p-3 bg-green-50/50 dark:bg-green-950/20 rounded-lg">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                      <div>
-                        <div className="font-medium text-sm">Collection Available</div>
-                        <div className="text-xs text-muted-foreground">Free collection from {listing.location}</div>
-                      </div>
+                    <p className="text-sm text-muted-foreground ml-5">
+                      Item can be collected from {listing.location}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${listing.delivery_available ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="font-medium">Delivery Available:</span>
+                    <span className={listing.delivery_available ? 'text-green-600' : 'text-red-600'}>
+                      {listing.delivery_available ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  {listing.delivery_available && (
+                    <div className="ml-5 space-y-1">
+                      {listing.delivery_cost && (
+                        <p className="text-sm text-muted-foreground">
+                          Delivery cost: £{listing.delivery_cost}
+                        </p>
+                      )}
+                      {listing.delivery_radius && (
+                        <p className="text-sm text-muted-foreground">
+                          Delivery radius: {listing.delivery_radius} miles
+                        </p>
+                      )}
                     </div>
                   )}
-                  
-                  {listing.delivery_available ? (
-                    <div className="flex items-start gap-3 p-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      <div>
-                        <div className="font-medium text-sm">Delivery Available</div>
-                        <div className="text-xs text-muted-foreground">
-                          {listing.delivery_cost ? `£${listing.delivery_cost}` : 'Price on request'}
-                          {listing.delivery_radius && ` within ${listing.delivery_radius}km`}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full mt-2"></div>
-                      <div>
-                        <div className="font-medium text-sm">No Delivery</div>
-                        <div className="text-xs text-muted-foreground">Collection only</div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* Seller Information */}
+          {/* Seller Information Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Seller Information</CardTitle>
+                  <CardTitle>About the Seller</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={(listing.profiles as any)?.avatar_url} />
-                      <AvatarFallback className="text-lg">
-                        {(listing.profiles as any)?.username?.charAt(0)?.toUpperCase() || 'S'}
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={listing.profiles?.avatar_url} />
+                      <AvatarFallback>
+                        <User className="h-8 w-8" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">
-                          {(listing.profiles as any)?.username || 'Anonymous Seller'}
-                        </h4>
-                        {(listing.profiles as any)?.verified && (
-                          <Shield className="h-4 w-4 text-blue-500" />
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold">
+                          {listing.profiles?.username || 'Seller'}
+                        </h3>
+                        {listing.profiles?.verified && (
+                          <CheckCircle className="h-5 w-5 text-blue-500" />
                         )}
                       </div>
+                      
                       {sellerRating && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{sellerRating.averageRating}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ({sellerRating.totalReviews} reviews)
-                          </span>
+                        <div className="flex items-center gap-2 mb-3">
+                          <StarRating 
+                            rating={Math.round(sellerRating.averageRating)} 
+                            readonly 
+                            size="sm"
+                            showCount
+                            count={sellerRating.totalReviews}
+                          />
                         </div>
                       )}
+                      
+                      <p className="text-sm text-muted-foreground">
+                        Member since {new Date(listing.profiles?.created_at || '').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                      </p>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div>Member since {new Date((listing.profiles as any)?.created_at).toLocaleDateString('en-GB')}</div>
-                    {listing.updated_at !== listing.created_at && (
-                      <div>Last updated {new Date(listing.updated_at).toLocaleDateString('en-GB')}</div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
+            
+            <div>
+              <SellerOtherItems 
+                sellerId={listing.seller_id}
+                currentListingId={listing.id}
+                sellerUsername={listing.profiles?.username}
+              />
+            </div>
           </div>
+
+          {/* Reviews Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Reviews & Feedback</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ReviewsList listingId={listing.id} refreshTrigger={reviewsRefreshTrigger} />
+            </CardContent>
+          </Card>
         </main>
 
         <Footer />
         <BackToTop />
 
-        {/* Message Dialog */}
-        {showMessageDialog && (
-          <MessageDialog
-            open={showMessageDialog}
-            onOpenChange={(open) => setShowMessageDialog(open)}
-            sellerId={listing.seller_id}
-            listingId={listing.id}
-            listingTitle={listing.title}
-          />
-        )}
-
-        {/* Offer Dialog */}
-        {showOfferDialog && (
-          <OfferDialog
-            open={showOfferDialog}
-            onOpenChange={(open) => setShowOfferDialog(open)}
-            listingId={listing.id}
-            sellerId={listing.seller_id}
-            listingTitle={listing.title}
-            listingPrice={listing.price}
-            minimumOfferPercentage={listing.minimum_offer_percentage}
-          />
-        )}
+        {/* Dialogs */}
+        <MessageDialog
+          open={showMessageDialog}
+          onOpenChange={setShowMessageDialog}
+          listingId={listing.id}
+          sellerId={listing.seller_id}
+          listingTitle={listing.title}
+        />
+        
+        <OfferDialog
+          open={showOfferDialog}
+          onOpenChange={setShowOfferDialog}
+          listingId={listing.id}
+          sellerId={listing.seller_id}
+          listingTitle={listing.title}
+          listingPrice={listing.price}
+          minimumOfferPercentage={listing.minimum_offer_percentage}
+        />
       </div>
     </>
   );
