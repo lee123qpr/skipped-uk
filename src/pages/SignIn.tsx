@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import SEOHead from "@/components/SEOHead";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,17 +31,17 @@ const SignIn = () => {
           {/* Back to Home */}
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Skipped</span>
+            <span>Back</span>
           </Link>
 
           <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
             {/* Header */}
             <header className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <div className="w-10 h-10 bg-primary rounded-xl transform rotate-45"></div>
+              <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
+                <img src={skippedLogo} alt="Skipped" className="w-full h-full object-contain" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">Welcome back</h1>
-              <p className="text-muted-foreground">Sign in to your Skipped account</p>
+              <p className="text-muted-foreground">Sign in to your account</p>
             </header>
 
           {/* Form */}

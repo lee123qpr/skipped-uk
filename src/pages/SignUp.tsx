@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SEOHead from "@/components/SEOHead";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,16 +43,16 @@ const SignUp = () => {
           {/* Back to Home */}
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Skipped</span>
+            <span>Back</span>
           </Link>
 
           <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
             {/* Header */}
             <header className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <div className="w-10 h-10 bg-primary rounded-xl transform rotate-45"></div>
+              <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
+                <img src={skippedLogo} alt="" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Join Skipped</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Join the marketplace</h1>
               <p className="text-muted-foreground">Create your account and start saving</p>
             </header>
 
@@ -172,7 +173,7 @@ const SignUp = () => {
               <label className="flex items-start space-x-3 text-sm">
                 <input type="checkbox" className="rounded border-border mt-0.5" required />
                 <span className="text-muted-foreground leading-relaxed">
-                  I agree to Skipped's{" "}
+                  I agree to the{" "}
                   <a href="#" className="text-primary hover:text-primary-hover">Terms of Service</a>
                   {" "}and{" "}
                   <a href="#" className="text-primary hover:text-primary-hover">Privacy Policy</a>
