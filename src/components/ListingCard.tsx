@@ -1,8 +1,9 @@
-import { Heart, MapPin, User, Calendar } from "lucide-react";
+import { Heart, MapPin, User, Calendar, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import CarbonBadge from "./CarbonBadge";
+import { StarRating } from "./StarRating";
 
 interface ListingCardProps {
   id: string;
@@ -16,6 +17,7 @@ interface ListingCardProps {
     name: string;
     verified: boolean;
     rating: number;
+    reviewCount?: number;
   };
   postedDate: string;
   isFavorited?: boolean;
@@ -129,9 +131,15 @@ const ListingCard = ({
               <span className="ml-1 text-accent">✓</span>
             )}
           </span>
-          <span className="text-sm text-muted-foreground ml-auto">
-            ⭐ {seller.rating}/5
-          </span>
+          <div className="ml-auto">
+            <StarRating 
+              rating={seller.rating} 
+              readonly 
+              size="sm" 
+              showCount 
+              count={seller.reviewCount || 0}
+            />
+          </div>
         </div>
       </div>
     </Card>

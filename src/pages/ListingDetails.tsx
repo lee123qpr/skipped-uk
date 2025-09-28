@@ -29,6 +29,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MessageDialog from '@/components/MessageDialog';
 import OfferDialog from '@/components/OfferDialog';
+import { ReviewForm } from '@/components/ReviewForm';
+import { ReviewsList } from '@/components/ReviewsList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -38,6 +41,7 @@ const ListingDetails = () => {
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
+  const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
 
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
@@ -282,16 +286,34 @@ const ListingDetails = () => {
                 </CardContent>
               </Card>
 
-              {/* Description */}
+              {/* Description and Reviews Tabs */}
               <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Description</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {listing.description}
-                  </p>
-                </CardContent>
+                <Tabs defaultValue="description" className="w-full">
+                  <CardHeader>
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="description">Description</TabsTrigger>
+                      <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                    </TabsList>
+                  </CardHeader>
+                  <CardContent>
+                    <TabsContent value="description">
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {listing.description}
+                      </p>
+                    </TabsContent>
+                    <TabsContent value="reviews" className="space-y-6">
+                      <ReviewsList 
+                        listingId={listing.id} 
+                        refreshTrigger={reviewsRefreshTrigger}
+                      />
+                      <ReviewForm 
+                        listingId={listing.id}
+                        sellerId={listing.seller_id}
+                        onReviewSubmitted={() => setReviewsRefreshTrigger(prev => prev + 1)}
+                      />
+                    </TabsContent>
+                  </CardContent>
+                </Tabs>
               </Card>
 
               {/* Specifications */}
