@@ -59,8 +59,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         
         const loader = new Loader({
           apiKey,
-          version: 'weekly',
-          libraries: ['maps']
+          version: 'weekly'
         });
 
         await loader.load();

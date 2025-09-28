@@ -1,21 +1,22 @@
 import { supabase } from '@/integrations/supabase/client';
 
+let cachedApiKey: string | null = null;
+
 export async function getGoogleMapsApiKey(): Promise<string> {
-  // In development, use a placeholder - this will be replaced by the edge function
-  if (process.env.NODE_ENV === 'development') {
-    return 'GOOGLE_MAPS_API_KEY_PLACEHOLDER';
-  }
-  
+  if (cachedApiKey) return cachedApiKey;
+
   try {
-    // Get the API key from Supabase edge function which has access to secrets
+    // Always fetch from Edge Function (works in dev and prod)
     const { data, error } = await supabase.functions.invoke('get-google-maps-key');
-    
+
     if (error) {
       console.error('Error fetching Google Maps API key:', error);
       return '';
     }
-    
-    return data?.apiKey || '';
+
+    const key = data?.apiKey || '';
+    cachedApiKey = key;
+    return key;
   } catch (error) {
     console.error('Error fetching Google Maps API key:', error);
     return '';
