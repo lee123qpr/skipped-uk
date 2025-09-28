@@ -20,6 +20,11 @@ interface Listing {
     reviewCount?: number;
   };
   postedDate: string;
+  quantity?: number;
+  deliveryAvailable?: boolean;
+  pickupAvailable?: boolean;
+  weight?: number;
+  dimensions?: any;
 }
 
 const FeaturedListings = () => {
@@ -43,6 +48,11 @@ const FeaturedListings = () => {
           images,
           carbon_saved,
           created_at,
+          quantity,
+          weight,
+          dimensions,
+          delivery_available,
+          pickup_available,
           profiles:seller_id (
             username,
             verified
@@ -72,7 +82,12 @@ const FeaturedListings = () => {
           rating: 0, // No ratings yet - will be calculated from reviews later
           reviewCount: 0 // No reviews yet
         },
-        postedDate: formatPostedDate(listing.created_at)
+        postedDate: formatPostedDate(listing.created_at),
+        quantity: listing.quantity,
+        deliveryAvailable: listing.delivery_available,
+        pickupAvailable: listing.pickup_available,
+        weight: listing.weight,
+        dimensions: listing.dimensions
       })) || [];
 
       setListings(formattedListings);

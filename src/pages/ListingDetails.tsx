@@ -366,6 +366,13 @@ const ListingDetails = () => {
                     )}
                   </div>
                   
+                  {listing.reason_for_selling && (
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-2">Reason for Selling</h4>
+                      <p className="text-sm text-muted-foreground">{listing.reason_for_selling}</p>
+                    </div>
+                  )}
+                  
                   {listing.carbon_saved > 0 && (
                     <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                       <Leaf className="h-5 w-5 text-green-600" />
@@ -407,16 +414,24 @@ const ListingDetails = () => {
                         </span>
                       </div>
                       {(listing.delivery_available || listing.pickup_available) && (
-                        <div className="flex items-center gap-2">
-                          <Truck className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {listing.pickup_available && listing.delivery_available 
-                              ? 'Pickup & Delivery available'
-                              : listing.delivery_available 
-                                ? 'Delivery available'
-                                : 'Pickup only'
-                            }
-                          </span>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Truck className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              {listing.pickup_available && listing.delivery_available 
+                                ? 'Pickup & Delivery available'
+                                : listing.delivery_available 
+                                  ? 'Delivery available'
+                                  : 'Pickup only'
+                              }
+                            </span>
+                          </div>
+                          {listing.delivery_available && listing.delivery_cost && (
+                            <div className="text-xs text-muted-foreground ml-6">
+                              Delivery: £{listing.delivery_cost}
+                              {listing.delivery_radius && ` (within ${listing.delivery_radius}km)`}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

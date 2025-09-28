@@ -66,6 +66,11 @@ const Browse = () => {
           latitude,
           longitude,
           public_location,
+          quantity,
+          weight,
+          dimensions,
+          delivery_available,
+          pickup_available,
           categories (
             id,
             name,
@@ -189,7 +194,12 @@ const Browse = () => {
       rating: 0, // No ratings yet - will be calculated from reviews later
       reviewCount: 0 // No reviews yet
     },
-    postedDate: new Date(listing.created_at).toLocaleDateString('en-GB')
+    postedDate: new Date(listing.created_at).toLocaleDateString('en-GB'),
+    quantity: listing.quantity,
+    deliveryAvailable: listing.delivery_available,
+    pickupAvailable: listing.pickup_available,
+    weight: listing.weight,
+    dimensions: listing.dimensions
   });
 
   return (

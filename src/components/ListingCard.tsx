@@ -1,4 +1,4 @@
-import { Heart, MapPin, User, Calendar, Star } from "lucide-react";
+import { Heart, MapPin, User, Calendar, Star, Package, Truck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,11 @@ interface ListingCardProps {
   postedDate: string;
   isFavorited?: boolean;
   className?: string;
+  quantity?: number;
+  deliveryAvailable?: boolean;
+  pickupAvailable?: boolean;
+  weight?: number;
+  dimensions?: any;
 }
 
 const ListingCard = ({ 
@@ -35,7 +40,12 @@ const ListingCard = ({
   seller, 
   postedDate,
   isFavorited = false,
-  className = "" 
+  className = "",
+  quantity,
+  deliveryAvailable,
+  pickupAvailable,
+  weight,
+  dimensions
 }: ListingCardProps) => {
   const navigate = useNavigate();
   
@@ -101,23 +111,56 @@ const ListingCard = ({
           </div>
         </div>
 
-        {/* Condition */}
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Condition:</span>
-          <span className={`capitalize font-medium ${conditionColors[condition]}`}>
-            {condition}
-          </span>
+        {/* Condition and Quantity */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Condition:</span>
+            <span className={`capitalize font-medium ${conditionColors[condition]}`}>
+              {condition}
+            </span>
+          </div>
+          {/* Show quantity if more than 1 */}
+          {(typeof quantity === 'number' && quantity > 1) && (
+            <div className="flex items-center gap-1">
+              <Package className="h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">{quantity} units</span>
+            </div>
+          )}
         </div>
 
-        {/* Location and Date */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            <span>{location}</span>
+        {/* Location, Delivery, and Date */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>{location}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>{postedDate}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            <span>{postedDate}</span>
+          
+          {/* Additional info row */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              {(deliveryAvailable || pickupAvailable) && (
+                <div className="flex items-center gap-1">
+                  <Truck className="h-3 w-3" />
+                  <span>
+                    {deliveryAvailable && pickupAvailable 
+                      ? 'Pickup & Delivery'
+                      : deliveryAvailable 
+                        ? 'Delivery available'
+                        : 'Pickup only'
+                    }
+                  </span>
+                </div>
+              )}
+              {weight && (
+                <span>{weight}kg</span>
+              )}
+            </div>
           </div>
         </div>
 
