@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -94,8 +95,8 @@ const ResetPassword = () => {
           <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
             {/* Header */}
             <header className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-8 w-8 text-primary" />
+              <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
+                <img src={skippedLogo} alt="" className="w-full h-full object-contain" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">Reset your password</h1>
               <p className="text-muted-foreground">
