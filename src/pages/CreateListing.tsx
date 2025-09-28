@@ -339,7 +339,7 @@ const CreateListing = () => {
         description: 'Please sign in to create a listing.',
         variant: 'destructive',
       });
-      navigate('/auth');
+      navigate('/sign-in');
       return;
     }
 

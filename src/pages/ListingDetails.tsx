@@ -108,7 +108,7 @@ const ListingDetails = () => {
         description: "Please sign in to contact sellers.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/sign-in');
       return;
     }
     setShowMessageDialog(true);
@@ -121,7 +121,7 @@ const ListingDetails = () => {
         description: "Please sign in to make offers.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/sign-in');
       return;
     }
     setShowOfferDialog(true);
@@ -134,7 +134,7 @@ const ListingDetails = () => {
         description: "Please sign in to save favourites.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/sign-in');
       return;
     }
     

@@ -41,7 +41,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate("/auth");
+      navigate("/sign-in");
       return;
     }
 

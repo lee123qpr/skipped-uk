@@ -86,13 +86,13 @@ const Navbar = () => {
                 </DropdownMenu>
               ) : (
                 <>
-                  <Link to="/auth">
+                  <Link to="/sign-up">
                     <Button variant="marketplace" size="sm">
                       Sign Up
                     </Button>
                   </Link>
                   
-                  <Link to="/auth">
+                  <Link to="/sign-in">
                     <Button variant="outline" size="sm">
                       <User className="h-4 w-4 mr-2" />
                       Sign In
@@ -129,9 +129,9 @@ const Navbar = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link to="/auth">
+                <Link to="/sign-in">
                   <Button variant="marketplace" size="sm">
-                    Sign Up
+                    Sign In
                   </Button>
                 </Link>
               )}
