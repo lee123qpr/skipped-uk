@@ -39,6 +39,7 @@ import { ReviewForm } from '@/components/ReviewForm';
 import { ReviewsList } from '@/components/ReviewsList';
 import { StarRating } from '@/components/StarRating';
 import { SellerOtherItems } from '@/components/SellerOtherItems';
+import { ImageModal } from '@/components/ImageModal';
 import { 
   Carousel,
   CarouselContent,
@@ -56,6 +57,8 @@ const ListingDetails = () => {
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
   const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
@@ -208,6 +211,11 @@ const ListingDetails = () => {
     }
   };
 
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+    setShowImageModal(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -305,12 +313,20 @@ const ListingDetails = () => {
                     <CarouselContent>
                       {listing.images.map((image, index) => (
                         <CarouselItem key={index}>
-                          <div className="aspect-[4/3] lg:aspect-[16/9] bg-muted overflow-hidden">
+                          <div 
+                            className="aspect-[4/3] lg:aspect-[16/9] bg-muted overflow-hidden cursor-pointer group"
+                            onClick={() => handleImageClick(index)}
+                          >
                             <img 
                               src={image} 
                               alt={`${listing.title} - Image ${index + 1}`}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                                Click to view full size
+                              </div>
+                            </div>
                           </div>
                         </CarouselItem>
                       ))}
@@ -626,6 +642,14 @@ const ListingDetails = () => {
           listingTitle={listing.title}
           listingPrice={listing.price}
           minimumOfferPercentage={listing.minimum_offer_percentage}
+        />
+
+        {/* Image Modal */}
+        <ImageModal
+          images={listing.images || []}
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+          initialIndex={selectedImageIndex}
         />
       </div>
     </>
