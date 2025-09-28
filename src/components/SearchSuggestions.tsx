@@ -12,18 +12,21 @@ interface SearchSuggestionsProps {
 
 const SearchSuggestions = ({ searchTerm, onSuggestionClick, onClose, isVisible }: SearchSuggestionsProps) => {
   const [recentSearches] = useState([
-    "Bricks",
+    "Bricks & Blocks",
     "Cement",
-    "Steel beams",
+    "Steel beams",  
+    "Scaffolding",
     "Roof tiles"
   ]);
 
   const [trendingSearches] = useState([
     "Insulation materials",
-    "Timber",
-    "Plasterboard",
+    "Timber & Wood",
+    "Wall & Ceiling Finishes",
     "Concrete blocks",
-    "Roofing materials"
+    "Roofing materials",
+    "Site Support & Props",
+    "Kitchen & Bathroom"
   ]);
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -37,18 +40,28 @@ const SearchSuggestions = ({ searchTerm, onSuggestionClick, onClose, isVisible }
     // Mock suggestions based on search term
     const mockSuggestions = [
       "Bricks red clay",
-      "Bricks concrete",
+      "Bricks concrete blocks",
       "Cement Portland",
-      "Cement rapid set",
+      "Concrete aggregates",
       "Steel beams I-beam",
-      "Steel beams H-beam",
+      "Steel scaffolding poles",
       "Roof tiles clay",
-      "Roof tiles concrete",
-      "Insulation foam",
-      "Insulation fibreglass",
-      "Timber treated",
-      "Timber hardwood",
-    ].filter(item => 
+      "Roofing materials felt",
+      "Insulation foam boards",
+      "Insulation fibreglass rolls",
+      "Timber treated hardwood",
+      "Timber scaffolding boards",
+      "Doors internal external",
+      "Windows double glazed",
+      "Plumbing copper pipes",
+      "Electrical cable conduit",
+      "Flooring laminate tiles",
+      "Kitchen units worktops",
+      "Bathroom suites sanitaryware",
+      "Fencing panels posts",
+      "Paving slabs blocks",
+      "Safety helmets workwear"
+    ].filter(item =>
       item.toLowerCase().includes(searchTerm.toLowerCase())
     ).slice(0, 5);
 

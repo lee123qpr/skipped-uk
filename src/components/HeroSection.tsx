@@ -44,7 +44,7 @@ const HeroSection = () => {
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search timber, bricks, steel, insulation..."
+                  placeholder="Search timber, bricks, steel, insulation, scaffolding..."
                   className="pl-12 pr-4 py-3 text-base md:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
@@ -60,39 +60,39 @@ const HeroSection = () => {
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground mb-3">Popular searches:</p>
               <div className="flex flex-wrap justify-center gap-2">
-                <Link to="/browse?category=timber">
+                <Link to="/browse?category=4b282b08-da63-404b-97a8-780a19f62025">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
-                    Timber
+                    Timber & Wood
                   </Button>
                 </Link>
-                <Link to="/browse?category=insulation">
+                <Link to="/browse?category=57cbc162-8ec1-4966-94ef-ecaa4c550f73">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
                     Insulation
                   </Button>
                 </Link>
-                <Link to="/browse?category=plasterboard">
+                <Link to="/browse?category=bd07a74a-0382-4ca9-8bc2-413dc535bb0b">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
-                    Plasterboard
+                    Bricks & Blocks
                   </Button>
                 </Link>
-                <Link to="/browse?category=bricks">
+                <Link to="/browse?category=9f341527-9eb5-49ad-a7c7-1808ac1193d8">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
-                    Bricks
+                    Steel & Metal
                   </Button>
                 </Link>
-                <Link to="/browse?category=steel">
+                <Link to="/browse?category=81c7aa08-6925-427f-8f47-2aa2e67fe8cd">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
-                    Steel
+                    Roofing Materials
                   </Button>
                 </Link>
-                <Link to="/browse?category=roofing">
-                  <Button variant="outline" size="sm" className="text-xs hover-scale">
-                    Roofing
-                  </Button>
-                </Link>
-                <Link to="/browse?category=doors">
+                <Link to="/browse?category=c3bd7b13-f4cc-4b27-a62b-a54b281c1ee8">
                   <Button variant="outline" size="sm" className="text-xs hover-scale">
                     Doors & Windows
+                  </Button>
+                </Link>
+                <Link to="/browse?category=0566c7cb-58ae-44cf-a0c3-03f852913a0c">
+                  <Button variant="outline" size="sm" className="text-xs hover-scale">
+                    Scaffolding
                   </Button>
                 </Link>
               </div>

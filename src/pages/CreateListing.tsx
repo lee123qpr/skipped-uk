@@ -188,9 +188,12 @@ const CreateListing = () => {
       
       // Fallback to simple calculation
       const category = categories.find(c => c.id === formData.category_id);
-      const baseCarbon = category?.name.toLowerCase().includes('timber') ? 500 : 
-                        category?.name.toLowerCase().includes('brick') ? 200 : 
-                        category?.name.toLowerCase().includes('steel') ? 800 : 300;
+      const categoryName = category?.name.toLowerCase() || '';
+      const baseCarbon = categoryName.includes('timber') || categoryName.includes('wood') ? 500 : 
+                        categoryName.includes('brick') || categoryName.includes('concrete') ? 200 : 
+                        categoryName.includes('steel') || categoryName.includes('metal') || categoryName.includes('scaffolding') ? 800 :
+                        categoryName.includes('insulation') ? 400 :
+                        categoryName.includes('roofing') ? 350 : 300;
       const quantity = parseInt(formData.quantity) || 1;
       return Math.round(baseCarbon * Math.log(quantity + 1));
     } finally {
