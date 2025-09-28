@@ -165,8 +165,8 @@ const MyListings = () => {
       <div className="grid gap-4">
         {listings.map((listing) => (
           <Card key={listing.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                 {/* Image */}
                   <div className="w-20 sm:w-24 aspect-[4/3] rounded bg-muted flex-shrink-0 overflow-hidden">
                     {listing.images && listing.images.length > 0 ? (
@@ -184,25 +184,25 @@ const MyListings = () => {
                   </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg truncate">{listing.title}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <span className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1 flex-shrink-0">
                           <PoundSterling className="h-3 w-3" />
                           {listing.price === 0 ? 'Free' : `£${listing.price.toLocaleString()}`}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {listing.location}
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{listing.location}</span>
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 flex-shrink-0">
                           <Calendar className="h-3 w-3" />
-                          {new Date(listing.created_at).toLocaleDateString('en-GB')}
+                          <span className="whitespace-nowrap">{new Date(listing.created_at).toLocaleDateString('en-GB')}</span>
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
                         <Badge 
                           variant={listing.status === 'active' ? 'default' : 
                                    listing.status === 'sold' ? 'secondary' : 'outline'}
@@ -219,7 +219,7 @@ const MyListings = () => {
                     {/* Actions */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="flex-shrink-0">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

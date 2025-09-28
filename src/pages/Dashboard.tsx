@@ -127,21 +127,21 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Email:</span>
-                    <p className="font-medium">{user?.email}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                  <div className="min-w-0">
+                    <span className="text-muted-foreground block">Email:</span>
+                    <p className="font-medium truncate">{user?.email}</p>
                   </div>
                   {profile?.phone && (
-                    <div>
-                      <span className="text-muted-foreground">Phone:</span>
-                      <p className="font-medium">{profile.phone}</p>
+                    <div className="min-w-0">
+                      <span className="text-muted-foreground block">Phone:</span>
+                      <p className="font-medium truncate">{profile.phone}</p>
                     </div>
                   )}
                   {profile?.location && (
-                    <div>
-                      <span className="text-muted-foreground">Location:</span>
-                      <p className="font-medium">{profile.location}</p>
+                    <div className="min-w-0">
+                      <span className="text-muted-foreground block">Location:</span>
+                      <p className="font-medium truncate">{profile.location}</p>
                     </div>
                   )}
                 </div>

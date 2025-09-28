@@ -154,8 +154,8 @@ const FavouritesTab = () => {
       <div className="grid gap-4">
         {favourites.map((favourite) => (
           <Card key={favourite.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                 {/* Image */}
                 <div className="w-20 sm:w-24 aspect-[4/3] rounded-lg bg-muted flex-shrink-0 overflow-hidden">
                   {favourite.listing.images && favourite.listing.images.length > 0 ? (
@@ -173,25 +173,25 @@ const FavouritesTab = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg truncate">{favourite.listing.title}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <span className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1 flex-shrink-0">
                           <PoundSterling className="h-3 w-3" />
                           {favourite.listing.price === 0 ? 'Free' : `£${favourite.listing.price.toLocaleString()}`}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {favourite.listing.location}
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{favourite.listing.location}</span>
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 flex-shrink-0">
                           <Calendar className="h-3 w-3" />
-                          Listed {new Date(favourite.listing.created_at).toLocaleDateString('en-GB')}
+                          <span className="whitespace-nowrap">Listed {new Date(favourite.listing.created_at).toLocaleDateString('en-GB')}</span>
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
                         <Badge 
                           variant={favourite.listing.status === 'active' ? 'default' : 'secondary'}
                         >
@@ -200,27 +200,31 @@ const FavouritesTab = () => {
                         <Badge variant="outline">{favourite.listing.condition}</Badge>
                         <Badge variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1 fill-red-500 text-red-500" />
-                          Saved {new Date(favourite.created_at).toLocaleDateString('en-GB')}
+                          <span className="hidden xs:inline">Saved {new Date(favourite.created_at).toLocaleDateString('en-GB')}</span>
+                          <span className="xs:hidden">Saved</span>
                         </Badge>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => navigate(`/listing/${favourite.listing.id}`)}
+                        className="text-xs px-3"
                       >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
+                        <Eye className="mr-1 h-4 w-4" />
+                        <span className="hidden xs:inline">View</span>
+                        <span className="xs:hidden">👁</span>
                       </Button>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove
+                          <Button variant="outline" size="sm" className="text-xs px-3">
+                            <Trash2 className="mr-1 h-4 w-4" />
+                            <span className="hidden xs:inline">Remove</span>
+                            <span className="xs:hidden">🗑</span>
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

@@ -30,6 +30,7 @@ interface Message {
   listing_id: string;
   sender_profile: {
     display_name: string;
+    username: string;
     avatar_url: string;
   };
   listing: {
@@ -51,10 +52,12 @@ interface Offer {
   listing_id: string;
   buyer_profile: {
     display_name: string;
+    username: string;
     avatar_url: string;
   };
   seller_profile: {
     display_name: string;
+    username: string;
     avatar_url: string;
   };
   listing: {
@@ -89,7 +92,7 @@ const MessagesInbox = () => {
       const senderIds = [...new Set(messages.map(m => m.sender_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url')
+        .select('user_id, display_name, username, avatar_url')
         .in('user_id', senderIds);
       
       if (profilesError) throw profilesError;
@@ -133,7 +136,7 @@ const MessagesInbox = () => {
       const buyerIds = [...new Set(offers.map(o => o.buyer_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url')
+        .select('user_id, display_name, username, avatar_url')
         .in('user_id', buyerIds);
       
       if (profilesError) throw profilesError;
@@ -177,7 +180,7 @@ const MessagesInbox = () => {
       const sellerIds = [...new Set(offers.map(o => o.seller_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url')
+        .select('user_id, display_name, username, avatar_url')
         .in('user_id', sellerIds);
       
       if (profilesError) throw profilesError;
@@ -266,28 +269,40 @@ const MessagesInbox = () => {
       </div>
 
       <Tabs defaultValue="messages" className="w-full">
-        <TabsList>
-          <TabsTrigger value="messages" className="flex items-center gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Messages
+        <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+          <TabsTrigger 
+            value="messages" 
+            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
+          >
+            <MessageCircle className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Messages</span>
+            <span className="xs:hidden">Msg</span>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+              <Badge variant="destructive" className="text-xs px-1 py-0 min-w-0 h-4">
                 {unreadCount}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="received-offers" className="flex items-center gap-2">
-            <PoundSterling className="h-4 w-4" />
-            Offers Received
+          <TabsTrigger 
+            value="received-offers" 
+            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
+          >
+            <PoundSterling className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Offers Received</span>
+            <span className="xs:hidden">Recv</span>
             {pendingOffersCount > 0 && (
-              <Badge variant="default" className="text-xs px-1.5 py-0.5">
+              <Badge variant="default" className="text-xs px-1 py-0 min-w-0 h-4">
                 {pendingOffersCount}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="made-offers" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Offers Made
+          <TabsTrigger 
+            value="made-offers" 
+            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
+          >
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Offers Made</span>
+            <span className="xs:hidden">Made</span>
           </TabsTrigger>
         </TabsList>
 
@@ -302,59 +317,62 @@ const MessagesInbox = () => {
           ) : (
             messages.map((message) => (
               <Card key={message.id} className={!message.read ? 'border-primary' : ''}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={message.sender_profile?.avatar_url} />
-                      <AvatarFallback>
-                        {message.sender_profile?.display_name?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">
-                            {message.sender_profile?.display_name || 'Anonymous User'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            About: {message.listing?.title}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(message.created_at).toLocaleDateString('en-GB')}
-                          </p>
-                          {!message.read && (
-                            <Badge variant="default" className="text-xs mt-1">New</Badge>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <p className="mt-2 text-sm">{message.content}</p>
-                      
-                      <div className="flex items-center gap-2 mt-3">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/listing/${message.listing_id}`)}
-                        >
-                          <Eye className="mr-2 h-3 w-3" />
-                          View Listing
-                        </Button>
-                        {!message.read && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleMarkAsRead(message.id)}
-                          >
-                            Mark as Read
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
+                 <CardContent className="p-4 sm:p-6">
+                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                     <Avatar className="w-10 h-10 flex-shrink-0">
+                       <AvatarImage src={message.sender_profile?.avatar_url} />
+                       <AvatarFallback>
+                         {message.sender_profile?.display_name?.charAt(0)?.toUpperCase() || 'U'}
+                       </AvatarFallback>
+                     </Avatar>
+                     
+                     <div className="flex-1 min-w-0 w-full">
+                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                         <div className="min-w-0 flex-1">
+                           <p className="font-medium truncate">
+                             @{message.sender_profile?.username || 'Anonymous'}
+                           </p>
+                           <p className="text-sm text-muted-foreground truncate">
+                             About: {message.listing?.title}
+                           </p>
+                         </div>
+                         <div className="flex-shrink-0 text-right">
+                           <p className="text-xs text-muted-foreground">
+                             {new Date(message.created_at).toLocaleDateString('en-GB')}
+                           </p>
+                           {!message.read && (
+                             <Badge variant="default" className="text-xs mt-1">New</Badge>
+                           )}
+                         </div>
+                       </div>
+                       
+                       <p className="mt-2 text-sm break-words">{message.content}</p>
+                       
+                       <div className="flex flex-col xs:flex-row gap-2 mt-3">
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           onClick={() => navigate(`/listing/${message.listing_id}`)}
+                           className="text-xs"
+                         >
+                           <Eye className="mr-1 h-3 w-3" />
+                           <span className="hidden xs:inline">View Listing</span>
+                           <span className="xs:hidden">View</span>
+                         </Button>
+                         {!message.read && (
+                           <Button 
+                             size="sm" 
+                             variant="ghost"
+                             onClick={() => handleMarkAsRead(message.id)}
+                             className="text-xs"
+                           >
+                             Mark Read
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 </CardContent>
               </Card>
             ))
           )}
@@ -371,69 +389,73 @@ const MessagesInbox = () => {
           ) : (
             receivedOffers.map((offer) => (
               <Card key={offer.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={offer.buyer_profile?.avatar_url} />
-                      <AvatarFallback>
-                        {offer.buyer_profile?.display_name?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">
-                            {offer.buyer_profile?.display_name || 'Anonymous User'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Offer for: {offer.listing?.title}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
-                          <Badge 
-                            variant={offer.status === 'pending' ? 'default' : 
-                                   offer.status === 'accepted' ? 'secondary' : 'destructive'}
-                          >
-                            {offer.status}
-                          </Badge>
-                        </div>
-                      </div>
+                 <CardContent className="p-4 sm:p-6">
+                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                     <Avatar className="w-10 h-10 flex-shrink-0">
+                       <AvatarImage src={offer.buyer_profile?.avatar_url} />
+                       <AvatarFallback>
+                         {offer.buyer_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                       </AvatarFallback>
+                     </Avatar>
+                     
+                     <div className="flex-1 min-w-0 w-full">
+                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                         <div className="min-w-0 flex-1">
+                           <p className="font-medium truncate">
+                             @{offer.buyer_profile?.username || 'Anonymous'}
+                           </p>
+                           <p className="text-sm text-muted-foreground truncate">
+                             Offer for: {offer.listing?.title}
+                           </p>
+                         </div>
+                         <div className="flex-shrink-0 text-right">
+                           <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
+                           <Badge 
+                             variant={offer.status === 'pending' ? 'default' : 
+                                    offer.status === 'accepted' ? 'secondary' : 'destructive'}
+                             className="text-xs"
+                           >
+                             {offer.status}
+                           </Badge>
+                         </div>
+                       </div>
+                       
+                       {offer.message && (
+                         <p className="mt-2 text-sm bg-muted p-2 rounded break-words">{offer.message}</p>
+                       )}
                       
-                      {offer.message && (
-                        <p className="mt-2 text-sm bg-muted p-2 rounded">{offer.message}</p>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="text-xs text-muted-foreground">
-                          <p>Original price: £{offer.listing?.price?.toLocaleString()}</p>
-                          <p>Created: {new Date(offer.created_at).toLocaleDateString('en-GB')}</p>
-                          {offer.expires_at && (
-                            <p>Expires: {new Date(offer.expires_at).toLocaleDateString('en-GB')}</p>
-                          )}
-                        </div>
-                        
-                        {offer.status === 'pending' && (
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => handleOfferAction(offer.id, 'declined')}
-                            >
-                              <XCircle className="mr-2 h-3 w-3" />
-                              Decline
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => handleOfferAction(offer.id, 'accepted')}
-                            >
-                              <CheckCircle className="mr-2 h-3 w-3" />
-                              Accept
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                   <div className="text-xs text-muted-foreground space-y-1">
+                     <p>Original price: £{offer.listing?.price?.toLocaleString()}</p>
+                     <p>Created: {new Date(offer.created_at).toLocaleDateString('en-GB')}</p>
+                     {offer.expires_at && (
+                       <p>Expires: {new Date(offer.expires_at).toLocaleDateString('en-GB')}</p>
+                     )}
+                   </div>
+                         {offer.status === 'pending' && (
+                           <div className="flex flex-col xs:flex-row gap-2">
+                             <Button 
+                               size="sm" 
+                               variant="destructive"
+                               onClick={() => handleOfferAction(offer.id, 'declined')}
+                               className="text-xs px-3"
+                             >
+                               <XCircle className="mr-1 h-3 w-3" />
+                               <span className="hidden xs:inline">Decline</span>
+                               <span className="xs:hidden">✗</span>
+                             </Button>
+                             <Button 
+                               size="sm"
+                               onClick={() => handleOfferAction(offer.id, 'accepted')}
+                               className="text-xs px-3"
+                             >
+                               <CheckCircle className="mr-1 h-3 w-3" />
+                               <span className="hidden xs:inline">Accept</span>
+                               <span className="xs:hidden">✓</span>
+                             </Button>
+                           </div>
+                         )}
+                       </div>
                     </div>
                   </div>
                 </CardContent>
@@ -453,41 +475,42 @@ const MessagesInbox = () => {
           ) : (
             madeOffers.map((offer) => (
               <Card key={offer.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded bg-muted flex-shrink-0 overflow-hidden">
-                      {offer.listing?.images?.[0] ? (
-                        <img 
-                          src={offer.listing.images[0]} 
-                          alt={offer.listing.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <PoundSterling className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{offer.listing?.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Seller: {offer.seller_profile?.display_name || 'Anonymous User'}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
-                          <Badge 
-                            variant={offer.status === 'pending' ? 'default' : 
-                                   offer.status === 'accepted' ? 'secondary' : 'destructive'}
-                          >
-                            {offer.status}
-                          </Badge>
-                        </div>
-                      </div>
+                 <CardContent className="p-4 sm:p-6">
+                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                     <div className="w-12 h-12 rounded bg-muted flex-shrink-0 overflow-hidden">
+                       {offer.listing?.images?.[0] ? (
+                         <img 
+                           src={offer.listing.images[0]} 
+                           alt={offer.listing.title}
+                           className="w-full h-full object-cover"
+                           loading="lazy"
+                         />
+                       ) : (
+                         <div className="w-full h-full flex items-center justify-center">
+                           <PoundSterling className="h-4 w-4 text-muted-foreground" />
+                         </div>
+                       )}
+                     </div>
+                     
+                     <div className="flex-1 min-w-0 w-full">
+                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                         <div className="min-w-0 flex-1">
+                           <p className="font-medium truncate">{offer.listing?.title}</p>
+                           <p className="text-sm text-muted-foreground truncate">
+                             Seller: @{offer.seller_profile?.username || 'Anonymous'}
+                           </p>
+                         </div>
+                         <div className="flex-shrink-0">
+                           <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
+                           <Badge 
+                             variant={offer.status === 'pending' ? 'default' : 
+                                    offer.status === 'accepted' ? 'secondary' : 'destructive'}
+                             className="text-xs"
+                           >
+                             {offer.status}
+                           </Badge>
+                         </div>
+                       </div>
                       
                       {offer.message && (
                         <p className="mt-2 text-sm bg-muted p-2 rounded">{offer.message}</p>

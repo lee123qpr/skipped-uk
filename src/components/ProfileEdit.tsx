@@ -303,7 +303,7 @@ const ProfileEdit = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Section */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <div className="relative">
                 <Avatar className="h-20 w-20">
                   <AvatarImage src={profile?.avatar_url || undefined} />
@@ -320,7 +320,7 @@ const ProfileEdit = () => {
                 )}
               </div>
               
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-medium mb-2">Profile Photo</h3>
                 <p className="text-sm text-muted-foreground mb-3">
                   Upload a profile photo to help others recognise you
