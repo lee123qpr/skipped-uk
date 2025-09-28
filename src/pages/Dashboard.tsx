@@ -1,6 +1,6 @@
 import { useAuth } from "@/components/AuthContext";
 import { useNotifications } from "@/components/NotificationProvider";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,12 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { counts } = useNotifications();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Get tab from URL params, default to 'listings'
+  const activeTab = searchParams.get('tab') || 'listings';
 
   useEffect(() => {
     if (!user) {
@@ -149,7 +153,7 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          <Tabs defaultValue="listings" className="w-full">
+          <Tabs value={activeTab} onValueChange={(value) => navigate(`/dashboard?tab=${value}`)} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6 sticky top-20 z-10 bg-muted h-auto p-1">
               <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs md:text-sm px-2 py-2">
                 <Package className="h-4 w-4" />

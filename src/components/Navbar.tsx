@@ -45,11 +45,19 @@ const Navbar = () => {
               
               {user && (
                 <>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate("/dashboard?tab=favourites")}
+                  >
                     <Heart className="h-4 w-4" />
                   </Button>
                   
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate("/browse")}
+                  >
                     <ShoppingBag className="h-4 w-4" />
                   </Button>
                 </>
@@ -63,10 +71,10 @@ const Navbar = () => {
                       Account
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-card border-border shadow-medium">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
-                    <DropdownMenuItem>My Listings</DropdownMenuItem>
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>Settings</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />
@@ -106,9 +114,9 @@ const Navbar = () => {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-card border-border shadow-medium">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
-                    <DropdownMenuItem>My Listings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />

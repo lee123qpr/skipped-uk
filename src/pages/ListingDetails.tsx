@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useSellerRating } from '@/hooks/useSellerRating';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,9 @@ const ListingDetails = () => {
     },
     enabled: !!id,
   });
+
+  // Get seller rating data
+  const { data: sellerRating } = useSellerRating(listing?.seller_id);
 
   // Check if listing is favourited by current user
   const { data: favouriteData } = useQuery({
@@ -458,7 +462,12 @@ const ListingDetails = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-muted-foreground">No reviews yet</span>
+                        <span className="text-sm text-muted-foreground">
+                          {sellerRating && sellerRating.totalReviews > 0 
+                            ? `${sellerRating.averageRating} (${sellerRating.totalReviews} review${sellerRating.totalReviews !== 1 ? 's' : ''})`
+                            : 'No reviews yet'
+                          }
+                        </span>
                       </div>
                     </div>
                   </div>
