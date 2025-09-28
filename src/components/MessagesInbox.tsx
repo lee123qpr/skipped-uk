@@ -455,12 +455,13 @@ const MessagesInbox = () => {
               <Card key={offer.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-16 h-16 rounded bg-muted flex-shrink-0 overflow-hidden">
+                    <div className="aspect-square rounded bg-muted flex-shrink-0 overflow-hidden">
                       {offer.listing?.images?.[0] ? (
                         <img 
                           src={offer.listing.images[0]} 
                           alt={offer.listing.title}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

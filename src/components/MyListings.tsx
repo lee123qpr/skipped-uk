@@ -168,19 +168,20 @@ const MyListings = () => {
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 {/* Image */}
-                <div className="w-20 h-20 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
-                  {listing.images && listing.images.length > 0 ? (
-                    <img 
-                      src={listing.images[0]} 
-                      alt={listing.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
+                  <div className="aspect-[4/3] rounded bg-muted flex-shrink-0 overflow-hidden">
+                    {listing.images && listing.images.length > 0 ? (
+                      <img
+                        src={listing.images[0]}
+                        alt={listing.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">

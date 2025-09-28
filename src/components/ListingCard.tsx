@@ -56,12 +56,13 @@ const ListingCard = ({
       onClick={handleCardClick}
     >
       {/* Image */}
-      <div className="relative h-48 bg-muted overflow-hidden">
+      <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         {images[0] ? (
           <img 
             src={images[0]} 
             alt={title}
             className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center">
