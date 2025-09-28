@@ -305,9 +305,9 @@ const ProfileEdit = () => {
             {/* Avatar Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <div className="relative">
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-20 w-20 border-2 border-border">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-lg">
+                  <AvatarFallback className="text-lg border-2 border-border">
                     {formData.display_name?.charAt(0)?.toUpperCase() || 
                      user?.email?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>

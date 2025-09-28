@@ -39,6 +39,14 @@ const Dashboard = () => {
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
 
+  // Function to get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   useEffect(() => {
     if (!user) {
       navigate("/sign-in");
@@ -136,9 +144,9 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
+                  <Avatar className="h-16 w-16 border-2 border-border">
                     <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                    <AvatarFallback className="bg-primary/10 text-primary text-lg border-2 border-border">
                       {profile?.display_name?.charAt(0)?.toUpperCase() || 
                        profile?.username?.charAt(0)?.toUpperCase() || 
                        user?.email?.charAt(0)?.toUpperCase() || 'U'}
@@ -146,7 +154,7 @@ const Dashboard = () => {
                   </Avatar>
                   <div>
                     <CardTitle className="text-xl">
-                      Welcome back, {profile?.display_name || profile?.username || 'User'}!
+                      {getGreeting()}, {profile?.display_name || profile?.username || 'User'}!
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       @{profile?.username || 'username'}

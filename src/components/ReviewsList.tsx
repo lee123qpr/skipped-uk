@@ -123,9 +123,9 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-10 w-10 border-2 border-border">
                     <AvatarImage src={review.profiles?.avatar_url || ""} />
-                    <AvatarFallback>
+                    <AvatarFallback className="border-2 border-border">
                       {(review.profiles?.username || "U").charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

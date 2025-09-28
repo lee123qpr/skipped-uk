@@ -316,12 +316,12 @@ const MessagesInbox = () => {
               <Card key={message.id} className={!message.read ? 'border-primary' : ''}>
                  <CardContent className="p-4 sm:p-6">
                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                     <Avatar className="w-10 h-10 flex-shrink-0">
-                       <AvatarImage src={message.sender_profile?.avatar_url} />
-                        <AvatarFallback>
-                          {message.sender_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                     </Avatar>
+                      <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
+                        <AvatarImage src={message.sender_profile?.avatar_url} />
+                         <AvatarFallback className="border-2 border-border">
+                           {message.sender_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                         </AvatarFallback>
+                      </Avatar>
                      
                      <div className="flex-1 min-w-0 w-full">
                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -388,12 +388,12 @@ const MessagesInbox = () => {
               <Card key={offer.id}>
                  <CardContent className="p-4 sm:p-6">
                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                     <Avatar className="w-10 h-10 flex-shrink-0">
-                       <AvatarImage src={offer.buyer_profile?.avatar_url} />
-                       <AvatarFallback>
-                         {offer.buyer_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
-                       </AvatarFallback>
-                     </Avatar>
+                      <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
+                        <AvatarImage src={offer.buyer_profile?.avatar_url} />
+                        <AvatarFallback className="border-2 border-border">
+                          {offer.buyer_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
                      
                      <div className="flex-1 min-w-0 w-full">
                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
