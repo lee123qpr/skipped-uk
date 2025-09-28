@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Filter, Grid3X3, List, Map, MapPin, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,9 @@ import { Slider } from "@/components/ui/slider";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import SearchSuggestions from "@/components/SearchSuggestions";
+import BackToTop from "@/components/BackToTop";
 import ListingCard from "@/components/ListingCard";
 import MapSearch from "@/components/MapSearch";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
@@ -27,6 +30,8 @@ const Browse = () => {
   const [priceRange, setPriceRange] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest");
   const [mapBounds, setMapBounds] = useState<any>(null);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -199,6 +204,17 @@ const Browse = () => {
         <Navbar />
         
         <main className="container mx-auto px-4 py-8">
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: "Browse", href: "/browse" },
+              ...(selectedCategory !== 'all' ? [{ 
+                label: categories.find(c => c.id === selectedCategory)?.name || 'Category'
+              }] : [])
+            ]}
+            className="mb-6"
+          />
+          
           {/* Hero Section */}
           <section className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -212,10 +228,32 @@ const Browse = () => {
             <div className="max-w-md mx-auto relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input 
+                ref={searchInputRef}
                 placeholder="Search materials..." 
-                className="pl-10 pr-4 py-3 text-base"
+                className="pl-10 pr-10 py-3 text-base border-2 focus:border-primary"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setShowSearchSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-auto p-1"
+                  onClick={() => {
+                    setSearchTerm('');
+                    searchInputRef.current?.focus();
+                  }}
+                >
+                  ×
+                </Button>
+              )}
+              <SearchSuggestions
+                searchTerm={searchTerm}
+                onSuggestionClick={(suggestion) => setSearchTerm(suggestion)}
+                onClose={() => setShowSearchSuggestions(false)}
+                isVisible={showSearchSuggestions}
               />
             </div>
           </section>
@@ -399,6 +437,7 @@ const Browse = () => {
           </div>
         </main>
 
+        <BackToTop />
         <Footer />
       </div>
     </>

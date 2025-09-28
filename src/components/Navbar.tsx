@@ -71,9 +71,11 @@ const Navbar = () => {
                       Account
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-card border-border shadow-medium">
+                  <DropdownMenuContent align="end" className="z-50 bg-card border-border shadow-lg">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>Favourites</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>Settings</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
@@ -114,9 +116,11 @@ const Navbar = () => {
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-card border-border shadow-medium">
+                  <DropdownMenuContent align="end" className="z-50 bg-card border-border shadow-lg">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>Favourites</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />

@@ -28,6 +28,8 @@ import {
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Breadcrumbs from '@/components/Breadcrumbs';
+import BackToTop from '@/components/BackToTop';
 import MessageDialog from '@/components/MessageDialog';
 import OfferDialog from '@/components/OfferDialog';
 import { ReviewForm } from '@/components/ReviewForm';
@@ -59,6 +61,7 @@ const ListingDetails = () => {
             created_at
           ),
           categories (
+            id,
             name,
             icon_name
           )
@@ -259,6 +262,19 @@ const ListingDetails = () => {
         <Navbar />
         
         <main className="container mx-auto px-4 py-8">
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: "Browse", href: "/browse" },
+              ...(listing.categories ? [{ 
+                label: listing.categories.name,
+                href: `/browse?category=${listing.categories.id}`
+              }] : []),
+              { label: listing.title }
+            ]}
+            className="mb-6"
+          />
+          
           {/* Back Button */}
           <Button 
             variant="ghost" 
@@ -538,6 +554,8 @@ const ListingDetails = () => {
             onOpenChange={setShowOfferDialog}
           />
         )}
+
+        <BackToTop />
       </div>
     </>
   );
