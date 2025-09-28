@@ -1,4 +1,5 @@
 import { useAuth } from "@/components/AuthContext";
+import { useNotifications } from "@/components/NotificationProvider";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import MyListings from "@/components/MyListings";
 import MessagesInbox from "@/components/MessagesInbox";
 import FavouritesTab from "@/components/FavouritesTab";
+import ProfileEdit from "@/components/ProfileEdit";
+import NotificationBadge from "@/components/NotificationBadge";
 
 interface UserProfile {
   display_name: string | null;
@@ -25,6 +28,7 @@ interface UserProfile {
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { counts } = useNotifications();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -150,6 +154,7 @@ const Dashboard = () => {
                 <MessageCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Messages</span>
                 <span className="sm:hidden">Messages</span>
+                <NotificationBadge count={counts.unreadMessages + counts.pendingOffers + counts.newOffers} />
               </TabsTrigger>
               <TabsTrigger value="favourites" className="flex items-center gap-1 text-xs md:text-sm">
                 <Heart className="h-4 w-4" />
@@ -176,18 +181,7 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>Update your account details</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Profile editing coming soon</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <ProfileEdit />
             </TabsContent>
           </Tabs>
         </main>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { NotificationProvider } from '@/components/NotificationProvider';
 
 interface AuthContextType {
   user: User | null;
@@ -91,7 +92,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
       }}
     >
-      {children}
+      <NotificationProvider>
+        {children}
+      </NotificationProvider>
     </AuthContext.Provider>
   );
 };
