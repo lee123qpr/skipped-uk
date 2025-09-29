@@ -67,7 +67,17 @@ const MapSearch: React.FC<MapSearchProps> = ({
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = async () => {
-      if (!mapRef.current) return;
+      // Wait for map container to mount to avoid early return keeping loader stuck
+      let attempts = 0;
+      while (!mapRef.current && attempts < 20) {
+        await new Promise((r) => setTimeout(r, 50));
+        attempts++;
+      }
+      if (!mapRef.current) {
+        setDebugInfo((d) => ({ ...d, error: 'Map container not ready' }));
+        setIsLoading(false);
+        return;
+      }
 
       try {
         setIsLoading(true);
