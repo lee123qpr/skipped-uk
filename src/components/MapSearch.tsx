@@ -191,7 +191,17 @@ const MapSearch: React.FC<MapSearchProps> = ({
       clustererRef.current.clearMarkers();
       clustererRef.current = null;
     }
-    markers.forEach(marker => marker.setMap(null));
+    markers.forEach(marker => {
+      marker.setMap(null);
+      // Clear any listeners to prevent memory leaks
+      (window as any).google.maps.event.clearInstanceListeners(marker);
+    });
+    
+    // Close any open info windows to prevent conflicts
+    if (infoWindow) {
+      infoWindow.close();
+    }
+    
     const newMarkers: any[] = [];
     // Create bounds to fit all listings
     const bounds = new (window as any).google.maps.LatLngBounds();
@@ -214,7 +224,10 @@ const MapSearch: React.FC<MapSearchProps> = ({
       });
 
       // Add click listener for info window
-      marker.addListener('click', () => {
+      marker.addListener('click', (e: any) => {
+        // Prevent event bubbling that might cause re-renders
+        e.stop?.();
+        
         setSelectedListing(listing);
         
         const content = `
@@ -230,15 +243,20 @@ const MapSearch: React.FC<MapSearchProps> = ({
               </span>
             </p>
             ${listing.condition ? `<span class="inline-block px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-full mb-2">${listing.condition}</span>` : ''}
-            <button onclick="window.selectMapListing('${listing.id}')" class="w-full mt-2 px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90">
+            <button onclick="window.selectMapListing('${listing.id}')" class="w-full mt-2 px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 transition-colors">
               View Details
             </button>
           </div>
         `;
 
         if (infoWindow) {
-          infoWindow.setContent(content);
-          infoWindow.open(map, marker);
+          // Close any existing info windows first
+          infoWindow.close();
+          // Add a small delay to ensure clean state
+          setTimeout(() => {
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+          }, 50);
         }
 
         if (onListingSelect) {
@@ -274,8 +292,12 @@ const MapSearch: React.FC<MapSearchProps> = ({
     return () => {
       // Cleanup global function
       delete (window as any).selectMapListing;
+      // Clear any remaining markers
+      newMarkers.forEach(marker => {
+        (window as any).google.maps.event.clearInstanceListeners(marker);
+      });
     };
-  }, [map, listings, onListingSelect, infoWindow]);
+  }, [map, listings?.length, infoWindow]); // Only re-run when listings count changes, not the entire array
 
   // Debug helper to call edge function directly
   const testEdge = async () => {
