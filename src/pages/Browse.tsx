@@ -627,8 +627,12 @@ const Browse = () => {
                     latitude: listing.latitude,
                     longitude: listing.longitude,
                     category: listing.categories?.name || '',
-                    condition: listing.condition || '',
-                    images: listing.images || []
+                    condition: listing.condition as "new" | "like_new" | "excellent" | "good" | "fair" | "salvage" | "parts_repair" | undefined,
+                    images: listing.images || [],
+                    quantity: listing.quantity,
+                    delivery_available: listing.delivery_available,
+                    pickup_available: listing.pickup_available,
+                    allow_offers: listing.allow_offers
                   }))}
                 onBoundsChange={setMapBounds}
                 height="600px"

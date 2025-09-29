@@ -17,8 +17,12 @@ interface Listing {
   latitude: number;
   longitude: number;
   category?: string;
-  condition?: string;
+  condition?: "new" | "like_new" | "excellent" | "good" | "fair" | "salvage" | "parts_repair";
   images?: string[];
+  quantity?: number;
+  delivery_available?: boolean;
+  pickup_available?: boolean;
+  allow_offers?: boolean;
 }
 
 interface MapSearchProps {
@@ -182,6 +186,17 @@ const MapSearch: React.FC<MapSearchProps> = ({
     return () => window.removeEventListener('error', handler);
   }, [debugEnabled]);
 
+  // Condition configuration for badges
+  const conditionConfig: Record<string, { label: string; color: string }> = {
+    new: { label: "NEW", color: "#22C55E" },
+    like_new: { label: "LIKE NEW", color: "#10B981" },
+    excellent: { label: "EXCELLENT", color: "#3B82F6" },
+    good: { label: "GOOD", color: "#F59E0B" },
+    fair: { label: "FAIR", color: "#64748B" },
+    salvage: { label: "SALVAGE", color: "#EF4444" },
+    parts_repair: { label: "PARTS/REPAIR", color: "#DC2626" }
+  };
+
   // Update markers when listings change
   useEffect(() => {
     if (!map || !listings.length) return;
@@ -217,7 +232,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         map,
         title: listing.title,
         label: {
-          text: `£${listing.price.toLocaleString()}`,
+          text: listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`,
           color: 'white',
           fontWeight: 'bold'
         }
@@ -230,11 +245,30 @@ const MapSearch: React.FC<MapSearchProps> = ({
         
         setSelectedListing(listing);
         
+        // Get condition config
+        const conditionInfo = listing.condition ? conditionConfig[listing.condition] : null;
+        
+        // Build delivery/pickup badges
+        const deliveryOptions = [];
+        if (listing.pickup_available) {
+          deliveryOptions.push(`<svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Pickup`);
+        }
+        if (listing.delivery_available) {
+          deliveryOptions.push(`<svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg> Delivery`);
+        }
+        
         const content = `
-          <div class="p-3 max-w-xs">
-            <h3 class="font-semibold text-sm mb-1">${listing.title}</h3>
-            <p class="text-lg font-bold text-primary mb-2">£${listing.price.toLocaleString()}</p>
-            <p class="text-xs text-muted-foreground mb-2">
+          <div class="p-3 max-w-[280px]">
+            <h3 class="font-semibold text-sm mb-2 line-clamp-2">${listing.title}</h3>
+            <p class="text-lg font-bold mb-2" style="color: hsl(var(--primary))">
+              ${listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`}
+            </p>
+            <div class="flex flex-wrap gap-1 mb-2">
+              ${conditionInfo ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: ${conditionInfo.color}">${conditionInfo.label}</span>` : ''}
+              ${listing.quantity && listing.quantity > 1 ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #22C55E">${listing.quantity} UNITS</span>` : ''}
+              ${listing.allow_offers ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #9333EA">OPEN TO OFFERS</span>` : ''}
+            </div>
+            <p class="text-xs mb-2" style="color: hsl(var(--muted-foreground))">
               <span class="inline-flex items-center gap-1">
                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
@@ -242,8 +276,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
                 ${listing.public_location}
               </span>
             </p>
-            ${listing.condition ? `<span class="inline-block px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-full mb-2">${listing.condition}</span>` : ''}
-            <button onclick="window.selectMapListing('${listing.id}')" class="w-full mt-2 px-3 py-1 bg-primary text-primary-foreground text-xs rounded hover:bg-primary/90 transition-colors">
+            ${deliveryOptions.length > 0 ? `<p class="text-xs mb-3" style="color: hsl(var(--muted-foreground))">${deliveryOptions.join(' • ')}</p>` : ''}
+            <button onclick="window.selectMapListing('${listing.id}')" class="w-full mt-2 px-3 py-1.5 text-xs font-medium rounded transition-colors" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground))">
               View Details
             </button>
           </div>
