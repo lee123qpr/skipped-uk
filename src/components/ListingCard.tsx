@@ -40,17 +40,17 @@ const ListingCard = ({
   const navigate = useNavigate();
   
   const conditionConfig = {
-    new: { label: "NEW", className: "bg-success text-white border-success" },
-    excellent: { label: "EXCELLENT", className: "bg-success text-white border-success" },
-    good: { label: "GOOD", className: "bg-warning text-white border-warning" },
-    fair: { label: "FAIR", className: "bg-muted-foreground text-white border-muted-foreground" }
+    new: { label: "NEW", className: "bg-success text-white border-success shadow-sm" },
+    excellent: { label: "EXCELLENT", className: "bg-success text-white border-success shadow-sm" },
+    good: { label: "GOOD", className: "bg-warning text-white border-warning shadow-sm" },
+    fair: { label: "FAIR", className: "bg-slate-500 text-white border-slate-500 shadow-sm" }
   };
 
   // Normalize condition to lowercase and provide fallback
   const normalizedCondition = condition?.toLowerCase() as keyof typeof conditionConfig;
   const conditionDisplay = conditionConfig[normalizedCondition] || { 
     label: (condition || "USED").toUpperCase(), 
-    className: "bg-muted-foreground text-white border-muted-foreground" 
+    className: "bg-slate-500 text-white border-slate-500 shadow-sm" 
   };
 
   const getRelativeDate = (dateString: string) => {
@@ -138,23 +138,23 @@ const ListingCard = ({
           </div>
         </div>
 
-        {/* Condition Badge, Quantity, and Offers */}
+        {/* Badges: Condition, Quantity, and Offers */}
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
-            className={`${conditionDisplay.className} font-semibold px-3 py-1`}
+            className={`${conditionDisplay.className} font-bold px-3 py-1.5 text-[11px] tracking-wide`}
           >
             {conditionDisplay.label}
           </Badge>
-          {(typeof quantity === 'number' && quantity > 1) && (
-            <Badge variant="outline" className="gap-1 bg-primary text-primary-foreground border-primary font-semibold px-3 py-1">
-              <Package className="h-3 w-3" />
-              {quantity} UNITS
+          {allowOffers && (
+            <Badge variant="outline" className="bg-indigo-600 text-white border-indigo-600 font-bold px-3 py-1.5 text-[11px] tracking-wide shadow-sm">
+              OPEN TO OFFERS
             </Badge>
           )}
-          {allowOffers && (
-            <Badge variant="outline" className="bg-accent text-accent-foreground border-accent font-semibold px-3 py-1">
-              OPEN TO OFFERS
+          {(typeof quantity === 'number' && quantity > 1) && (
+            <Badge variant="outline" className="bg-primary text-primary-foreground border-primary font-bold px-3 py-1.5 text-[11px] tracking-wide shadow-sm">
+              <Package className="h-3.5 w-3.5 mr-1" />
+              {quantity} UNITS
             </Badge>
           )}
         </div>
