@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { formatCondition, formatReasonForSelling } from '@/lib/utils';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -414,14 +415,14 @@ const ListingDetails = () => {
                     <Package className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">Condition:</span>
-                      <p className="font-medium">{listing.condition}</p>
+                      <p className="font-medium">{formatCondition(listing.condition)}</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-primary">#{listing.quantity}</span>
+                    <Package className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">Quantity Available:</span>
                       <p className="font-medium">{listing.quantity} {listing.quantity === 1 ? 'item' : 'items'}</p>
@@ -484,7 +485,7 @@ const ListingDetails = () => {
               {listing.reason_for_selling && (
                 <div>
                   <h4 className="font-semibold mb-3 text-primary">Reason for Selling</h4>
-                  <p className="text-muted-foreground">{listing.reason_for_selling}</p>
+                  <p className="text-muted-foreground">{formatReasonForSelling(listing.reason_for_selling)}</p>
                 </div>
               )}
             </CardContent>
