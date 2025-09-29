@@ -44,6 +44,13 @@ const ListingCard = ({
     fair: { label: "Fair", className: "bg-muted text-muted-foreground border-border" }
   };
 
+  // Normalize condition to lowercase and provide fallback
+  const normalizedCondition = condition?.toLowerCase() as keyof typeof conditionConfig;
+  const conditionDisplay = conditionConfig[normalizedCondition] || { 
+    label: condition || "Used", 
+    className: "bg-muted text-muted-foreground border-border" 
+  };
+
   const getRelativeDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -133,9 +140,9 @@ const ListingCard = ({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
-            className={conditionConfig[condition].className}
+            className={conditionDisplay.className}
           >
-            {conditionConfig[condition].label}
+            {conditionDisplay.label}
           </Badge>
           {(typeof quantity === 'number' && quantity > 1) && (
             <Badge variant="outline" className="gap-1">
