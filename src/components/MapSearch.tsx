@@ -27,6 +27,7 @@ interface MapSearchProps {
   className?: string;
   height?: string;
   showSearchButton?: boolean;
+  showDebug?: boolean;
 }
 
 const MapSearch: React.FC<MapSearchProps> = ({
@@ -35,7 +36,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
   onBoundsChange,
   className,
   height = '400px',
-  showSearchButton = true
+  showSearchButton = true,
+  showDebug = false,
 }) => {
   const [map, setMap] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,7 +46,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
   const [infoWindow, setInfoWindow] = useState<any>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Debug flags
+// Debug flags
   const [debug, setDebug] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState({
     invoked: false,
@@ -54,6 +56,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
     googlePresent: false,
     error: ''
   });
+
+  const debugEnabled = debug || showDebug;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -70,7 +74,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         setDebugInfo((d) => ({ ...d, error: '' }));
         const apiKey = await getGoogleMapsApiKey();
         const snippet = apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '';
-        if (debug) console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available', snippet);
+        if (debugEnabled) console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available', snippet);
         setDebugInfo((d) => ({ ...d, invoked: true, apiKeyOk: !!apiKey, apiKeySnippet: snippet }));
         if (!apiKey) {
           console.error('Google Maps API key not available - check edge function');
@@ -128,7 +132,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
   // Debug: capture script errors
   useEffect(() => {
-    if (!debug) return;
+    if (!debugEnabled) return;
     const handler = (e: ErrorEvent) => {
       try {
         if (typeof (e as any).filename === 'string' && (e as any).filename.includes('maps.googleapis.com')) {
@@ -138,7 +142,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
     };
     window.addEventListener('error', handler);
     return () => window.removeEventListener('error', handler);
-  }, [debug]);
+  }, [debugEnabled]);
 
   // Update markers when listings change
   useEffect(() => {
@@ -287,7 +291,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
           style={{ height }}
         />
         
-        {debug && (
+        {debugEnabled && (
           <div className="absolute top-2 right-2 z-20 rounded-md border border-border bg-background/80 backdrop-blur p-3 text-xs shadow" data-testid="maps-debug">
             <div className="font-medium mb-1">Maps Debug</div>
             <ul className="space-y-1">

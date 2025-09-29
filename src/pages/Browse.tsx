@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Filter, Grid3X3, List, Map, MapPin, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, Filter, Grid3X3, List, Map, MapPin, SlidersHorizontal, Loader2, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -32,6 +32,7 @@ const Browse = () => {
   const [mapBounds, setMapBounds] = useState<any>(null);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [mapsDebug, setMapsDebug] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -281,46 +282,56 @@ const Browse = () => {
                 {showFilters && <span className="ml-2">×</span>}
               </Button>
 
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full sm:w-auto">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="carbon">Highest Carbon Savings</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-full sm:w-auto">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                      <SelectItem value="price-low">Price: Low to High</SelectItem>
+                      <SelectItem value="price-high">Price: High to Low</SelectItem>
+                      <SelectItem value="carbon">Highest Carbon Savings</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <div className="flex border border-border rounded-lg">
+                  <div className="flex border border-border rounded-lg">
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                      className="rounded-r-none flex-1 sm:flex-none"
+                    >
+                      <Grid3X3 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className="rounded-none flex-1 sm:flex-none"
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "map" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("map")}
+                      className="rounded-l-none flex-1 sm:flex-none"
+                    >
+                      <Map className="h-4 w-4" />
+                    </Button>
+                  </div>
+
                   <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    variant={mapsDebug ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setViewMode("grid")}
-                    className="rounded-r-none flex-1 sm:flex-none"
+                    onClick={() => setMapsDebug((v) => !v)}
+                    aria-pressed={mapsDebug}
+                    className="sm:ml-2"
                   >
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className="rounded-none flex-1 sm:flex-none"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "map" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("map")}
-                    className="rounded-l-none flex-1 sm:flex-none"
-                  >
-                    <Map className="h-4 w-4" />
+                    <Bug className="h-4 w-4 mr-2" /> Debug
                   </Button>
                 </div>
-              </div>
             </div>
 
             {/* Filter Panel */}
@@ -410,6 +421,7 @@ const Browse = () => {
                 onBoundsChange={setMapBounds}
                 height="600px"
                 className="w-full"
+                showDebug={mapsDebug}
               />
             </section>
           ) : (
