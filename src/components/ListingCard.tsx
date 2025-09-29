@@ -19,6 +19,7 @@ interface ListingCardProps {
   quantity?: number;
   deliveryAvailable?: boolean;
   pickupAvailable?: boolean;
+  allowOffers?: boolean;
 }
 
 const ListingCard = ({ 
@@ -33,22 +34,23 @@ const ListingCard = ({
   className = "",
   quantity,
   deliveryAvailable,
-  pickupAvailable
+  pickupAvailable,
+  allowOffers
 }: ListingCardProps) => {
   const navigate = useNavigate();
   
   const conditionConfig = {
-    new: { label: "New", className: "bg-success/10 text-success border-success/20" },
-    excellent: { label: "Excellent", className: "bg-success/10 text-success border-success/20" },
-    good: { label: "Good", className: "bg-warning/10 text-warning border-warning/20" },
-    fair: { label: "Fair", className: "bg-muted text-muted-foreground border-border" }
+    new: { label: "NEW", className: "bg-success text-white border-success" },
+    excellent: { label: "EXCELLENT", className: "bg-success text-white border-success" },
+    good: { label: "GOOD", className: "bg-warning text-white border-warning" },
+    fair: { label: "FAIR", className: "bg-muted-foreground text-white border-muted-foreground" }
   };
 
   // Normalize condition to lowercase and provide fallback
   const normalizedCondition = condition?.toLowerCase() as keyof typeof conditionConfig;
   const conditionDisplay = conditionConfig[normalizedCondition] || { 
-    label: condition || "Used", 
-    className: "bg-muted text-muted-foreground border-border" 
+    label: (condition || "USED").toUpperCase(), 
+    className: "bg-muted-foreground text-white border-muted-foreground" 
   };
 
   const getRelativeDate = (dateString: string) => {
@@ -128,26 +130,31 @@ const ListingCard = ({
       <div className="p-4 space-y-3">
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-3">
-          <h3 className="font-semibold text-base text-card-foreground group-hover:text-primary transition-smooth line-clamp-2 flex-1">
+          <h3 className="font-bold text-base text-card-foreground group-hover:text-primary transition-smooth line-clamp-2 flex-1">
             {title}
           </h3>
-          <div className="text-xl font-bold text-primary whitespace-nowrap">
+          <div className="text-2xl font-bold text-primary whitespace-nowrap">
             {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
           </div>
         </div>
 
-        {/* Condition Badge and Quantity */}
+        {/* Condition Badge, Quantity, and Offers */}
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
-            className={conditionDisplay.className}
+            className={`${conditionDisplay.className} font-semibold px-3 py-1`}
           >
             {conditionDisplay.label}
           </Badge>
           {(typeof quantity === 'number' && quantity > 1) && (
-            <Badge variant="outline" className="gap-1">
+            <Badge variant="outline" className="gap-1 bg-primary text-primary-foreground border-primary font-semibold px-3 py-1">
               <Package className="h-3 w-3" />
-              {quantity} units
+              {quantity} UNITS
+            </Badge>
+          )}
+          {allowOffers && (
+            <Badge variant="outline" className="bg-accent text-accent-foreground border-accent font-semibold px-3 py-1">
+              OPEN TO OFFERS
             </Badge>
           )}
         </div>
@@ -166,7 +173,7 @@ const ListingCard = ({
         
         {/* Delivery/Pickup Icons */}
         {(deliveryAvailable || pickupAvailable) && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
             <Truck className="h-3.5 w-3.5" />
             <span>
               {deliveryAvailable && pickupAvailable 

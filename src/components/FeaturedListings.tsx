@@ -25,6 +25,7 @@ interface Listing {
   pickupAvailable?: boolean;
   weight?: number;
   dimensions?: any;
+  allowOffers?: boolean;
 }
 
 const FeaturedListings = () => {
@@ -53,6 +54,7 @@ const FeaturedListings = () => {
           dimensions,
           delivery_available,
           pickup_available,
+          allow_offers,
           profiles:seller_id (
             username,
             verified
@@ -87,7 +89,8 @@ const FeaturedListings = () => {
         deliveryAvailable: listing.delivery_available,
         pickupAvailable: listing.pickup_available,
         weight: listing.weight,
-        dimensions: listing.dimensions
+        dimensions: listing.dimensions,
+        allowOffers: listing.allow_offers
       })) || [];
 
       setListings(formattedListings);
