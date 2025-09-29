@@ -65,6 +65,14 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
   const debugEnabled = debug || showDebug;
 
+  // Create marker content for Advanced Markers
+  const createMarkerContent = (price: number) => {
+    const markerDiv = document.createElement('div');
+    markerDiv.className = 'bg-primary text-primary-foreground px-2 py-1 rounded-full text-sm font-semibold shadow-lg border-2 border-background';
+    markerDiv.textContent = `£${price.toLocaleString()}`;
+    return markerDiv;
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebug(params.get('debug') === 'maps');
@@ -109,7 +117,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
           apiKey,
           version: 'weekly',
           language: 'en-GB',
-          region: 'GB'
+          region: 'GB',
+          libraries: ['marker']
         });
 
         await loader.load();
@@ -151,7 +160,13 @@ const MapSearch: React.FC<MapSearchProps> = ({
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         console.error('Error loading Google Maps:', error);
-        setDebugInfo((d) => ({ ...d, error: msg }));
+        
+        // Specific handling for RefererNotAllowedMapError
+        if (msg.includes('RefererNotAllowedMapError')) {
+          setDebugInfo((d) => ({ ...d, error: `Domain authorization required. Add ${window.location.origin} to Google Cloud Console > APIs & Services > Credentials > Web Client > Authorized JavaScript origins` }));
+        } else {
+          setDebugInfo((d) => ({ ...d, error: msg }));
+        }
       } finally {
         setIsLoading(false);
       }
@@ -193,17 +208,12 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
       const position = { lat: listing.latitude, lng: listing.longitude };
       
-      // Create custom marker
-      const marker = new (window as any).google.maps.Marker({
+      // Create advanced marker (new non-deprecated API)
+      const marker = new (window as any).google.maps.marker.AdvancedMarkerElement({
         position,
         map,
         title: listing.title,
-        icon: {
-          url: '/api/placeholder/32/32', // This would be a custom marker icon
-          scaledSize: new (window as any).google.maps.Size(32, 32),
-          anchor: new (window as any).google.maps.Point(16, 32)
-        },
-        animation: (window as any).google.maps.Animation.DROP
+        content: createMarkerContent(listing.price)
       });
 
       // Add click listener for info window
