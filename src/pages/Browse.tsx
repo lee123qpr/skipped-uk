@@ -233,7 +233,7 @@ const Browse = () => {
               Find Quality Construction Materials
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Browse thousands of surplus construction materials from verified sellers across the UK and Ireland
+              Browse thousands of surplus construction materials from verified sellers across the UK
             </p>
             
             {/* Search Bar */}

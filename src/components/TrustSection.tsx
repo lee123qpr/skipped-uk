@@ -25,7 +25,7 @@ const trustFeatures = [
   {
     icon: Users,
     title: "Community Driven",
-    description: "Built by construction professionals, for construction professionals across UK & Ireland"
+    description: "Built by construction professionals, for construction professionals across the UK"
   },
   {
     icon: Award,
@@ -43,7 +43,7 @@ const TrustSection = () => {
             Why Choose Skipped?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We've built the safest, most trusted marketplace for construction materials in the UK & Ireland
+            We've built the safest, most trusted marketplace for construction materials in the UK
           </p>
         </div>
 

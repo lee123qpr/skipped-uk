@@ -55,7 +55,7 @@ const SignIn = () => {
     <>
       <SEOHead
         title="Sign In to Skipped"
-        description="Sign in to your Skipped account to buy and sell construction materials with buyer protection across UK & Ireland."
+        description="Sign in to your Skipped account to buy and sell construction materials with buyer protection across the UK."
         keywords="sign in, login, construction materials marketplace, UK building materials"
       />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">

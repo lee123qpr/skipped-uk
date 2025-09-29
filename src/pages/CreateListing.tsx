@@ -531,7 +531,7 @@ const CreateListing = () => {
     <>
       <SEOHead
         title={isEditing ? "Edit Listing - Construction Materials | Skipped" : "Sell Construction Materials - Create Listing | Skipped"}
-        description={isEditing ? "Edit your construction material listing on Skipped marketplace. Update photos, pricing, and delivery options." : "List your surplus construction materials for sale on Skipped. Upload photos & videos, set delivery options, and reach thousands of buyers across UK & Ireland."}
+        description={isEditing ? "Edit your construction material listing on Skipped marketplace. Update photos, pricing, and delivery options." : "List your surplus construction materials for sale on Skipped. Upload photos & videos, set delivery options, and reach thousands of buyers across the UK."}
         keywords={isEditing ? "edit listing, update construction materials, modify listing" : "sell construction materials, list building materials, upload construction photos, surplus materials marketplace, sell timber, sell bricks"}
         structuredData={structuredData}
       />

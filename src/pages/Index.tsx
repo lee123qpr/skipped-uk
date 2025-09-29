@@ -11,7 +11,7 @@ const Index = () => {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Skipped",
-    "description": "UK & Ireland's marketplace for surplus and second-hand construction materials",
+    "description": "UK's marketplace for surplus and second-hand construction materials",
     "url": "https://skipped.com",
     "potentialAction": {
       "@type": "SearchAction",
@@ -24,7 +24,7 @@ const Index = () => {
     <>
       <SEOHead
         title="Skipped - UK Construction Materials Marketplace | Save Money, Reduce Waste"
-        description="Buy and sell surplus construction materials across UK & Ireland. Save money, reduce landfill waste, and track your carbon impact with buyer protection guaranteed."
+        description="Buy and sell surplus construction materials across the UK. Save money, reduce landfill waste, and track your carbon impact with buyer protection guaranteed."
         keywords="construction materials, surplus materials, second hand building materials, UK construction marketplace, sustainable building, carbon savings, reclaimed materials"
         structuredData={structuredData}
       />

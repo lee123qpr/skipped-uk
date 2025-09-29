@@ -35,7 +35,7 @@ const SignUp = () => {
     <>
       <SEOHead
         title="Join Skipped - Create Your Account"
-        description="Create your Skipped account to buy and sell construction materials with complete buyer protection across UK & Ireland. Join thousands saving money and reducing waste."
+        description="Create your Skipped account to buy and sell construction materials with complete buyer protection across the UK. Join thousands saving money and reducing waste."
         keywords="sign up, create account, construction materials marketplace, UK building materials, sustainable construction"
       />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">

@@ -18,7 +18,7 @@ const Footer = () => {
               />
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              The UK & Ireland's premier marketplace for sustainable construction materials. 
+              The UK's premier marketplace for sustainable construction materials. 
               Reducing waste, saving money, protecting our planet.
             </p>
             <div className="flex items-center gap-2 text-sm text-accent">
@@ -77,7 +77,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span>UK & Ireland</span>
+                <span>UK</span>
               </div>
             </div>
           </div>
