@@ -292,18 +292,18 @@ const MapSearch: React.FC<MapSearchProps> = ({
         />
         
         {debugEnabled && (
-          <div className="absolute top-2 right-2 z-20 rounded-md border border-border bg-background/80 backdrop-blur p-3 text-xs shadow" data-testid="maps-debug">
-            <div className="font-medium mb-1">Maps Debug</div>
-            <ul className="space-y-1">
-              <li>Edge called: {String(debugInfo.invoked)}</li>
-              <li>API key: {debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</li>
-              <li>SDK loaded: {String(debugInfo.scriptLoaded)}</li>
-              <li>google.maps: {String(debugInfo.googlePresent)}</li>
-              <li>Markers: {listings.length}</li>
-              {debugInfo.error && <li className="text-destructive">Error: {debugInfo.error}</li>}
+          <div className="absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-30 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
+            <div className="font-medium mb-2 text-primary">Maps Debug</div>
+            <ul className="space-y-1 text-foreground">
+              <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
+              <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
+              <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
+              <li>google.maps: <span className="font-mono">{String(debugInfo.googlePresent)}</span></li>
+              <li>Markers: <span className="font-mono">{listings.length}</span></li>
+              {debugInfo.error && <li className="text-destructive font-medium">Error: {debugInfo.error}</li>}
             </ul>
-            <div className="mt-2 flex gap-2">
-              <Button size="sm" variant="outline" onClick={testEdge}>Test API key</Button>
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" variant="outline" onClick={testEdge} className="text-xs">Test API key</Button>
             </div>
           </div>
         )}
