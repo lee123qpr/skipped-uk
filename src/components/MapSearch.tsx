@@ -52,8 +52,10 @@ const MapSearch: React.FC<MapSearchProps> = ({
         setIsLoading(true);
         
         const apiKey = await getGoogleMapsApiKey();
+        console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available');
         if (!apiKey) {
-          console.error('Google Maps API key not available');
+          console.error('Google Maps API key not available - check edge function');
+          setIsLoading(false);
           return;
         }
         

@@ -394,17 +394,19 @@ const Browse = () => {
           {viewMode === "map" ? (
             <section className="mb-12">
               <MapSearch
-                listings={listings.map(listing => ({
-                  id: listing.id,
-                  title: listing.title,
-                  price: listing.price,
-                  public_location: listing.location,
-                  latitude: listing.latitude || 0,
-                  longitude: listing.longitude || 0,
-                  category: listing.categories?.name || '',
-                  condition: listing.condition || '',
-                  images: listing.images || []
-                }))}
+                listings={listings
+                  .filter(listing => listing.latitude && listing.longitude) // Only show listings with valid coordinates
+                  .map(listing => ({
+                    id: listing.id,
+                    title: listing.title,
+                    price: listing.price,
+                    public_location: listing.public_location || listing.location, // Fixed field mapping
+                    latitude: listing.latitude,
+                    longitude: listing.longitude,
+                    category: listing.categories?.name || '',
+                    condition: listing.condition || '',
+                    images: listing.images || []
+                  }))}
                 onBoundsChange={setMapBounds}
                 height="600px"
                 className="w-full"
