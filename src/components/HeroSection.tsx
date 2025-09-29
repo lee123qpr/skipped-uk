@@ -38,7 +38,7 @@ const HeroSection = () => {
               <span className="text-accent">Save the Planet.</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              The UK & Ireland's marketplace for surplus and second-hand construction materials. 
+              The UK's marketplace for surplus and second-hand construction materials. 
               Find quality materials at great prices while reducing landfill waste.
             </p>
           </div>
