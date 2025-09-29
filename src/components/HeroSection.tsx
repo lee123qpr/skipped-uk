@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import heroImage from "@/assets/hero-construction.jpg";
-import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const HeroSection = () => {
   return (
@@ -22,14 +21,10 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Main Heading */}
           <div className="space-y-4">
-            {/* Logo */}
+            {/* Large Recycling Symbol */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse overflow-hidden">
-                <img 
-                  src={skippedLogo} 
-                  alt="Skipped logo"
-                  className="w-12 h-12 object-contain"
-                />
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+                <Recycle className="h-12 w-12 text-primary" strokeWidth={2.5} />
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
@@ -38,7 +33,7 @@ const HeroSection = () => {
               <span className="text-accent">Save the Planet.</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              The UK's marketplace for surplus and second-hand construction materials. 
+              The UK & Ireland's marketplace for surplus and second-hand construction materials. 
               Find quality materials at great prices while reducing landfill waste.
             </p>
           </div>
