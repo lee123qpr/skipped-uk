@@ -87,6 +87,7 @@ const Browse = () => {
           dimensions,
           delivery_available,
           pickup_available,
+          allow_offers,
           categories (
             id,
             name,

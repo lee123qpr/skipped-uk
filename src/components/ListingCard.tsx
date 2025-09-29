@@ -11,7 +11,7 @@ interface ListingCardProps {
   title: string;
   price: number;
   location: string;
-  condition: "new" | "excellent" | "good" | "fair";
+  condition: "new" | "excellent" | "good" | "fair" | "poor";
   images: string[];
   postedDate: string;
   isFavorited?: boolean;
@@ -40,17 +40,18 @@ const ListingCard = ({
   const navigate = useNavigate();
   
   const conditionConfig = {
-    new: { label: "NEW", className: "bg-[#22C55E] text-white border-[#22C55E] shadow-sm" },
-    excellent: { label: "EXCELLENT", className: "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm" },
-    good: { label: "GOOD", className: "bg-[#F59E0B] text-white border-[#F59E0B] shadow-sm" },
-    fair: { label: "FAIR", className: "bg-[#64748B] text-white border-[#64748B] shadow-sm" }
+    new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
+    excellent: { label: "EXCELLENT", className: "bg-[#3B82F6] text-white border-0 shadow-sm" },
+    good: { label: "GOOD", className: "bg-[#F59E0B] text-white border-0 shadow-sm" },
+    fair: { label: "FAIR", className: "bg-[#64748B] text-white border-0 shadow-sm" },
+    poor: { label: "POOR", className: "bg-[#EF4444] text-white border-0 shadow-sm" }
   };
 
   // Normalize condition to lowercase and provide fallback
   const normalizedCondition = condition?.toLowerCase() as keyof typeof conditionConfig;
   const conditionDisplay = conditionConfig[normalizedCondition] || { 
     label: (condition || "USED").toUpperCase(), 
-    className: "bg-[#64748B] text-white border-[#64748B] shadow-sm" 
+    className: "bg-[#9333EA] text-white border-0 shadow-sm" 
   };
 
   const getRelativeDate = (dateString: string) => {
