@@ -27,8 +27,21 @@ import {
   PoundSterling,
   Weight,
   User,
-  CheckCircle
+  CheckCircle,
+  Copy,
+  Mail,
+  Facebook,
+  Twitter,
+  Linkedin
 } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -195,20 +208,62 @@ const ListingDetails = () => {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (platform?: string) => {
+    const url = window.location.href;
+    const title = listing?.title || 'Check out this item';
+    const text = `Check out this ${listing?.title} on Skipped`;
+    
     try {
-      await navigator.share({
-        title: listing?.title,
-        text: `Check out this ${listing?.title} on Skipped`,
-        url: window.location.href,
-      });
+      switch (platform) {
+        case 'copy':
+          await navigator.clipboard.writeText(url);
+          toast({
+            title: "Link copied",
+            description: "Listing link copied to clipboard",
+          });
+          break;
+        case 'whatsapp':
+          window.open(`https://wa.me/?text=${encodeURIComponent(`${text} - ${url}`)}`, '_blank');
+          break;
+        case 'facebook':
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+          break;
+        case 'twitter':
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+          break;
+        case 'linkedin':
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+          break;
+        case 'email':
+          window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${url}`)}`;
+          break;
+        case 'native':
+          if (navigator.share) {
+            await navigator.share({
+              title: title,
+              text: text,
+              url: url,
+            });
+          }
+          break;
+        default:
+          // Default to native share or copy
+          if (navigator.share) {
+            await navigator.share({
+              title: title,
+              text: text,
+              url: url,
+            });
+          } else {
+            await navigator.clipboard.writeText(url);
+            toast({
+              title: "Link copied",
+              description: "Listing link copied to clipboard",
+            });
+          }
+      }
     } catch (err) {
-      // Fallback to copying to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied",
-        description: "Listing link copied to clipboard",
-      });
+      console.error('Error sharing:', err);
     }
   };
 
@@ -376,9 +431,50 @@ const ListingDetails = () => {
               <Button variant="outline" size="icon" onClick={handleFavourite}>
                 <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
-              <Button variant="outline" size="icon" onClick={handleShare}>
-                <Share2 className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Share this listing</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {navigator.share && (
+                    <>
+                      <DropdownMenuItem onClick={() => handleShare('native')}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Share...
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={() => handleShare('copy')}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                    <Facebook className="mr-2 h-4 w-4" />
+                    Facebook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                    <Twitter className="mr-2 h-4 w-4" />
+                    Twitter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+                    <Linkedin className="mr-2 h-4 w-4" />
+                    LinkedIn
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare('email')}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Email
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             {/* Listed Date */}
