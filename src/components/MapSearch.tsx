@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGoogleMapsApiKey } from '@/lib/googleMaps';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Listing {
   id: string;
@@ -43,6 +44,22 @@ const MapSearch: React.FC<MapSearchProps> = ({
   const [infoWindow, setInfoWindow] = useState<any>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
+  // Debug flags
+  const [debug, setDebug] = useState<boolean>(false);
+  const [debugInfo, setDebugInfo] = useState({
+    invoked: false,
+    apiKeyOk: false,
+    apiKeySnippet: '',
+    scriptLoaded: false,
+    googlePresent: false,
+    error: ''
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDebug(params.get('debug') === 'maps');
+  }, []);
+
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = async () => {
@@ -50,9 +67,11 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
       try {
         setIsLoading(true);
-        
+        setDebugInfo((d) => ({ ...d, error: '' }));
         const apiKey = await getGoogleMapsApiKey();
-        console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available');
+        const snippet = apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '';
+        if (debug) console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available', snippet);
+        setDebugInfo((d) => ({ ...d, invoked: true, apiKeyOk: !!apiKey, apiKeySnippet: snippet }));
         if (!apiKey) {
           console.error('Google Maps API key not available - check edge function');
           setIsLoading(false);
@@ -65,6 +84,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         });
 
         await loader.load();
+        setDebugInfo((d) => ({ ...d, scriptLoaded: true, googlePresent: !!(window as any).google?.maps }));
 
         // Default to UK center
         const mapInstance = new (window as any).google.maps.Map(mapRef.current, {
@@ -95,7 +115,9 @@ const MapSearch: React.FC<MapSearchProps> = ({
         setMap(mapInstance);
         setInfoWindow(infoWindowInstance);
       } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
         console.error('Error loading Google Maps:', error);
+        setDebugInfo((d) => ({ ...d, error: msg }));
       } finally {
         setIsLoading(false);
       }
@@ -103,6 +125,20 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
     initializeMap();
   }, [onBoundsChange]);
+
+  // Debug: capture script errors
+  useEffect(() => {
+    if (!debug) return;
+    const handler = (e: ErrorEvent) => {
+      try {
+        if (typeof (e as any).filename === 'string' && (e as any).filename.includes('maps.googleapis.com')) {
+          setDebugInfo((d) => ({ ...d, error: e.message }));
+        }
+      } catch {}
+    };
+    window.addEventListener('error', handler);
+    return () => window.removeEventListener('error', handler);
+  }, [debug]);
 
   // Update markers when listings change
   useEffect(() => {
@@ -196,6 +232,25 @@ const MapSearch: React.FC<MapSearchProps> = ({
     };
   }, [map, listings, onListingSelect, infoWindow]);
 
+  // Debug helper to call edge function directly
+  const testEdge = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+      const apiKey = data?.apiKey as string | undefined;
+      setDebugInfo((d) => ({
+        ...d,
+        invoked: true,
+        apiKeyOk: !!apiKey && !error,
+        apiKeySnippet: apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '',
+        error: error?.message || ''
+      }));
+      console.log('Edge function response', { hasKey: !!apiKey, error });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setDebugInfo((d) => ({ ...d, error: msg }));
+    }
+  };
+
   const handleSearchThisArea = () => {
     if (!map) return;
     
@@ -231,6 +286,23 @@ const MapSearch: React.FC<MapSearchProps> = ({
           className="w-full"
           style={{ height }}
         />
+        
+        {debug && (
+          <div className="absolute top-2 right-2 z-20 rounded-md border border-border bg-background/80 backdrop-blur p-3 text-xs shadow" data-testid="maps-debug">
+            <div className="font-medium mb-1">Maps Debug</div>
+            <ul className="space-y-1">
+              <li>Edge called: {String(debugInfo.invoked)}</li>
+              <li>API key: {debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</li>
+              <li>SDK loaded: {String(debugInfo.scriptLoaded)}</li>
+              <li>google.maps: {String(debugInfo.googlePresent)}</li>
+              <li>Markers: {listings.length}</li>
+              {debugInfo.error && <li className="text-destructive">Error: {debugInfo.error}</li>}
+            </ul>
+            <div className="mt-2 flex gap-2">
+              <Button size="sm" variant="outline" onClick={testEdge}>Test API key</Button>
+            </div>
+          </div>
+        )}
         
         {showSearchButton && (
           <div className="absolute top-4 left-4 right-4">
