@@ -292,20 +292,56 @@ const MapSearch: React.FC<MapSearchProps> = ({
         />
         
         {debugEnabled && (
-          <div className="absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-50 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
-            <div className="font-medium mb-2 text-primary">Maps Debug</div>
-            <ul className="space-y-1 text-foreground">
-              <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
-              <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
-              <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
-              <li>google.maps: <span className="font-mono">{String(debugInfo.googlePresent)}</span></li>
-              <li>Markers: <span className="font-mono">{listings.length}</span></li>
-              {debugInfo.error && <li className="text-destructive font-medium">Error: {debugInfo.error}</li>}
-            </ul>
-            <div className="mt-3 flex gap-2">
-              <Button size="sm" variant="outline" onClick={testEdge} className="text-xs">Test API key</Button>
+          <>
+            <div className="hidden sm:block absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-50 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
+              <div className="font-medium mb-2 text-primary">Maps Debug</div>
+              <ul className="space-y-1 text-foreground">
+                <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
+                <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
+                <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
+                <li>google.maps: <span className="font-mono">{String(debugInfo.googlePresent)}</span></li>
+                <li>Markers: <span className="font-mono">{listings.length}</span></li>
+                {debugInfo.error && <li className="text-destructive font-medium">Error: {debugInfo.error}</li>}
+              </ul>
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" variant="outline" onClick={testEdge} className="text-xs">Test API key</Button>
+              </div>
             </div>
-          </div>
+
+            <div className="sm:hidden border-t border-border bg-background/95 p-3 text-sm" data-testid="maps-debug-mobile" role="region" aria-label="Maps debug information">
+              <div className="font-medium mb-2 text-primary">Maps Debug</div>
+              <ul className="space-y-1 text-foreground">
+                <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
+                <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
+                <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
+                <li>google.maps: <span className="font-mono">{String(debugInfo.googlePresent)}</span></li>
+                <li>Markers: <span className="font-mono">{listings.length}</span></li>
+                {debugInfo.error && <li className="text-destructive font-medium">Error: {debugInfo.error}</li>}
+              </ul>
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" variant="outline" onClick={testEdge} className="text-xs">Test API key</Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="text-xs"
+                  onClick={() => {
+                    const payload = JSON.stringify({
+                      invoked: debugInfo.invoked,
+                      apiKeyOk: debugInfo.apiKeyOk,
+                      apiKeySnippet: debugInfo.apiKeySnippet,
+                      scriptLoaded: debugInfo.scriptLoaded,
+                      googlePresent: debugInfo.googlePresent,
+                      markers: listings.length,
+                      error: debugInfo.error,
+                    }, null, 2);
+                    navigator.clipboard?.writeText(payload).catch(() => {});
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </>
         )}
         
         {showSearchButton && (
