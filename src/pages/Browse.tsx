@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, Filter, Grid3X3, List, Map, MapPin, SlidersHorizontal, Loader2, Bug } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Search, Filter, Grid3X3, List, Map, MapPin, SlidersHorizontal, Loader2, Bug, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -29,11 +29,25 @@ const Browse = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedReason, setSelectedReason] = useState<string>("all");
+  const [deliveryAvailable, setDeliveryAvailable] = useState<boolean | null>(null);
+  const [pickupAvailable, setPickupAvailable] = useState<boolean | null>(null);
+  const [acceptsOffers, setAcceptsOffers] = useState<boolean | null>(null);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [mapBounds, setMapBounds] = useState<any>(null);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mapSectionRef = useRef<HTMLElement>(null);
   const [mapsDebug, setMapsDebug] = useState(false);
+
+  // Search debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -51,7 +65,7 @@ const Browse = () => {
 
   // Fetch listings with filters
   const { data: listings = [], isLoading, error } = useQuery({
-    queryKey: ['listings', searchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy],
+    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, selectedReason, deliveryAvailable, pickupAvailable, acceptsOffers],
     queryFn: async () => {
       let query = supabase
         .from('listings')
@@ -88,8 +102,8 @@ const Browse = () => {
         .eq('status', 'active');
 
       // Apply search filter
-      if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+      if (debouncedSearchTerm) {
+        query = query.or(`title.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,location.ilike.%${debouncedSearchTerm}%`);
       }
 
       // Apply category filter
@@ -105,6 +119,26 @@ const Browse = () => {
       // Apply location filter
       if (selectedLocation) {
         query = query.ilike('location', `%${selectedLocation}%`);
+      }
+
+      // Apply reason for selling filter
+      if (selectedReason !== 'all') {
+        query = query.eq('reason_for_selling', selectedReason);
+      }
+
+      // Apply delivery available filter
+      if (deliveryAvailable !== null) {
+        query = query.eq('delivery_available', deliveryAvailable);
+      }
+
+      // Apply pickup available filter
+      if (pickupAvailable !== null) {
+        query = query.eq('pickup_available', pickupAvailable);
+      }
+
+      // Apply accepts offers filter
+      if (acceptsOffers !== null) {
+        query = query.eq('allow_offers', acceptsOffers);
       }
 
       // Apply price filter
@@ -354,6 +388,27 @@ const Browse = () => {
             {/* Filter Panel */}
             {showFilters && (
               <Card className="p-6 mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Filter Options</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCategory("all");
+                      setSelectedCondition("all");
+                      setSelectedLocation("");
+                      setPriceRange("all");
+                      setSelectedReason("all");
+                      setDeliveryAvailable(null);
+                      setPickupAvailable(null);
+                      setAcceptsOffers(null);
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Clear All
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">Category</label>
@@ -378,12 +433,14 @@ const Browse = () => {
                       <SelectTrigger>
                         <SelectValue placeholder="Any condition" />
                       </SelectTrigger>
-                      <SelectContent>
+                        <SelectContent>
                         <SelectItem value="all">Any Condition</SelectItem>
                         <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="like_new">Like New</SelectItem>
                         <SelectItem value="excellent">Excellent</SelectItem>
                         <SelectItem value="good">Good</SelectItem>
                         <SelectItem value="fair">Fair</SelectItem>
+                        <SelectItem value="poor">Poor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -413,6 +470,141 @@ const Browse = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Row 2: Advanced Filters */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Reason for Selling</label>
+                    <Select value={selectedReason} onValueChange={setSelectedReason}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Reason</SelectItem>
+                        <SelectItem value="surplus">Surplus Materials</SelectItem>
+                        <SelectItem value="incorrect_order">Incorrect Order</SelectItem> 
+                        <SelectItem value="saving_from_skip">Saving from Skip</SelectItem>
+                        <SelectItem value="no_longer_needed">No Longer Needed</SelectItem>
+                        <SelectItem value="downsizing">Downsizing</SelectItem>
+                        <SelectItem value="end_of_project">End of Project</SelectItem>
+                        <SelectItem value="upgrading">Upgrading</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Delivery Options</label>
+                    <Select 
+                      value={deliveryAvailable === null ? "all" : deliveryAvailable ? "delivery" : "collection"} 
+                      onValueChange={(value) => {
+                        if (value === "all") {
+                          setDeliveryAvailable(null);
+                          setPickupAvailable(null);
+                        } else if (value === "delivery") {
+                          setDeliveryAvailable(true);
+                          setPickupAvailable(null);
+                        } else if (value === "collection") {
+                          setDeliveryAvailable(null);
+                          setPickupAvailable(true);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any delivery option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Option</SelectItem>
+                        <SelectItem value="delivery">Delivery Available</SelectItem>
+                        <SelectItem value="collection">Collection Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Offers</label>
+                    <Select 
+                      value={acceptsOffers === null ? "all" : acceptsOffers ? "accepts" : "fixed"} 
+                      onValueChange={(value) => {
+                        if (value === "all") {
+                          setAcceptsOffers(null);
+                        } else if (value === "accepts") {
+                          setAcceptsOffers(true);
+                        } else {
+                          setAcceptsOffers(false);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any offer option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Option</SelectItem>
+                        <SelectItem value="accepts">Accepts Offers</SelectItem>
+                        <SelectItem value="fixed">Fixed Price Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Carbon Savings</label>
+                    <Select 
+                      value={priceRange} 
+                      onValueChange={setPriceRange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any carbon savings" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Amount</SelectItem>
+                        <SelectItem value="high-carbon">High Impact (500+ kg CO₂)</SelectItem>
+                        <SelectItem value="medium-carbon">Medium Impact (100-500 kg CO₂)</SelectItem>
+                        <SelectItem value="low-carbon">Low Impact (Under 100 kg CO₂)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Filter Summary */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {selectedCategory !== "all" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {categories.find(c => c.id === selectedCategory)?.name}
+                    </span>
+                  )}
+                  {selectedCondition !== "all" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {selectedCondition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                  )}
+                  {selectedLocation && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      📍 {selectedLocation}
+                    </span>
+                  )}
+                  {priceRange !== "all" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {priceRange === "free" ? "Free" : 
+                       priceRange === "under-100" ? "Under £100" :
+                       priceRange === "100-500" ? "£100-£500" :
+                       priceRange === "500-1000" ? "£500-£1,000" :
+                       "Over £1,000"}
+                    </span>
+                  )}
+                  {selectedReason !== "all" && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {selectedReason.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                  )}
+                  {deliveryAvailable !== null && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {deliveryAvailable ? "🚚 Delivery" : "📦 Collection"}
+                    </span>
+                  )}
+                  {acceptsOffers !== null && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {acceptsOffers ? "💬 Accepts Offers" : "💳 Fixed Price"}
+                    </span>
+                  )}
                 </div>
               </Card>
             )}
