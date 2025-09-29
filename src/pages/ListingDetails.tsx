@@ -350,36 +350,35 @@ const ListingDetails = () => {
 
           {/* Title and Key Information */}
           <div className="mb-8">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-                {listing.categories && (
-                  <Badge variant="secondary" className="mb-3">
-                    {listing.categories.name}
-                  </Badge>
-                )}
-                <div className="text-4xl font-bold text-primary mb-4">
-                  {listing.price === 0 ? 'Free' : `£${listing.price.toLocaleString()}`}
-                </div>
+            {/* Title, Category and Price */}
+            <div className="mb-4">
+              <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
+              {listing.categories && (
+                <Badge variant="secondary" className="mb-3">
+                  {listing.categories.name}
+                </Badge>
+              )}
+              <div className="text-4xl font-bold text-primary mb-4">
+                {listing.price === 0 ? 'Free' : `£${listing.price.toLocaleString()}`}
               </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-2 ml-4">
-                <Button 
-                  onClick={handleContact} 
-                  disabled={user?.id === listing.seller_id}
-                  className="px-6"
-                >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  {user?.id === listing.seller_id ? 'Your Listing' : 'Contact Seller'}
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleFavourite}>
-                  <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleShare}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={handleContact} 
+                disabled={user?.id === listing.seller_id}
+                className="flex-1 sm:flex-none sm:px-6"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                {user?.id === listing.seller_id ? 'Your Listing' : 'Contact Seller'}
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleFavourite}>
+                <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleShare}>
+                <Share2 className="h-4 w-4" />
+              </Button>
             </div>
             
             {/* Listed Date */}
