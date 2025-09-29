@@ -32,6 +32,7 @@ const Browse = () => {
   const [mapBounds, setMapBounds] = useState<any>(null);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const mapSectionRef = useRef<HTMLElement>(null);
   const [mapsDebug, setMapsDebug] = useState(false);
 
   // Fetch categories
@@ -315,7 +316,10 @@ const Browse = () => {
                   <Button
                     variant={viewMode === "map" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setViewMode("map")}
+                    onClick={() => {
+                      setViewMode("map");
+                      setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+                    }}
                     className="rounded-l-none flex-1 sm:flex-none"
                   >
                     <Map className="h-4 w-4" />
@@ -330,6 +334,7 @@ const Browse = () => {
                       const next = !v;
                       if (next && viewMode !== "map") {
                         setViewMode("map");
+                        setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
                         toast({
                           title: 'Debug enabled',
                           description: 'Switched to Map view to show the Maps Debug panel.'
@@ -415,7 +420,7 @@ const Browse = () => {
 
           {/* Results Section */}
           {viewMode === "map" ? (
-            <section className="mb-12">
+            <section ref={mapSectionRef} className="mb-12">
               <MapSearch
                 listings={listings
                   .filter(listing => listing.latitude && listing.longitude) // Only show listings with valid coordinates

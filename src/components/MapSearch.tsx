@@ -292,7 +292,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         />
         
         {debugEnabled && (
-          <div className="absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-30 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
+          <div className="absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-50 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
             <div className="font-medium mb-2 text-primary">Maps Debug</div>
             <ul className="space-y-1 text-foreground">
               <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
