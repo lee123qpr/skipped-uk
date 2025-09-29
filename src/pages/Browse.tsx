@@ -282,6 +282,145 @@ const Browse = () => {
                 {showFilters && <span className="ml-2">×</span>}
               </Button>
 
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full sm:w-auto">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="carbon">Highest Carbon Savings</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="flex border border-border rounded-lg">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className="rounded-r-none flex-1 sm:flex-none"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className="rounded-none flex-1 sm:flex-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "map" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("map")}
+                    className="rounded-l-none flex-1 sm:flex-none"
+                  >
+                    <Map className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Button
+                  variant={mapsDebug ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setMapsDebug((v) => {
+                      const next = !v;
+                      if (next && viewMode !== "map") {
+                        setViewMode("map");
+                        toast({
+                          title: 'Debug enabled',
+                          description: 'Switched to Map view to show the Maps Debug panel.'
+                        });
+                      }
+                      return next;
+                    });
+                  }}
+                  aria-pressed={mapsDebug}
+                  className="sm:ml-2"
+                >
+                  <Bug className="h-4 w-4 mr-2" /> Debug
+                </Button>
+              </div>
+            </div>
+
+            {/* Filter Panel */}
+            {showFilters && (
+              <Card className="p-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Category</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Condition</label>
+                    <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any condition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Condition</SelectItem>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="excellent">Excellent</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Location</label>
+                    <LocationAutocomplete
+                      value={selectedLocation}
+                      onChange={(locationData) => setSelectedLocation(locationData.publicLocation)}
+                      placeholder="Start typing a location..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-foreground">Price</label>
+                    <Select value={priceRange} onValueChange={setPriceRange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Any price" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Price</SelectItem>
+                        <SelectItem value="free">Free</SelectItem>
+                        <SelectItem value="under-100">Under £100</SelectItem>
+                        <SelectItem value="100-500">£100 - £500</SelectItem>
+                        <SelectItem value="500-1000">£500 - £1,000</SelectItem>
+                        <SelectItem value="over-1000">Over £1,000</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </section>
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+                {showFilters && <span className="ml-2">×</span>}
+              </Button>
+
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-full sm:w-auto">
@@ -320,17 +459,6 @@ const Browse = () => {
                     >
                       <Map className="h-4 w-4" />
                     </Button>
-                  </div>
-
-                  <Button
-                    variant={mapsDebug ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setMapsDebug((v) => !v)}
-                    aria-pressed={mapsDebug}
-                    className="sm:ml-2"
-                  >
-                    <Bug className="h-4 w-4 mr-2" /> Debug
-                  </Button>
                 </div>
             </div>
 
@@ -353,7 +481,30 @@ const Browse = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+            </div>
+            </div>
+
+                <Button
+                  variant={mapsDebug ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setMapsDebug((v) => {
+                      const next = !v;
+                      if (next && viewMode !== "map") {
+                        setViewMode("map");
+                        toast({
+                          title: 'Debug enabled',
+                          description: 'Switched to Map view to show the Maps Debug panel.'
+                        });
+                      }
+                      return next;
+                    });
+                  }}
+                  aria-pressed={mapsDebug}
+                  className="sm:ml-2"
+                >
+                  <Bug className="h-4 w-4 mr-2" /> Debug
+                </Button>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">Condition</label>
