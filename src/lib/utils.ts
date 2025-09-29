@@ -15,7 +15,8 @@ export function formatCondition(condition: string): string {
     'excellent': 'Excellent (lightly used, very good condition)',
     'good': 'Good (used with normal wear)',
     'fair': 'Fair (used with visible wear but functional)',
-    'poor': 'Poor (heavily used, may need repair)',
+    'salvage': 'Salvage (heavily used, suitable for repurposing)',
+    'parts_repair': 'Parts/Repair (damaged, may need repair or for parts only)',
   };
   
   return conditionMap[condition] || condition

@@ -442,7 +442,8 @@ const Browse = () => {
                         <SelectItem value="excellent">Excellent</SelectItem>
                         <SelectItem value="good">Good</SelectItem>
                         <SelectItem value="fair">Fair</SelectItem>
-                        <SelectItem value="poor">Poor</SelectItem>
+                        <SelectItem value="salvage">Salvage</SelectItem>
+                        <SelectItem value="parts_repair">Parts/Repair</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

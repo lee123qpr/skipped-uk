@@ -11,7 +11,7 @@ interface ListingCardProps {
   title: string;
   price: number;
   location: string;
-  condition: "new" | "excellent" | "good" | "fair" | "poor";
+  condition: "new" | "excellent" | "good" | "fair" | "salvage" | "parts_repair";
   images: string[];
   postedDate: string;
   isFavorited?: boolean;
@@ -44,7 +44,8 @@ const ListingCard = ({
     excellent: { label: "EXCELLENT", className: "bg-[#3B82F6] text-white border-0 shadow-sm" },
     good: { label: "GOOD", className: "bg-[#F59E0B] text-white border-0 shadow-sm" },
     fair: { label: "FAIR", className: "bg-[#64748B] text-white border-0 shadow-sm" },
-    poor: { label: "POOR", className: "bg-[#EF4444] text-white border-0 shadow-sm" }
+    salvage: { label: "SALVAGE", className: "bg-[#EF4444] text-white border-0 shadow-sm" },
+    parts_repair: { label: "PARTS/REPAIR", className: "bg-[#DC2626] text-white border-0 shadow-sm" }
   };
 
   // Normalize condition to lowercase and provide fallback

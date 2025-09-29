@@ -24,7 +24,7 @@ const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
   price: z.number().nonnegative('Price must be zero (free) or a positive amount').max(999999, 'Price must be less than £1,000,000'),
-  condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'poor']),
+  condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'salvage', 'parts_repair']),
   location: z.string().min(2, 'Location is required').max(100, 'Location must be less than 100 characters'),
   category_id: z.string().uuid('Please select a category'),
   quantity: z.number().int().positive('Quantity must be at least 1'),
@@ -624,7 +624,8 @@ const CreateListing = () => {
                           <SelectItem value="excellent">Excellent (lightly used, very good condition)</SelectItem>
                           <SelectItem value="good">Good (used with normal wear)</SelectItem>
                           <SelectItem value="fair">Fair (used with visible wear but functional)</SelectItem>
-                          <SelectItem value="poor">Poor (heavily used, may need repair)</SelectItem>
+                          <SelectItem value="salvage">Salvage (heavily used, suitable for repurposing)</SelectItem>
+                          <SelectItem value="parts_repair">Parts/Repair (damaged, may need repair or for parts only)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
