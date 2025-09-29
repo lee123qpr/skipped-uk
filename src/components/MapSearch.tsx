@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +46,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
   const [markers, setMarkers] = useState<any[]>([]);
   const [infoWindow, setInfoWindow] = useState<any>(null);
   const mapRef = useRef<HTMLDivElement>(null);
+  const clustererRef = useRef<MarkerClusterer | null>(null);
+  const idleTimeoutRef = useRef<number | null>(null);
 
 // Debug flags
   const [debug, setDebug] = useState<boolean>(false);
@@ -104,7 +107,9 @@ const MapSearch: React.FC<MapSearchProps> = ({
         
         const loader = new Loader({
           apiKey,
-          version: 'weekly'
+          version: 'weekly',
+          language: 'en-GB',
+          region: 'GB'
         });
 
         await loader.load();
@@ -124,14 +129,19 @@ const MapSearch: React.FC<MapSearchProps> = ({
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: true,
+          gestureHandling: 'greedy',
+          clickableIcons: false,
         });
 
-        // Add bounds change listener
-        mapInstance.addListener('bounds_changed', () => {
-          const bounds = mapInstance.getBounds();
-          if (bounds && onBoundsChange) {
-            onBoundsChange(bounds);
-          }
+        // Debounced bounds update on idle for performance
+        mapInstance.addListener('idle', () => {
+          if (idleTimeoutRef.current) window.clearTimeout(idleTimeoutRef.current);
+          idleTimeoutRef.current = window.setTimeout(() => {
+            const bounds = mapInstance.getBounds();
+            if (bounds && onBoundsChange) {
+              onBoundsChange(bounds);
+            }
+          }, 250);
         });
 
         const infoWindowInstance = new (window as any).google.maps.InfoWindow();
@@ -168,10 +178,13 @@ const MapSearch: React.FC<MapSearchProps> = ({
   useEffect(() => {
     if (!map || !listings.length) return;
 
-    // Clear existing markers
+    // Clear existing clusters and markers
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers();
+      clustererRef.current = null;
+    }
     markers.forEach(marker => marker.setMap(null));
     const newMarkers: any[] = [];
-
     // Create bounds to fit all listings
     const bounds = new (window as any).google.maps.LatLngBounds();
 
@@ -233,7 +246,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
     // Fit map to show all markers
     if (listings.length > 0) {
       map.fitBounds(bounds);
-      
       // Zoom out a bit if only one listing
       if (listings.length === 1) {
         map.setZoom(12);
@@ -241,6 +253,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
     }
 
     setMarkers(newMarkers);
+    // Cluster markers for performance
+    clustererRef.current = new MarkerClusterer({ map, markers: newMarkers });
 
     // Add global function for info window button clicks
     (window as any).selectMapListing = (listingId: string) => {
