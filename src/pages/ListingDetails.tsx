@@ -478,7 +478,7 @@ const ListingDetails = () => {
             </div>
             
             {/* Listed Date */}
-            <div className="flex items-center gap-2 text-muted-foreground mb-6">
+            <div className="flex items-center gap-2 text-muted-foreground mt-4 mb-6">
               <Calendar className="h-4 w-4" />
               <span className="text-sm">
                 Listed on {new Date(listing.created_at).toLocaleDateString('en-GB', { 
