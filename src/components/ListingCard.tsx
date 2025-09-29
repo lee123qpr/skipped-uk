@@ -40,17 +40,17 @@ const ListingCard = ({
   const navigate = useNavigate();
   
   const conditionConfig = {
-    new: { label: "NEW", className: "bg-success text-white border-success shadow-sm" },
-    excellent: { label: "EXCELLENT", className: "bg-success text-white border-success shadow-sm" },
-    good: { label: "GOOD", className: "bg-warning text-white border-warning shadow-sm" },
-    fair: { label: "FAIR", className: "bg-slate-500 text-white border-slate-500 shadow-sm" }
+    new: { label: "NEW", className: "bg-[#22C55E] text-white border-[#22C55E] shadow-sm" },
+    excellent: { label: "EXCELLENT", className: "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm" },
+    good: { label: "GOOD", className: "bg-[#F59E0B] text-white border-[#F59E0B] shadow-sm" },
+    fair: { label: "FAIR", className: "bg-[#64748B] text-white border-[#64748B] shadow-sm" }
   };
 
   // Normalize condition to lowercase and provide fallback
   const normalizedCondition = condition?.toLowerCase() as keyof typeof conditionConfig;
   const conditionDisplay = conditionConfig[normalizedCondition] || { 
     label: (condition || "USED").toUpperCase(), 
-    className: "bg-slate-500 text-white border-slate-500 shadow-sm" 
+    className: "bg-[#64748B] text-white border-[#64748B] shadow-sm" 
   };
 
   const getRelativeDate = (dateString: string) => {
@@ -130,10 +130,10 @@ const ListingCard = ({
       <div className="p-4 space-y-3">
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-3">
-          <h3 className="font-bold text-base text-card-foreground group-hover:text-primary transition-smooth line-clamp-2 flex-1">
+          <h3 className="font-bold text-lg text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1">
             {title}
           </h3>
-          <div className="text-2xl font-bold text-primary whitespace-nowrap">
+          <div className="text-3xl font-bold text-[#047857] whitespace-nowrap">
             {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
           </div>
         </div>
@@ -142,19 +142,19 @@ const ListingCard = ({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
-            className={`${conditionDisplay.className} font-bold px-3 py-1.5 text-[11px] tracking-wide`}
+            className={`${conditionDisplay.className} font-bold px-4 py-1.5 text-xs tracking-wider rounded-full border-0`}
           >
             {conditionDisplay.label}
           </Badge>
-          {allowOffers && (
-            <Badge variant="outline" className="bg-indigo-600 text-white border-indigo-600 font-bold px-3 py-1.5 text-[11px] tracking-wide shadow-sm">
-              OPEN TO OFFERS
+          {(typeof quantity === 'number' && quantity > 1) && (
+            <Badge variant="outline" className="bg-[#047857] text-white border-0 font-bold px-4 py-1.5 text-xs tracking-wider rounded-full shadow-sm flex items-center gap-1.5">
+              <Package className="h-3.5 w-3.5" />
+              {quantity} UNITS
             </Badge>
           )}
-          {(typeof quantity === 'number' && quantity > 1) && (
-            <Badge variant="outline" className="bg-primary text-primary-foreground border-primary font-bold px-3 py-1.5 text-[11px] tracking-wide shadow-sm">
-              <Package className="h-3.5 w-3.5 mr-1" />
-              {quantity} UNITS
+          {allowOffers && (
+            <Badge variant="outline" className="bg-[#8B5CF6] text-white border-0 font-bold px-4 py-1.5 text-xs tracking-wider rounded-full shadow-sm">
+              OPEN TO OFFERS
             </Badge>
           )}
         </div>
