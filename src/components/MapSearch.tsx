@@ -54,6 +54,9 @@ const MapSearch: React.FC<MapSearchProps> = ({
     apiKeySnippet: '',
     scriptLoaded: false,
     googlePresent: false,
+    containerReady: false,
+    containerW: 0,
+    containerH: 0,
     error: ''
   });
 
@@ -67,14 +70,21 @@ const MapSearch: React.FC<MapSearchProps> = ({
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = async () => {
-      // Wait for map container to mount to avoid early return keeping loader stuck
+      // Wait for map container to mount and have a size (Safari can be late here)
       let attempts = 0;
-      while (!mapRef.current && attempts < 20) {
+      while (attempts < 100) { // up to ~5s
+        const el = mapRef.current;
+        const ready = !!el && el.offsetWidth > 0 && el.offsetHeight > 0;
+        if (ready) {
+          setDebugInfo((d) => ({ ...d, containerReady: true, containerW: el!.offsetWidth, containerH: el!.offsetHeight }));
+          break;
+        }
+        setDebugInfo((d) => ({ ...d, containerReady: false, containerW: el?.offsetWidth || 0, containerH: el?.offsetHeight || 0 }));
         await new Promise((r) => setTimeout(r, 50));
         attempts++;
       }
-      if (!mapRef.current) {
-        setDebugInfo((d) => ({ ...d, error: 'Map container not ready' }));
+      if (!mapRef.current || mapRef.current.offsetWidth === 0 || mapRef.current.offsetHeight === 0) {
+        setDebugInfo((d) => ({ ...d, error: 'Map container not ready (size 0)' }));
         setIsLoading(false);
         return;
       }
@@ -274,58 +284,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <Card className={cn("relative", className)}>
-        <CardContent className="p-0">
-          <div 
-            className="flex items-center justify-center bg-muted/20"
-            style={{ height }}
-          >
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Loading map...</p>
-            </div>
-          </div>
+  // Removed early return on loading to ensure map container always mounts for Safari/iOS
 
-          {debugEnabled && (
-            <div className="border-t border-border bg-background/95 p-3 text-sm" data-testid="maps-debug-loading" role="region" aria-label="Maps debug information (loading)">
-              <div className="font-medium mb-2 text-primary">Maps Debug</div>
-              <ul className="space-y-1 text-foreground">
-                <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
-                <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
-                <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
-                <li>google.maps: <span className="font-mono">{String(debugInfo.googlePresent)}</span></li>
-                {debugInfo.error && <li className="text-destructive font-medium">Error: {debugInfo.error}</li>}
-              </ul>
-              <div className="mt-3 flex gap-2">
-                <Button size="sm" variant="outline" onClick={testEdge} className="text-xs">Test API key</Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="text-xs"
-                  onClick={() => {
-                    const payload = JSON.stringify({
-                      invoked: debugInfo.invoked,
-                      apiKeyOk: debugInfo.apiKeyOk,
-                      apiKeySnippet: debugInfo.apiKeySnippet,
-                      scriptLoaded: debugInfo.scriptLoaded,
-                      googlePresent: debugInfo.googlePresent,
-                      markers: listings.length,
-                      error: debugInfo.error,
-                    }, null, 2);
-                    navigator.clipboard?.writeText(payload).catch(() => {});
-                  }}
-                >
-                  Copy
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className={cn("relative overflow-hidden", className)}>
@@ -341,6 +301,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
             <div className="hidden sm:block absolute top-2 left-2 right-2 sm:top-2 sm:right-2 sm:left-auto z-50 rounded-md border border-border bg-background/95 backdrop-blur p-3 sm:p-4 text-sm sm:text-xs shadow-lg max-w-sm" data-testid="maps-debug">
               <div className="font-medium mb-2 text-primary">Maps Debug</div>
               <ul className="space-y-1 text-foreground">
+                <li>Container ready: <span className="font-mono">{String(debugInfo.containerReady)}</span></li>
+                <li>Container size: <span className="font-mono">{debugInfo.containerW}x{debugInfo.containerH}</span></li>
                 <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
                 <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
                 <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
@@ -356,6 +318,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
             <div className="sm:hidden border-t border-border bg-background/95 p-3 text-sm" data-testid="maps-debug-mobile" role="region" aria-label="Maps debug information">
               <div className="font-medium mb-2 text-primary">Maps Debug</div>
               <ul className="space-y-1 text-foreground">
+                <li>Container ready: <span className="font-mono">{String(debugInfo.containerReady)}</span></li>
+                <li>Container size: <span className="font-mono">{debugInfo.containerW}x{debugInfo.containerH}</span></li>
                 <li>Edge called: <span className="font-mono">{String(debugInfo.invoked)}</span></li>
                 <li>API key: <span className="font-mono">{debugInfo.apiKeyOk ? `OK (${debugInfo.apiKeySnippet})` : 'Missing/blocked'}</span></li>
                 <li>SDK loaded: <span className="font-mono">{String(debugInfo.scriptLoaded)}</span></li>
