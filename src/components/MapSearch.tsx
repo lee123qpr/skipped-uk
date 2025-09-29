@@ -65,13 +65,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
   const debugEnabled = debug || showDebug;
 
-  // Create marker content for Advanced Markers
-  const createMarkerContent = (price: number) => {
-    const markerDiv = document.createElement('div');
-    markerDiv.className = 'bg-primary text-primary-foreground px-2 py-1 rounded-full text-sm font-semibold shadow-lg border-2 border-background';
-    markerDiv.textContent = `£${price.toLocaleString()}`;
-    return markerDiv;
-  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -118,7 +111,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
           version: 'weekly',
           language: 'en-GB',
           region: 'GB',
-          libraries: ['marker']
+          
         });
 
         await loader.load();
@@ -208,12 +201,16 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
       const position = { lat: listing.latitude, lng: listing.longitude };
       
-      // Create advanced marker (new non-deprecated API)
-      const marker = new (window as any).google.maps.marker.AdvancedMarkerElement({
+      // Create basic marker for simple setup
+      const marker = new (window as any).google.maps.Marker({
         position,
         map,
         title: listing.title,
-        content: createMarkerContent(listing.price)
+        label: {
+          text: `£${listing.price.toLocaleString()}`,
+          color: 'white',
+          fontWeight: 'bold'
+        }
       });
 
       // Add click listener for info window
