@@ -10,7 +10,7 @@ interface Listing {
   title: string;
   price: number;
   location: string;
-  condition: "excellent" | "good" | "fair" | "new" | "salvage" | "parts_repair";
+  condition: "excellent" | "good" | "fair" | "new" | "like_new" | "salvage" | "parts_repair";
   images: string[];
   carbonSaved: number;
   seller: {
@@ -75,7 +75,7 @@ const FeaturedListings = () => {
         title: listing.title,
         price: Number(listing.price),
         location: listing.location,
-        condition: listing.condition as "excellent" | "good" | "fair" | "new" | "salvage" | "parts_repair",
+        condition: listing.condition as "excellent" | "good" | "fair" | "new" | "like_new" | "salvage" | "parts_repair",
         images: listing.images?.length > 0 ? listing.images : ["/api/placeholder/400/300"],
         carbonSaved: Number(listing.carbon_saved || 0),
         seller: {

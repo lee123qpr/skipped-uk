@@ -11,7 +11,7 @@ interface ListingCardProps {
   title: string;
   price: number;
   location: string;
-  condition: "new" | "excellent" | "good" | "fair" | "salvage" | "parts_repair";
+  condition: "new" | "like_new" | "excellent" | "good" | "fair" | "salvage" | "parts_repair";
   images: string[];
   postedDate: string;
   isFavorited?: boolean;
@@ -41,6 +41,7 @@ const ListingCard = ({
   
   const conditionConfig = {
     new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
+    like_new: { label: "LIKE NEW", className: "bg-[#10B981] text-white border-0 shadow-sm" },
     excellent: { label: "EXCELLENT", className: "bg-[#3B82F6] text-white border-0 shadow-sm" },
     good: { label: "GOOD", className: "bg-[#F59E0B] text-white border-0 shadow-sm" },
     fair: { label: "FAIR", className: "bg-[#64748B] text-white border-0 shadow-sm" },
