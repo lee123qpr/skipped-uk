@@ -621,11 +621,11 @@ const ListingDetails = () => {
                   {listing.pickup_available && (
                     <div className="ml-5 space-y-2">
                       <div className="text-sm">
-                        <span className="font-medium">Location:</span> {listing.location}
+                        <span className="font-semibold">Location:</span> {listing.location}
                       </div>
                       {listing.collection_location && (
                         <div className="text-sm">
-                          <span className="font-medium">Collection from:</span> {listing.collection_location}
+                          <span className="font-semibold">Collection from:</span> {listing.collection_location}
                         </div>
                       )}
                       {listing.collection_notes && (
@@ -650,12 +650,12 @@ const ListingDetails = () => {
                     <div className="ml-5 space-y-1">
                       {listing.delivery_cost && (
                         <p className="text-sm text-muted-foreground">
-                          Delivery cost: £{listing.delivery_cost}
+                          <span className="font-semibold text-foreground">Delivery cost:</span> £{listing.delivery_cost}
                         </p>
                       )}
                       {listing.delivery_radius && (
                         <p className="text-sm text-muted-foreground">
-                          Delivery radius: {listing.delivery_radius} miles
+                          <span className="font-semibold text-foreground">Delivery radius:</span> {listing.delivery_radius} miles
                         </p>
                       )}
                     </div>
