@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/components/NotificationProvider';
+import { TransactionManager } from '@/components/TransactionManager';
 import { 
   MessageCircle, 
   PoundSterling, 
@@ -69,6 +70,18 @@ interface Conversation {
   messages: Message[];
   unreadCount: number;
   lastMessage: Message;
+  transaction?: {
+    id: string;
+    listing_id: string;
+    buyer_id: string;
+    seller_id: string;
+    amount: number;
+    status: string;
+    stripe_payment_intent_id: string | null;
+    dispatch_confirmed_at: string | null;
+    delivery_confirmed_at: string | null;
+    dispute_reason: string | null;
+  };
 }
 
 interface Offer {
@@ -156,13 +169,27 @@ const MessagesInbox = () => {
       
       if (listingsError) throw listingsError;
 
+      // Get transactions for these listings and involving the current user
+      const { data: transactions, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('*')
+        .in('listing_id', listingIds)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+      
+      if (transactionsError) console.error('Error fetching transactions:', transactionsError);
+
       // Combine data
       return messages.map(message => ({
         ...message,
         sender_profile: profiles?.find(p => p.user_id === message.sender_id) || null,
         receiver_profile: profiles?.find(p => p.user_id === message.receiver_id) || null,
         listing: listings?.find(l => l.id === message.listing_id) || null,
-        offer: message.offer_id ? offers?.find(o => o.id === message.offer_id) || null : null
+        offer: message.offer_id ? offers?.find(o => o.id === message.offer_id) || null : null,
+        transaction: transactions?.find(t => 
+          t.listing_id === message.listing_id &&
+          ((t.buyer_id === user.id && t.seller_id === message.receiver_id) ||
+           (t.seller_id === user.id && t.buyer_id === message.receiver_id))
+        ) || null
       }));
     },
     enabled: !!user,
@@ -183,11 +210,17 @@ const MessagesInbox = () => {
         listing: message.listing,
         messages: [],
         unreadCount: 0,
-        lastMessage: message
+        lastMessage: message,
+        transaction: message.transaction || undefined
       };
     }
     
     acc[key].messages.push(message);
+    
+    // Update transaction if found in message
+    if (message.transaction && !acc[key].transaction) {
+      acc[key].transaction = message.transaction;
+    }
     
     // Count unread messages received by current user
     if (message.receiver_id === user?.id && !message.read) {
@@ -593,6 +626,24 @@ const MessagesInbox = () => {
                     })}
                   </div>
                 </ScrollArea>
+
+                {/* Transaction Management */}
+                {selectedConversation.transaction && (
+                  <div className="border-t p-3">
+                    <TransactionManager
+                      transaction={{
+                        ...selectedConversation.transaction,
+                        listings: selectedConversation.listing
+                      }}
+                      userRole={selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'}
+                      onUpdate={() => {
+                        refetchMessages();
+                        refetchOffers();
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div className="border-t p-3">
                   <div className="flex gap-2">
                     <Textarea

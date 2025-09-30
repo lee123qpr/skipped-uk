@@ -311,6 +311,8 @@ export type Database = {
           id: string
           location: string | null
           phone: string | null
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean | null
           updated_at: string
           user_id: string
           username: string | null
@@ -325,6 +327,8 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -339,6 +343,8 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -440,37 +446,61 @@ export type Database = {
         Row: {
           amount: number
           buyer_id: string
+          buyer_protection_fee: number | null
           completed_at: string | null
           created_at: string
+          delivery_confirmed_at: string | null
+          dispatch_confirmed_at: string | null
+          dispute_reason: string | null
+          disputed_at: string | null
           id: string
           listing_id: string
           offer_id: string | null
+          refunded_at: string | null
           seller_id: string
           status: string
+          stripe_payment_intent_id: string | null
+          stripe_transfer_id: string | null
           updated_at: string
         }
         Insert: {
           amount: number
           buyer_id: string
+          buyer_protection_fee?: number | null
           completed_at?: string | null
           created_at?: string
+          delivery_confirmed_at?: string | null
+          dispatch_confirmed_at?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
           id?: string
           listing_id: string
           offer_id?: string | null
+          refunded_at?: string | null
           seller_id: string
           status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
           buyer_id?: string
+          buyer_protection_fee?: number | null
           completed_at?: string | null
           created_at?: string
+          delivery_confirmed_at?: string | null
+          dispatch_confirmed_at?: string | null
+          dispute_reason?: string | null
+          disputed_at?: string | null
           id?: string
           listing_id?: string
           offer_id?: string | null
+          refunded_at?: string | null
           seller_id?: string
           status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
           updated_at?: string
         }
         Relationships: []
