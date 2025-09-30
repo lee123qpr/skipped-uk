@@ -26,7 +26,6 @@ interface OfferDialogProps {
   sellerId: string;
   listingTitle: string;
   listingPrice: number;
-  minimumOfferPercentage?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -36,7 +35,6 @@ const OfferDialog = ({
   sellerId, 
   listingTitle, 
   listingPrice, 
-  minimumOfferPercentage = 50,
   open, 
   onOpenChange 
 }: OfferDialogProps) => {
@@ -46,7 +44,6 @@ const OfferDialog = ({
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const minimumOffer = Math.round(listingPrice * (minimumOfferPercentage / 100));
   const offerPercentage = amount ? Math.round((parseFloat(amount) / listingPrice) * 100) : 0;
 
   const handleMakeOffer = async () => {
@@ -57,15 +54,6 @@ const OfferDialog = ({
         amount: parseFloat(amount),
         message: message || undefined,
       });
-
-      if (validatedData.amount < minimumOffer) {
-        toast({
-          title: 'Offer too low',
-          description: `Minimum offer is £${minimumOffer.toLocaleString()} (${minimumOfferPercentage}% of asking price)`,
-          variant: 'destructive',
-        });
-        return;
-      }
 
       setIsLoading(true);
 
@@ -125,10 +113,6 @@ const OfferDialog = ({
               <span>Asking price:</span>
               <span className="font-semibold">£{listingPrice.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between items-center text-sm">
-              <span>Minimum offer ({minimumOfferPercentage}%):</span>
-              <span className="font-semibold">£{minimumOffer.toLocaleString()}</span>
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -139,7 +123,7 @@ const OfferDialog = ({
                 id="amount"
                 type="number"
                 step="0.01"
-                min={minimumOffer}
+                min="0"
                 max={listingPrice}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -151,9 +135,6 @@ const OfferDialog = ({
             {amount && (
               <p className="text-xs text-muted-foreground">
                 Your offer is {offerPercentage}% of the asking price
-                {offerPercentage < minimumOfferPercentage && (
-                  <span className="text-destructive"> (below minimum)</span>
-                )}
               </p>
             )}
           </div>
@@ -185,7 +166,7 @@ const OfferDialog = ({
             <Button 
               onClick={handleMakeOffer} 
               className="flex-1"
-              disabled={isLoading || !amount || parseFloat(amount) < minimumOffer}
+              disabled={isLoading || !amount || parseFloat(amount) <= 0}
             >
               {isLoading ? (
                 <>

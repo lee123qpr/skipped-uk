@@ -85,7 +85,6 @@ const Browse = () => {
           dimensions,
           delivery_available,
           pickup_available,
-          allow_offers,
           categories (
             id,
             name,
@@ -128,11 +127,6 @@ const Browse = () => {
       // Apply pickup available filter
       if (pickupAvailable !== null) {
         query = query.eq('pickup_available', pickupAvailable);
-      }
-
-      // Apply accepts offers filter
-      if (acceptsOffers !== null) {
-        query = query.eq('allow_offers', acceptsOffers);
       }
 
       // Apply price filter
@@ -229,8 +223,7 @@ const Browse = () => {
     deliveryAvailable: listing.delivery_available,
     pickupAvailable: listing.pickup_available,
     weight: listing.weight,
-    dimensions: listing.dimensions,
-    allowOffers: listing.allow_offers
+    dimensions: listing.dimensions
   });
 
   return (
@@ -550,8 +543,7 @@ const Browse = () => {
                     images: listing.images || [],
                     quantity: listing.quantity,
                     delivery_available: listing.delivery_available,
-                    pickup_available: listing.pickup_available,
-                    allow_offers: listing.allow_offers
+                    pickup_available: listing.pickup_available
                   }))}
                 onBoundsChange={setMapBounds}
                 height="600px"

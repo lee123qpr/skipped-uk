@@ -43,8 +43,6 @@ const listingSchema = z.object({
   collection_notes: z.string().optional(),
   delivery_radius: z.number().int().positive().optional(),
   delivery_cost: z.number().nonnegative().optional(),
-  allow_offers: z.boolean(),
-  minimum_offer_percentage: z.number().int().min(50).max(95).optional(),
   reason_for_selling: z.string().optional(),
 });
 
@@ -104,8 +102,6 @@ const CreateListing = () => {
     collection_notes: '',
     delivery_radius: '10',
     delivery_cost: '',
-    allow_offers: true,
-    minimum_offer_percentage: '80',
     reason_for_selling: '',
     // Additional location fields for privacy and mapping
     fullAddress: '',
@@ -205,8 +201,6 @@ const CreateListing = () => {
           collection_notes: listing.collection_notes || '',
           delivery_radius: listing.delivery_radius?.toString() || '10',
           delivery_cost: listing.delivery_cost?.toString() || '',
-          allow_offers: listing.allow_offers !== false, // Default to true
-          minimum_offer_percentage: listing.minimum_offer_percentage?.toString() || '80',
           reason_for_selling: listing.reason_for_selling || '',
           fullAddress: listing.full_address || '',
           latitude: listing.latitude || 0,
@@ -405,8 +399,6 @@ const CreateListing = () => {
         collection_notes: formData.pickup_available && formData.collection_notes ? formData.collection_notes : undefined,
         delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
-        allow_offers: formData.allow_offers,
-        minimum_offer_percentage: formData.allow_offers && formData.minimum_offer_percentage ? parseInt(formData.minimum_offer_percentage) : undefined,
         reason_for_selling: formData.reason_for_selling || undefined,
       });
 
@@ -851,39 +843,6 @@ const CreateListing = () => {
                         <span className="text-green-600 dark:text-green-400">🌱</span>
                         Great choice! Free items help reduce waste and support the community.
                       </p>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Allow Offers</Label>
-                      <p className="text-sm text-muted-foreground">Let buyers make offers below your asking price</p>
-                    </div>
-                    <Switch
-                      checked={formData.allow_offers}
-                      onCheckedChange={(checked) => handleInputChange('allow_offers', checked)}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {formData.allow_offers && (
-                    <div className="space-y-2">
-                      <Label>Minimum Offer Percentage</Label>
-                      <Select 
-                        value={formData.minimum_offer_percentage} 
-                        onValueChange={(value) => handleInputChange('minimum_offer_percentage', value)}
-                        disabled={isLoading}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="60">60%</SelectItem>
-                          <SelectItem value="70">70%</SelectItem>
-                          <SelectItem value="80">80%</SelectItem>
-                          <SelectItem value="90">90%</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   )}
                 </CardContent>

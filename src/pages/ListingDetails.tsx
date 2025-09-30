@@ -472,16 +472,14 @@ const ListingDetails = () => {
                     Buy Now
                   </Button>
                   
-                  {listing.allow_offers && (
-                    <Button 
-                      onClick={handleMakeOffer}
-                      variant="secondary"
-                      size="lg"
-                      className="flex-1 sm:flex-none sm:px-8"
-                    >
-                      Make Offer
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={handleMakeOffer}
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1 sm:flex-none sm:px-8"
+                  >
+                    Make Offer
+                  </Button>
                 </>
               )}
               
@@ -614,7 +612,7 @@ const ListingDetails = () => {
                     </div>
                   )}
                   
-                  {listing.allow_offers && listing.price > 0 && user?.id !== listing.seller_id && (
+                  {listing.price > 0 && user?.id !== listing.seller_id && (
                     <Button 
                       variant="outline" 
                       onClick={handleMakeOffer}
@@ -817,7 +815,6 @@ const ListingDetails = () => {
           sellerId={listing.seller_id}
           listingTitle={listing.title}
           listingPrice={listing.price}
-          minimumOfferPercentage={listing.minimum_offer_percentage}
         />
 
         {/* Image Modal */}

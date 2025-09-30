@@ -22,7 +22,6 @@ interface Listing {
   quantity?: number;
   delivery_available?: boolean;
   pickup_available?: boolean;
-  allow_offers?: boolean;
 }
 
 interface MapSearchProps {
@@ -264,7 +263,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
             <div class="flex flex-wrap gap-1 mb-2">
               ${conditionInfo ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: ${conditionInfo.color}">${conditionInfo.label}</span>` : ''}
               ${listing.quantity && listing.quantity > 1 ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #22C55E">${listing.quantity} UNITS</span>` : ''}
-              ${listing.allow_offers ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #9333EA">OPEN TO OFFERS</span>` : ''}
             </div>
             <p class="text-xs mb-2" style="color: hsl(var(--muted-foreground))">
               <span class="inline-flex items-center gap-1">

@@ -54,7 +54,6 @@ const FeaturedListings = () => {
           dimensions,
           delivery_available,
           pickup_available,
-          allow_offers,
           profiles:seller_id (
             username,
             verified
@@ -89,8 +88,7 @@ const FeaturedListings = () => {
         deliveryAvailable: listing.delivery_available,
         pickupAvailable: listing.pickup_available,
         weight: listing.weight,
-        dimensions: listing.dimensions,
-        allowOffers: listing.allow_offers
+        dimensions: listing.dimensions
       })) || [];
 
       setListings(formattedListings);

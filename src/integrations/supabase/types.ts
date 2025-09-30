@@ -78,7 +78,6 @@ export type Database = {
       }
       listings: {
         Row: {
-          allow_offers: boolean | null
           available: boolean | null
           carbon_saved: number | null
           category_id: string | null
@@ -99,7 +98,6 @@ export type Database = {
           location: string
           location_bounds: Json | null
           longitude: number | null
-          minimum_offer_percentage: number | null
           pickup_available: boolean | null
           price: number
           public_location: string | null
@@ -113,7 +111,6 @@ export type Database = {
           weight: number | null
         }
         Insert: {
-          allow_offers?: boolean | null
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
@@ -134,7 +131,6 @@ export type Database = {
           location: string
           location_bounds?: Json | null
           longitude?: number | null
-          minimum_offer_percentage?: number | null
           pickup_available?: boolean | null
           price: number
           public_location?: string | null
@@ -148,7 +144,6 @@ export type Database = {
           weight?: number | null
         }
         Update: {
-          allow_offers?: boolean | null
           available?: boolean | null
           carbon_saved?: number | null
           category_id?: string | null
@@ -169,7 +164,6 @@ export type Database = {
           location?: string
           location_bounds?: Json | null
           longitude?: number | null
-          minimum_offer_percentage?: number | null
           pickup_available?: boolean | null
           price?: number
           public_location?: string | null
