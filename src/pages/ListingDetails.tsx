@@ -129,7 +129,7 @@ const ListingDetails = () => {
     setIsFavourited(!!favouriteData);
   }, [favouriteData]);
 
-  const handleContact = () => {
+  const handleContact = async () => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -139,7 +139,30 @@ const ListingDetails = () => {
       navigate('/sign-in');
       return;
     }
-    setShowMessageDialog(true);
+
+    // Check if there's an existing conversation with this seller about this listing
+    try {
+      const { data: existingMessages, error } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('listing_id', id!)
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${listing.seller_id}),and(sender_id.eq.${listing.seller_id},receiver_id.eq.${user.id})`)
+        .limit(1);
+
+      if (error) throw error;
+
+      if (existingMessages && existingMessages.length > 0) {
+        // Navigate to message history
+        navigate('/dashboard?tab=messages');
+      } else {
+        // Show message dialog for new conversation
+        setShowMessageDialog(true);
+      }
+    } catch (error) {
+      console.error('Error checking messages:', error);
+      // Fallback to showing dialog
+      setShowMessageDialog(true);
+    }
   };
 
   const handleMakeOffer = () => {
