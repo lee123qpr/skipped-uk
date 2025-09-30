@@ -77,7 +77,7 @@ const ListingCard = ({
       onClick={handleCardClick}
     >
       {/* Image Carousel */}
-      <div className={`relative bg-muted ${variant === "list" ? "w-80 flex-shrink-0" : "aspect-[4/3]"}`}>
+      <div className={`relative bg-muted ${variant === "list" ? "w-64 h-40 flex-shrink-0" : "aspect-[4/3]"}`}>
         {images && images.length > 0 ? (
           <Carousel className="w-full h-full">
             <CarouselContent>
@@ -132,7 +132,7 @@ const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className={`p-4 space-y-3 ${variant === "list" ? "flex-1" : ""}`}>
+      <div className={`${variant === "list" ? "p-3 space-y-2 flex-1" : "p-4 space-y-3"}`}>
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-3">
           <h3 className="font-bold text-lg text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1">
