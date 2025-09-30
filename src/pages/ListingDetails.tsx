@@ -165,6 +165,24 @@ const ListingDetails = () => {
     }
   };
 
+  const handleBuyNow = () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to purchase items.",
+        variant: "destructive",
+      });
+      navigate('/sign-in');
+      return;
+    }
+    
+    // TODO: Implement checkout flow
+    toast({
+      title: "Coming Soon",
+      description: "Direct checkout functionality will be available soon.",
+    });
+  };
+
   const handleMakeOffer = () => {
     if (!user) {
       toast({
@@ -446,7 +464,7 @@ const ListingDetails = () => {
               {user?.id !== listing.seller_id && (
                 <>
                   <Button 
-                    onClick={handleMakeOffer}
+                    onClick={handleBuyNow}
                     size="lg"
                     className="flex-1 sm:flex-none sm:px-8"
                   >
