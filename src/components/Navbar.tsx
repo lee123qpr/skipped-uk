@@ -55,19 +55,83 @@ const Navbar = () => {
               
               {user && (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => navigate("/dashboard?tab=messages")}
-                    className="relative"
-                  >
-                    <Bell className="h-4 w-4" />
-                    {totalNotifications > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
-                        {totalNotifications > 9 ? '9+' : totalNotifications}
-                      </span>
-                    )}
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="relative"
+                      >
+                        <Bell className="h-4 w-4" />
+                        {totalNotifications > 0 && (
+                          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                            {totalNotifications > 9 ? '9+' : totalNotifications}
+                          </span>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg w-72">
+                      <div className="px-4 py-3 border-b">
+                        <h3 className="font-semibold">Notifications</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {totalNotifications === 0 ? 'No new notifications' : `${totalNotifications} unread`}
+                        </p>
+                      </div>
+                      {totalNotifications === 0 ? (
+                        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          All caught up!
+                        </div>
+                      ) : (
+                        <>
+                          {counts.unreadMessages > 0 && (
+                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                              <div className="flex items-center gap-3 w-full">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <Bell className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium">New Messages</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {counts.unreadMessages} unread {counts.unreadMessages === 1 ? 'message' : 'messages'}
+                                  </p>
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          )}
+                          {counts.newOffers > 0 && (
+                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                              <div className="flex items-center gap-3 w-full">
+                                <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                  <Plus className="h-4 w-4 text-green-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium">New Offers</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {counts.newOffers} new {counts.newOffers === 1 ? 'offer' : 'offers'}
+                                  </p>
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          )}
+                          {counts.pendingOffers > 0 && (
+                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                              <div className="flex items-center gap-3 w-full">
+                                <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+                                  <ShoppingBag className="h-4 w-4 text-yellow-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium">Pending Offers</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {counts.pendingOffers} awaiting response
+                                  </p>
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   <Button 
                     variant="ghost" 
@@ -132,19 +196,83 @@ const Navbar = () => {
                 <Plus className="h-4 w-4" />
               </Button>
               {user && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => navigate("/dashboard?tab=messages")}
-                  className="relative"
-                >
-                  <Bell className="h-4 w-4" />
-                  {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-medium">
-                      {totalNotifications > 9 ? '9+' : totalNotifications}
-                    </span>
-                  )}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="relative"
+                    >
+                      <Bell className="h-4 w-4" />
+                      {totalNotifications > 0 && (
+                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-medium">
+                          {totalNotifications > 9 ? '9+' : totalNotifications}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg w-72">
+                    <div className="px-4 py-3 border-b">
+                      <h3 className="font-semibold text-sm">Notifications</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {totalNotifications === 0 ? 'No new notifications' : `${totalNotifications} unread`}
+                      </p>
+                    </div>
+                    {totalNotifications === 0 ? (
+                      <div className="px-4 py-8 text-center text-xs text-muted-foreground">
+                        All caught up!
+                      </div>
+                    ) : (
+                      <>
+                        {counts.unreadMessages > 0 && (
+                          <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <Bell className="h-3 w-3 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium">New Messages</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {counts.unreadMessages} unread
+                                </p>
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        )}
+                        {counts.newOffers > 0 && (
+                          <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="h-7 w-7 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                <Plus className="h-3 w-3 text-green-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium">New Offers</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {counts.newOffers} new
+                                </p>
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        )}
+                        {counts.pendingOffers > 0 && (
+                          <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="h-7 w-7 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+                                <ShoppingBag className="h-3 w-3 text-yellow-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium">Pending Offers</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {counts.pendingOffers} awaiting
+                                </p>
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {user ? (
                 <DropdownMenu>
