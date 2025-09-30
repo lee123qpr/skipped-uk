@@ -92,9 +92,12 @@ const Browse = () => {
         `)
         .eq('status', 'active');
 
-      // Apply search filter
+      // Apply search filter using full-text search
       if (debouncedSearchTerm) {
-        query = query.or(`title.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%,location.ilike.%${debouncedSearchTerm}%`);
+        query = query.textSearch('search_vector', debouncedSearchTerm, {
+          type: 'websearch',
+          config: 'english'
+        });
       }
 
       // Apply category filter
