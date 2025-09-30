@@ -2,6 +2,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Configure React Query with performance optimizations
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes - data is considered fresh for this time
+      gcTime: 1000 * 60 * 30, // 30 minutes - cached data kept in memory
+      refetchOnWindowFocus: false, // Don't refetch when window regains focus
+      retry: 1, // Only retry failed requests once
+    },
+  },
+});
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/components/AuthContext";
@@ -15,8 +27,6 @@ import CreateListing from "./pages/CreateListing";
 import Dashboard from "./pages/Dashboard";
 import ListingDetails from "./pages/ListingDetails";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
 
 const App = () => (
   <HelmetProvider>
@@ -34,7 +44,6 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/listing/:id" element={<ListingDetails />} />
-              <Route path="/sell" element={<CreateListing />} />
               <Route path="/create-listing" element={<CreateListing />} />
               <Route path="/listing/:id/edit" element={<CreateListing />} />
               <Route path="/dashboard" element={<Dashboard />} />

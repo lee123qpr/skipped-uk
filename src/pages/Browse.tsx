@@ -18,6 +18,7 @@ import { ListingCardSkeleton } from "@/components/LoadingSkeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories } from "@/hooks/useCategories";
 
 const Browse = () => {
   const { toast } = useToast();
@@ -49,19 +50,8 @@ const Browse = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Fetch categories using shared hook
+  const { data: categories = [] } = useCategories();
 
   // Fetch listings with filters
   const { data: listings = [], isLoading, error } = useQuery({

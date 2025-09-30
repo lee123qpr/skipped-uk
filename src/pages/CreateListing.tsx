@@ -19,6 +19,7 @@ import Footer from '@/components/Footer';
 import MediaUpload from '@/components/MediaUpload';
 import CarbonBadge from '@/components/CarbonBadge';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import { useCategories } from '@/hooks/useCategories';
 
 const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
@@ -122,18 +123,8 @@ const CreateListing = () => {
   } | null>(null);
   const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Use shared categories hook
+  const { data: categories = [] } = useCategories();
 
   // Fetch existing listing data when editing
   useEffect(() => {

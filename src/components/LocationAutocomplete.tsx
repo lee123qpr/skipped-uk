@@ -51,7 +51,10 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   useEffect(() => {
     const initializeAutocomplete = async () => {
-      if (!inputRef.current) return;
+      if (!inputRef.current || !(inputRef.current instanceof HTMLInputElement)) {
+        console.error('Invalid input element for Google Maps Autocomplete');
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -69,6 +72,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         });
 
         await loader.load();
+
+        // Type guard to ensure inputRef.current is still valid HTMLInputElement
+        if (!inputRef.current || !(inputRef.current instanceof HTMLInputElement)) {
+          console.error('Input element became invalid during initialization');
+          return;
+        }
 
         // Create autocomplete restricted to regions (towns/cities and postcodes)
         const autocompleteInstance = new (window as any).google.maps.places.Autocomplete(inputRef.current, {

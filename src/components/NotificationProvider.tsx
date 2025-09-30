@@ -95,8 +95,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           filter: `receiver_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('New message received:', payload);
-          
           // Fetch sender details and listing info
           const { data: senderData } = await supabase
             .from('profiles')
@@ -159,8 +157,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           filter: `seller_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('New offer received:', payload);
-          
           // Fetch buyer details and listing info
           const { data: buyerData } = await supabase
             .from('profiles')
@@ -204,8 +200,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         async (payload) => {
           // Offer status was updated (accepted/declined)
           if (payload.old.status === 'pending' && payload.new.status !== 'pending') {
-            console.log('Offer status updated:', payload);
-            
             // Fetch listing info
             const { data: listingData } = await supabase
               .from('listings')

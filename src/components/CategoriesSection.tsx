@@ -10,9 +10,8 @@ import {
 } from "lucide-react";
 import CategoryCard from "./CategoryCard";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCategories } from "@/hooks/useCategories";
 
 const iconMap = {
   TreePine,
@@ -25,18 +24,8 @@ const iconMap = {
 };
 
 const CategoriesSection = () => {
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('item_count', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Use shared categories hook
+  const { data: categories, isLoading } = useCategories();
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">

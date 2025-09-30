@@ -105,6 +105,7 @@ export type Database = {
           public_location: string | null
           quantity: number | null
           reason_for_selling: string | null
+          search_vector: unknown | null
           seller_id: string
           status: string | null
           title: string
@@ -139,6 +140,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
+          search_vector?: unknown | null
           seller_id: string
           status?: string | null
           title: string
@@ -173,6 +175,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
+          search_vector?: unknown | null
           seller_id?: string
           status?: string | null
           title?: string

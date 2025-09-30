@@ -102,7 +102,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
         setDebugInfo((d) => ({ ...d, error: '' }));
         const apiKey = await getGoogleMapsApiKey();
         const snippet = apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '';
-        if (debugEnabled) console.log('Google Maps API Key Status:', apiKey ? 'Retrieved' : 'Not available', snippet);
         setDebugInfo((d) => ({ ...d, invoked: true, apiKeyOk: !!apiKey, apiKeySnippet: snippet }));
         if (!apiKey) {
           console.error('Google Maps API key not available - check edge function');
@@ -158,7 +157,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
         const msg = error instanceof Error ? error.message : String(error);
         console.error('Error loading Google Maps:', error);
         
-        // Specific handling for RefererNotAllowedMapError
         if (msg.includes('RefererNotAllowedMapError')) {
           setDebugInfo((d) => ({ ...d, error: `Domain authorization required. Add ${window.location.origin} to Google Cloud Console > APIs & Services > Credentials > Web Client > Authorized JavaScript origins` }));
         } else {
