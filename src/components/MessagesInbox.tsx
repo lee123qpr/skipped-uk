@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/components/NotificationProvider';
 import { 
   MessageCircle, 
   PoundSterling, 
@@ -91,6 +92,7 @@ const MessagesInbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { refreshCounts } = useNotifications();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -311,10 +313,14 @@ const MessagesInbox = () => {
           .from('messages')
           .update({ read: true })
           .in('id', unreadMessageIds)
-          .then(() => refetchMessages());
+          .then(async () => {
+            await refetchMessages();
+            // Refresh notification counts to ensure badges update
+            await refreshCounts();
+          });
       }
     }
-  }, [selectedConversation, user]);
+  }, [selectedConversation, user, refreshCounts]);
 
   const handleSendReply = async () => {
     if (!selectedConversation || !user || !replyContent.trim()) return;
