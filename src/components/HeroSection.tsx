@@ -30,7 +30,7 @@ const HeroSection = () => {
         <img 
           src={heroImage} 
           alt="Construction materials warehouse"
-          className="w-full h-full object-cover opacity-10"
+          className="w-full h-full object-cover opacity-20"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-background/60"></div>
       </div>
