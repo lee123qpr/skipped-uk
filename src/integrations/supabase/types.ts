@@ -199,6 +199,8 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string
+          message_type: Database["public"]["Enums"]["message_type"]
+          offer_id: string | null
           read: boolean
           receiver_id: string
           sender_id: string
@@ -208,6 +210,8 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          offer_id?: string | null
           read?: boolean
           receiver_id: string
           sender_id: string
@@ -217,6 +221,8 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string
+          message_type?: Database["public"]["Enums"]["message_type"]
+          offer_id?: string | null
           read?: boolean
           receiver_id?: string
           sender_id?: string
@@ -227,6 +233,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
             referencedColumns: ["id"]
           },
         ]
@@ -240,6 +253,7 @@ export type Database = {
           id: string
           listing_id: string
           message: string | null
+          parent_offer_id: string | null
           seller_id: string
           status: string
           updated_at: string
@@ -252,6 +266,7 @@ export type Database = {
           id?: string
           listing_id: string
           message?: string | null
+          parent_offer_id?: string | null
           seller_id: string
           status?: string
           updated_at?: string
@@ -264,6 +279,7 @@ export type Database = {
           id?: string
           listing_id?: string
           message?: string | null
+          parent_offer_id?: string | null
           seller_id?: string
           status?: string
           updated_at?: string
@@ -274,6 +290,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offers_parent_offer_id_fkey"
+            columns: ["parent_offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
             referencedColumns: ["id"]
           },
         ]
@@ -492,6 +515,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      message_type: "message" | "offer" | "system"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -620,6 +644,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      message_type: ["message", "offer", "system"],
     },
   },
 } as const

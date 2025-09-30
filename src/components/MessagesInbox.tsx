@@ -31,6 +31,8 @@ interface Message {
   sender_id: string;
   receiver_id: string;
   listing_id: string;
+  message_type?: 'message' | 'offer' | 'system';
+  offer_id?: string;
   sender_profile?: {
     username: string;
     avatar_url: string;
@@ -43,6 +45,12 @@ interface Message {
     title: string;
     price: number;
     images: string[];
+  };
+  offer?: {
+    id: string;
+    amount: number;
+    status: string;
+    message: string;
   };
 }
 
@@ -106,12 +114,25 @@ const MessagesInbox = () => {
       // Get all messages where user is sender or receiver
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
-        .select('*')
+        .select('*, offer_id')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: true });
       
       if (messagesError) throw messagesError;
       if (!messages || messages.length === 0) return [];
+
+      // Get offers for messages that have offer_id
+      const offerIds = messages.filter(m => m.offer_id).map(m => m.offer_id);
+      let offers: any[] = [];
+      if (offerIds.length > 0) {
+        const { data: offersData, error: offersError } = await supabase
+          .from('offers')
+          .select('id, amount, status, message')
+          .in('id', offerIds);
+        
+        if (offersError) throw offersError;
+        offers = offersData || [];
+      }
 
       // Get all unique user IDs (including current user for their own messages)
       const userIds = [...new Set([
@@ -140,7 +161,8 @@ const MessagesInbox = () => {
         ...message,
         sender_profile: profiles?.find(p => p.user_id === message.sender_id) || null,
         receiver_profile: profiles?.find(p => p.user_id === message.receiver_id) || null,
-        listing: listings?.find(l => l.id === message.listing_id) || null
+        listing: listings?.find(l => l.id === message.listing_id) || null,
+        offer: message.offer_id ? offers?.find(o => o.id === message.offer_id) || null : null
       }));
     },
     enabled: !!user,
@@ -371,7 +393,9 @@ const MessagesInbox = () => {
         description: `The offer has been ${action}.`,
       });
 
-      refetchOffers();
+      // Refetch messages to update offer status in the conversation
+      await refetchMessages();
+      await refetchOffers();
     } catch (error) {
       toast({
         title: 'Error updating offer',
@@ -403,40 +427,18 @@ const MessagesInbox = () => {
       </div>
 
       <Tabs defaultValue="messages" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-1 gap-1 h-auto p-1">
           <TabsTrigger 
             value="messages" 
-            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
+            className="flex items-center gap-2 px-4 py-2"
           >
-            <MessageCircle className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden xs:inline">Messages</span>
-            <span className="xs:hidden">Msg</span>
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs px-1 py-0 min-w-0 h-4">
-                {unreadCount}
+            <MessageCircle className="h-4 w-4" />
+            <span>Messages & Offers</span>
+            {(unreadCount > 0 || pendingOffersCount > 0) && (
+              <Badge variant="destructive" className="text-xs">
+                {unreadCount + pendingOffersCount}
               </Badge>
             )}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="received-offers" 
-            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
-          >
-            <PoundSterling className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden xs:inline">Offers Received</span>
-            <span className="xs:hidden">Recv</span>
-            {pendingOffersCount > 0 && (
-              <Badge variant="default" className="text-xs px-1 py-0 min-w-0 h-4">
-                {pendingOffersCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="made-offers" 
-            className="flex flex-col sm:flex-row items-center gap-1 px-2 py-2 text-xs sm:text-sm"
-          >
-            <Clock className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden xs:inline">Offers Made</span>
-            <span className="xs:hidden">Made</span>
           </TabsTrigger>
         </TabsList>
 
@@ -487,6 +489,19 @@ const MessagesInbox = () => {
                         ? message.sender_profile 
                         : message.sender_profile;
                       const displayUsername = displayProfile?.username || 'Anonymous';
+                      const isOfferMessage = message.message_type === 'offer';
+                      const isSystemMessage = message.message_type === 'system';
+                      
+                      // System messages (offer status updates)
+                      if (isSystemMessage) {
+                        return (
+                          <div key={message.id} className="flex justify-center my-2">
+                            <div className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs">
+                              {message.content}
+                            </div>
+                          </div>
+                        );
+                      }
                       
                       return (
                         <div
@@ -503,15 +518,66 @@ const MessagesInbox = () => {
                             <p className={`text-xs font-medium mb-0.5 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
                               @{displayUsername}
                             </p>
-                            <div
-                              className={`inline-block rounded-lg px-3 py-2 ${
+                            
+                            {/* Offer message bubble */}
+                            {isOfferMessage && message.offer ? (
+                              <div className={`inline-block rounded-lg px-3 py-3 border-2 ${
                                 isCurrentUser
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              <p className="text-sm break-words">{message.content}</p>
-                            </div>
+                                  ? 'bg-primary/10 border-primary'
+                                  : 'bg-accent/10 border-accent'
+                              } max-w-full`}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <PoundSterling className="h-4 w-4" />
+                                  <span className="text-lg font-bold">£{message.offer.amount.toLocaleString()}</span>
+                                  <Badge variant={
+                                    message.offer.status === 'pending' ? 'default' : 
+                                    message.offer.status === 'accepted' ? 'secondary' : 
+                                    'destructive'
+                                  } className="text-xs">
+                                    {message.offer.status}
+                                  </Badge>
+                                </div>
+                                
+                                {message.offer.message && (
+                                  <p className="text-sm mb-2 break-words">{message.offer.message}</p>
+                                )}
+                                
+                                {/* Accept/Decline buttons for seller on pending offers */}
+                                {!isCurrentUser && message.offer.status === 'pending' && (
+                                  <div className="flex gap-2 mt-2">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => handleOfferAction(message.offer!.id, 'declined')}
+                                      className="text-xs h-7"
+                                    >
+                                      <XCircle className="mr-1 h-3 w-3" />
+                                      Decline
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      onClick={() => handleOfferAction(message.offer!.id, 'accepted')}
+                                      className="text-xs h-7"
+                                    >
+                                      <CheckCircle className="mr-1 h-3 w-3" />
+                                      Accept
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              /* Regular message bubble */
+                              <div
+                                className={`inline-block rounded-lg px-3 py-2 ${
+                                  isCurrentUser
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted'
+                                }`}
+                              >
+                                <p className="text-sm break-words">{message.content}</p>
+                              </div>
+                            )}
+                            
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {new Date(message.created_at).toLocaleString('en-GB', {
                                 day: '2-digit',
@@ -606,169 +672,6 @@ const MessagesInbox = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="received-offers" className="space-y-4">
-          {receivedOffers.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <PoundSterling className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No offers received yet</p>
-              </CardContent>
-            </Card>
-          ) : (
-            receivedOffers.map((offer) => (
-              <Card key={offer.id} className="shadow-soft hover:shadow-medium transition-shadow">
-                 <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-4"
-                   >
-                      <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
-                        <AvatarImage src={offer.buyer_profile?.avatar_url} />
-                        <AvatarFallback className="border-2 border-border">
-                          {offer.buyer_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                     
-                     <div className="flex-1 min-w-0 w-full">
-                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                         <div className="min-w-0 flex-1">
-                           <p className="font-medium truncate">
-                             @{offer.buyer_profile?.username || 'Anonymous'}
-                           </p>
-                           <p className="text-sm text-muted-foreground truncate">
-                             Offer for: {offer.listing?.title}
-                           </p>
-                         </div>
-                         <div className="flex-shrink-0 text-right">
-                           <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
-                           <Badge 
-                             variant={offer.status === 'pending' ? 'default' : 
-                                    offer.status === 'accepted' ? 'secondary' : 'destructive'}
-                             className="text-xs"
-                           >
-                             {offer.status}
-                           </Badge>
-                         </div>
-                       </div>
-                       
-                       {offer.message && (
-                         <p className="mt-2 text-sm bg-muted p-2 rounded break-words">{offer.message}</p>
-                       )}
-                      
-                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                   <div className="text-xs text-muted-foreground space-y-1">
-                     <p>Original price: £{offer.listing?.price?.toLocaleString()}</p>
-                     <p>Created: {new Date(offer.created_at).toLocaleDateString('en-GB')}</p>
-                     {offer.expires_at && (
-                       <p>Expires: {new Date(offer.expires_at).toLocaleDateString('en-GB')}</p>
-                     )}
-                   </div>
-                         {offer.status === 'pending' && (
-                           <div className="flex flex-col xs:flex-row gap-2">
-                             <Button 
-                               size="sm" 
-                               variant="destructive"
-                               onClick={() => handleOfferAction(offer.id, 'declined')}
-                               className="text-xs px-3"
-                             >
-                               <XCircle className="mr-1 h-3 w-3" />
-                               <span className="hidden xs:inline">Decline</span>
-                               <span className="xs:hidden">✗</span>
-                             </Button>
-                             <Button 
-                               size="sm"
-                               onClick={() => handleOfferAction(offer.id, 'accepted')}
-                               className="text-xs px-3"
-                             >
-                               <CheckCircle className="mr-1 h-3 w-3" />
-                               <span className="hidden xs:inline">Accept</span>
-                               <span className="xs:hidden">✓</span>
-                             </Button>
-                           </div>
-                         )}
-                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-
-        <TabsContent value="made-offers" className="space-y-4">
-          {madeOffers.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">You haven't made any offers yet</p>
-              </CardContent>
-            </Card>
-          ) : (
-            madeOffers.map((offer) => (
-              <Card key={offer.id}>
-                 <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                     <div className="w-12 h-12 rounded bg-muted flex-shrink-0 overflow-hidden">
-                       {offer.listing?.images?.[0] ? (
-                         <img 
-                           src={offer.listing.images[0]} 
-                           alt={offer.listing.title}
-                           className="w-full h-full object-cover"
-                           loading="lazy"
-                         />
-                       ) : (
-                         <div className="w-full h-full flex items-center justify-center">
-                           <PoundSterling className="h-4 w-4 text-muted-foreground" />
-                         </div>
-                       )}
-                     </div>
-                     
-                     <div className="flex-1 min-w-0 w-full">
-                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
-                         <div className="min-w-0 flex-1">
-                           <p className="font-medium truncate">{offer.listing?.title}</p>
-                           <p className="text-sm text-muted-foreground truncate">
-                             Seller: @{offer.seller_profile?.username || 'Anonymous'}
-                           </p>
-                         </div>
-                         <div className="flex-shrink-0">
-                           <p className="text-lg font-bold">£{offer.amount.toLocaleString()}</p>
-                           <Badge 
-                             variant={offer.status === 'pending' ? 'default' : 
-                                    offer.status === 'accepted' ? 'secondary' : 'destructive'}
-                             className="text-xs"
-                           >
-                             {offer.status}
-                           </Badge>
-                         </div>
-                       </div>
-                      
-                      {offer.message && (
-                        <p className="mt-2 text-sm bg-muted p-2 rounded">{offer.message}</p>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="text-xs text-muted-foreground">
-                          <p>Original price: £{offer.listing?.price?.toLocaleString()}</p>
-                          <p>Created: {new Date(offer.created_at).toLocaleDateString('en-GB')}</p>
-                          {offer.expires_at && (
-                            <p>Expires: {new Date(offer.expires_at).toLocaleDateString('en-GB')}</p>
-                          )}
-                        </div>
-                        
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => navigate(`/listing/${offer.listing_id}`)}
-                        >
-                          View Listing
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
       </Tabs>
     </div>
   );
