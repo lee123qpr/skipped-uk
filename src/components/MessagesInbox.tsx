@@ -448,8 +448,8 @@ const MessagesInbox = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[400px] p-4">
-                  <div className="space-y-4">
+                <ScrollArea className="h-[400px] px-3 py-2">
+                  <div className="space-y-2">
                     {selectedConversation.messages.map((message) => {
                       const isCurrentUser = message.sender_id === user?.id;
                       const displayProfile = isCurrentUser 
@@ -462,18 +462,18 @@ const MessagesInbox = () => {
                           key={message.id}
                           className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          <Avatar className="w-8 h-8 flex-shrink-0 border border-border">
+                          <Avatar className="w-7 h-7 flex-shrink-0 border border-border">
                             <AvatarImage src={displayProfile?.avatar_url} />
-                            <AvatarFallback>
+                            <AvatarFallback className="text-xs">
                               {displayUsername.charAt(0)?.toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div className={`flex-1 max-w-[70%] ${isCurrentUser ? 'text-right' : 'text-left'}`}>
-                            <p className={`text-xs font-medium mb-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                            <p className={`text-xs font-medium mb-0.5 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
                               @{displayUsername}
                             </p>
                             <div
-                              className={`inline-block rounded-lg p-3 ${
+                              className={`inline-block rounded-lg px-3 py-2 ${
                                 isCurrentUser
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted'
@@ -481,7 +481,7 @@ const MessagesInbox = () => {
                             >
                               <p className="text-sm break-words">{message.content}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               {new Date(message.created_at).toLocaleString('en-GB', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -496,7 +496,7 @@ const MessagesInbox = () => {
                     })}
                   </div>
                 </ScrollArea>
-                <div className="border-t p-4">
+                <div className="border-t p-3">
                   <div className="flex gap-2">
                     <Textarea
                       placeholder="Type your reply..."
