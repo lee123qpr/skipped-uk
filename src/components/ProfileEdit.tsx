@@ -292,8 +292,8 @@ const ProfileEdit = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="shadow-soft">
+    <div className="space-y-6 w-full">
+      <Card className="shadow-soft w-full">
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
           <CardDescription>
@@ -426,7 +426,7 @@ const ProfileEdit = () => {
               </div>
             </div>
 
-            <div className="space-y-2 max-w-2xl">
+            <div className="space-y-2">
               <LocationAutocomplete
                 id="location"
                 label="Location"
