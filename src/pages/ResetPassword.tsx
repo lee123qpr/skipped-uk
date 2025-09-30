@@ -87,26 +87,28 @@ const ResetPassword = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Back to Sign In */}
-          <Link to="/sign-in" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Sign In</span>
-          </Link>
+          <div className="text-center mb-6">
+            <Link to="/sign-in" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth text-base">
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back to Sign In</span>
+            </Link>
+          </div>
 
-          <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
+          <Card className="p-6 shadow-strong bg-card border-border">
             {/* Header */}
-            <header className="text-center mb-8">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden mx-auto mb-4">
+            <header className="text-center mb-6">
+              <div className="w-28 h-28 rounded-2xl overflow-hidden mx-auto mb-3">
                 <img src={skippedLogo} alt="" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Reset your password</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl font-bold text-foreground mb-1">Reset your password</h1>
+              <p className="text-muted-foreground text-sm">
                 Enter your email address and we'll send you a link to reset your password
               </p>
             </header>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -127,7 +129,7 @@ const ResetPassword = () => {
             </Button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Remember your password? </span>
             <Link to="/sign-in" className="text-primary hover:text-primary-hover font-medium transition-smooth">
               Sign in

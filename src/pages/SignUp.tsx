@@ -104,26 +104,28 @@ const SignUp = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Back to Home */}
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth mb-8">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Link>
+          <div className="text-center mb-6">
+            <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-smooth text-base">
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </Link>
+          </div>
 
-          <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
+          <Card className="p-6 shadow-strong bg-card border-border">
             {/* Header */}
-            <header className="text-center mb-8">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden mx-auto mb-4">
+            <header className="text-center mb-6">
+              <div className="w-28 h-28 rounded-2xl overflow-hidden mx-auto mb-3">
                 <img src={skippedLogo} alt="" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">Join the marketplace</h1>
-              <p className="text-muted-foreground">Create your account and start saving</p>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Join the marketplace</h1>
+              <p className="text-muted-foreground text-sm">Create your account and start saving</p>
             </header>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
                 <label htmlFor="firstName" className="text-sm font-medium text-foreground">First Name</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -138,7 +140,7 @@ const SignUp = () => {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label htmlFor="lastName" className="text-sm font-medium text-foreground">Last Name</label>
                 <Input
                   id="lastName"
@@ -152,7 +154,7 @@ const SignUp = () => {
             </div>
 
             {/* Contact Fields */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -168,7 +170,7 @@ const SignUp = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label htmlFor="phone" className="text-sm font-medium text-foreground">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -185,7 +187,7 @@ const SignUp = () => {
             </div>
 
             {/* Password Fields */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -208,7 +210,7 @@ const SignUp = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -232,8 +234,8 @@ const SignUp = () => {
             </div>
 
             {/* Terms */}
-            <div className="space-y-4">
-              <label className="flex items-start space-x-3 text-sm">
+            <div className="space-y-3">
+              <label className="flex items-start space-x-2 text-sm">
                 <input type="checkbox" className="rounded border-border mt-0.5" required />
                 <span className="text-muted-foreground leading-relaxed">
                   I agree to the{" "}
@@ -243,7 +245,7 @@ const SignUp = () => {
                 </span>
               </label>
               
-              <label className="flex items-start space-x-3 text-sm">
+              <label className="flex items-start space-x-2 text-sm">
                 <input type="checkbox" className="rounded border-border mt-0.5" />
                 <span className="text-muted-foreground leading-relaxed">
                   I'd like to receive marketing emails about new materials and sustainability tips
@@ -263,7 +265,7 @@ const SignUp = () => {
             </Button>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-4">
             <div className="relative">
               <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -271,7 +273,7 @@ const SignUp = () => {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-4 space-y-2">
               <Button variant="outline" size="lg" className="w-full">
                 <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -284,7 +286,7 @@ const SignUp = () => {
             </div>
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Already have an account? </span>
             <Link to="/sign-in" className="text-primary hover:text-primary-hover font-medium transition-smooth">
               Sign in
