@@ -20,6 +20,14 @@ const Navbar = () => {
     navigate("/");
   };
 
+  const handleSellClick = () => {
+    if (user) {
+      navigate("/create-listing");
+    } else {
+      navigate("/sign-up");
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-sm border-b shadow-soft">
       <div className="container mx-auto px-4">
@@ -36,12 +44,10 @@ const Navbar = () => {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
             <div className="hidden sm:flex items-center space-x-2">
-              <Link to="/sell">
-                <Button variant="marketplace" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Sell Item
-                </Button>
-              </Link>
+              <Button variant="marketplace" size="sm" onClick={handleSellClick}>
+                <Plus className="h-4 w-4 mr-2" />
+                Sell Item
+              </Button>
               
               {user && (
                 <>
@@ -104,11 +110,9 @@ const Navbar = () => {
             
             {/* Mobile Menu Button */}
             <div className="flex sm:hidden items-center space-x-1">
-              <Link to="/sell">
-                <Button variant="marketplace" size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="marketplace" size="sm" onClick={handleSellClick}>
+                <Plus className="h-4 w-4" />
+              </Button>
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
