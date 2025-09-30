@@ -39,7 +39,6 @@ const Browse = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest");
-  const [selectedReason, setSelectedReason] = useState<string>("all");
   const [deliveryAvailable, setDeliveryAvailable] = useState<boolean | null>(null);
   const [pickupAvailable, setPickupAvailable] = useState<boolean | null>(null);
   const [acceptsOffers, setAcceptsOffers] = useState<boolean | null>(null);
@@ -64,7 +63,7 @@ const Browse = () => {
 
   // Fetch listings with filters
   const { data: listings = [], isLoading, error } = useQuery({
-    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, selectedReason, deliveryAvailable, pickupAvailable, acceptsOffers],
+    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, acceptsOffers],
     queryFn: async () => {
       let query = supabase
         .from('listings')
@@ -119,11 +118,6 @@ const Browse = () => {
       // Apply location filter
       if (selectedLocation) {
         query = query.ilike('location', `%${selectedLocation}%`);
-      }
-
-      // Apply reason for selling filter
-      if (selectedReason !== 'all') {
-        query = query.eq('reason_for_selling', selectedReason);
       }
 
       // Apply delivery available filter
@@ -399,7 +393,6 @@ const Browse = () => {
                       setSelectedCondition("all");
                       setSelectedLocation("");
                       setPriceRange("all");
-                      setSelectedReason("all");
                       setDeliveryAvailable(null);
                       setPickupAvailable(null);
                       setAcceptsOffers(null);
@@ -530,27 +523,6 @@ const Browse = () => {
                         <SelectItem value="all">Any Option</SelectItem>
                         <SelectItem value="accepts">Accepts Offers</SelectItem>
                         <SelectItem value="fixed">Fixed Price Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Reason for Selling */}
-                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
-                    <label className="text-xs font-medium text-muted-foreground">Reason for Selling</label>
-                    <Select value={selectedReason} onValueChange={setSelectedReason}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Any reason" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any Reason</SelectItem>
-                        <SelectItem value="surplus">Surplus Materials</SelectItem>
-                        <SelectItem value="incorrect_order">Incorrect Order</SelectItem> 
-                        <SelectItem value="saving_from_skip">Saving from Skip</SelectItem>
-                        <SelectItem value="no_longer_needed">No Longer Needed</SelectItem>
-                        <SelectItem value="downsizing">Downsizing</SelectItem>
-                        <SelectItem value="end_of_project">End of Project</SelectItem>
-                        <SelectItem value="upgrading">Upgrading</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
