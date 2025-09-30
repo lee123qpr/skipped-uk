@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEOHead from "@/components/SEOHead";
+import InfoBox from "@/components/InfoBox";
 import { useAuth } from "@/components/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
@@ -79,13 +79,10 @@ const SignIn = () => {
               <p className="text-muted-foreground text-sm">Sign in to your account</p>
             </header>
 
-          {/* Info Alert */}
-          <Alert className="mb-4 bg-accent/5 border-accent/20">
-            <Info className="h-4 w-4 text-accent" />
-            <AlertDescription className="text-sm">
-              Sign in with your email and password. If you've forgotten your password, click "Forgot password?" below.
-            </AlertDescription>
-          </Alert>
+          {/* Info Box */}
+          <InfoBox variant="accent">
+            Sign in with your email and password. If you've forgotten your password, click "Forgot password?" below.
+          </InfoBox>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

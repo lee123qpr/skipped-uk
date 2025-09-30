@@ -4,8 +4,8 @@ import { Mail, ArrowLeft, CheckCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import SEOHead from "@/components/SEOHead";
+import InfoBox from "@/components/InfoBox";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const ResetPassword = () => {
@@ -107,13 +107,10 @@ const ResetPassword = () => {
               </p>
             </header>
 
-          {/* Info Alert */}
-          <Alert className="mb-4 bg-warning/5 border-warning/20">
-            <Info className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-sm">
-              Enter your email address and we'll send you a secure link to reset your password. The link will expire after 24 hours.
-            </AlertDescription>
-          </Alert>
+          {/* Info Box */}
+          <InfoBox variant="warning">
+            Enter your email address and we'll send you a secure link to reset your password. The link will expire after 24 hours.
+          </InfoBox>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

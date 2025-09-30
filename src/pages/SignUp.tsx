@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthContext";
 import SEOHead from "@/components/SEOHead";
+import InfoBox from "@/components/InfoBox";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 const SignUp = () => {
   const navigate = useNavigate();
@@ -113,8 +113,10 @@ const SignUp = () => {
               <p className="text-muted-foreground text-sm">Create your account and start saving</p>
             </header>
 
-          {/* Info Alert */}
-          
+          {/* Info Box */}
+          <InfoBox variant="primary">
+            We need your contact details to enable buyer protection and secure transactions. Your information is kept private and secure.
+          </InfoBox>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
