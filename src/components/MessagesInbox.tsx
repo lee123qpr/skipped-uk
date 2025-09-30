@@ -322,9 +322,8 @@ const MessagesInbox = () => {
             messages.map((message) => (
               <Card key={message.id} className={`shadow-soft hover:shadow-medium transition-shadow ${!message.read ? 'border-primary' : ''}`}>
                  <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-4"
-                   >
-                      <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
+                   <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-border">
                         <AvatarImage src={message.sender_profile?.avatar_url} />
                          <AvatarFallback className="border-2 border-border">
                            {message.sender_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
@@ -332,63 +331,61 @@ const MessagesInbox = () => {
                       </Avatar>
                      
                      <div className="flex-1 min-w-0 w-full">
-                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
                          <div className="min-w-0 flex-1">
-                           <p className="font-medium truncate">
+                           <p className="font-semibold text-base">
                              @{message.sender_profile?.username || 'Anonymous'}
                            </p>
-                           <p className="text-sm text-muted-foreground truncate">
-                             About: {message.listing?.title}
+                           <p className="text-sm text-muted-foreground">
+                             About:{' '}
+                             <button
+                               onClick={() => navigate(`/listing/${message.listing_id}`)}
+                               className="text-primary hover:underline font-medium"
+                             >
+                               {message.listing?.title}
+                             </button>
                            </p>
                          </div>
-                         <div className="flex-shrink-0 text-right">
-                           <p className="text-xs text-muted-foreground">
-                             {new Date(message.created_at).toLocaleDateString('en-GB')}
+                         <div className="flex items-center gap-2 flex-shrink-0">
+                           <p className="text-xs text-muted-foreground whitespace-nowrap">
+                             {new Date(message.created_at).toLocaleDateString('en-GB', {
+                               day: '2-digit',
+                               month: '2-digit',
+                               year: 'numeric'
+                             })}
                            </p>
                            {!message.read && (
-                             <Badge variant="default" className="text-xs mt-1">New</Badge>
+                             <Badge variant="default" className="text-xs">New</Badge>
                            )}
                          </div>
                        </div>
                        
-                        <p className="mt-2 text-sm break-words">{message.content}</p>
-                        
-                        <div className="flex flex-col xs:flex-row gap-2 mt-3">
-                          <Button 
-                            size="sm" 
-                            variant="default"
-                            onClick={() => setReplyMessage({
-                              senderId: message.sender_id,
-                              listingId: message.listing_id,
-                              listingTitle: message.listing?.title || 'Listing'
-                            })}
-                            className="text-xs"
-                          >
-                            <Reply className="mr-1 h-3 w-3" />
-                            <span className="hidden xs:inline">Reply</span>
-                            <span className="xs:hidden">Reply</span>
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate(`/listing/${message.listing_id}`)}
-                            className="text-xs"
-                          >
-                            <Eye className="mr-1 h-3 w-3" />
-                            <span className="hidden xs:inline">View Listing</span>
-                            <span className="xs:hidden">View</span>
-                          </Button>
-                          {!message.read && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => handleMarkAsRead(message.id)}
-                              className="text-xs"
-                            >
-                              Mark Read
-                            </Button>
-                          )}
-                        </div>
+                       <div className="bg-muted/50 rounded-lg p-3 mb-3">
+                         <p className="text-sm break-words">{message.content}</p>
+                       </div>
+                       
+                       <div className="flex flex-wrap gap-2">
+                         <Button 
+                           size="sm" 
+                           onClick={() => setReplyMessage({
+                             senderId: message.sender_id,
+                             listingId: message.listing_id,
+                             listingTitle: message.listing?.title || 'Listing'
+                           })}
+                         >
+                           <Reply className="mr-2 h-4 w-4" />
+                           Reply
+                         </Button>
+                         {!message.read && (
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => handleMarkAsRead(message.id)}
+                           >
+                             Mark as Read
+                           </Button>
+                         )}
+                       </div>
                      </div>
                    </div>
                  </CardContent>
