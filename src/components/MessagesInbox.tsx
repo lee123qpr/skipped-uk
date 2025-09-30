@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -14,13 +14,13 @@ import {
   CheckCircle, 
   XCircle, 
   Clock, 
-  Eye,
-  Calendar,
-  Reply
+  ArrowLeft,
+  Send
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import MessageDialog from '@/components/MessageDialog';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Message {
   id: string;
@@ -30,15 +30,36 @@ interface Message {
   sender_id: string;
   receiver_id: string;
   listing_id: string;
-  sender_profile: {
+  sender_profile?: {
     username: string;
     avatar_url: string;
   };
+  receiver_profile?: {
+    username: string;
+    avatar_url: string;
+  };
+  listing?: {
+    title: string;
+    price: number;
+    images: string[];
+  };
+}
+
+interface Conversation {
+  otherUserId: string;
+  otherUserProfile: {
+    username: string;
+    avatar_url: string;
+  };
+  listingId: string;
   listing: {
     title: string;
     price: number;
     images: string[];
   };
+  messages: Message[];
+  unreadCount: number;
+  lastMessage: Message;
 }
 
 interface Offer {
@@ -70,34 +91,36 @@ const MessagesInbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [replyMessage, setReplyMessage] = useState<{
-    senderId: string;
-    listingId: string;
-    listingTitle: string;
-  } | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
-  // Fetch messages with sender profile
-  const { data: messagesData = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
-    queryKey: ['messages', user?.id],
+  // Fetch all messages (sent and received)
+  const { data: allMessagesData = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
+    queryKey: ['allMessages', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
-      // Get messages
+      // Get all messages where user is sender or receiver
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*')
-        .eq('receiver_id', user.id)
-        .order('created_at', { ascending: false });
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .order('created_at', { ascending: true });
       
       if (messagesError) throw messagesError;
       if (!messages || messages.length === 0) return [];
 
-      // Get sender profiles
-      const senderIds = [...new Set(messages.map(m => m.sender_id))];
+      // Get all unique user IDs
+      const userIds = [...new Set([
+        ...messages.map(m => m.sender_id),
+        ...messages.map(m => m.receiver_id)
+      ])].filter(id => id !== user.id);
+
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, username, avatar_url')
-        .in('user_id', senderIds);
+        .in('user_id', userIds);
       
       if (profilesError) throw profilesError;
 
@@ -114,11 +137,50 @@ const MessagesInbox = () => {
       return messages.map(message => ({
         ...message,
         sender_profile: profiles?.find(p => p.user_id === message.sender_id) || null,
+        receiver_profile: profiles?.find(p => p.user_id === message.receiver_id) || null,
         listing: listings?.find(l => l.id === message.listing_id) || null
       }));
     },
     enabled: !!user,
   });
+
+  // Group messages into conversations
+  const conversations: Record<string, Conversation> = allMessagesData.reduce((acc, message) => {
+    const otherUserId = message.sender_id === user?.id ? message.receiver_id : message.sender_id;
+    const key = `${message.listing_id}-${otherUserId}`;
+    
+    if (!acc[key]) {
+      acc[key] = {
+        otherUserId,
+        otherUserProfile: message.sender_id === user?.id 
+          ? message.receiver_profile 
+          : message.sender_profile,
+        listingId: message.listing_id,
+        listing: message.listing,
+        messages: [],
+        unreadCount: 0,
+        lastMessage: message
+      };
+    }
+    
+    acc[key].messages.push(message);
+    
+    // Count unread messages received by current user
+    if (message.receiver_id === user?.id && !message.read) {
+      acc[key].unreadCount++;
+    }
+    
+    // Update last message if this is newer
+    if (new Date(message.created_at) > new Date(acc[key].lastMessage.created_at)) {
+      acc[key].lastMessage = message;
+    }
+    
+    return acc;
+  }, {} as Record<string, Conversation>);
+
+  const conversationsList = Object.values(conversations).sort((a, b) => 
+    new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime()
+  );
 
   // Fetch offers (received) with buyer profile
   const { data: receivedOffersData = [], isLoading: offersLoading, refetch: refetchOffers } = useQuery({
@@ -208,21 +270,59 @@ const MessagesInbox = () => {
     enabled: !!user,
   });
 
-  const messages = messagesData;
   const receivedOffers = receivedOffersData;
   const madeOffers = madeOffersData;
+  const unreadCount = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
-  const handleMarkAsRead = async (messageId: string) => {
+  // Mark all messages in conversation as read
+  useEffect(() => {
+    if (selectedConversation && user) {
+      const unreadMessageIds = selectedConversation.messages
+        .filter(m => m.receiver_id === user.id && !m.read)
+        .map(m => m.id);
+      
+      if (unreadMessageIds.length > 0) {
+        supabase
+          .from('messages')
+          .update({ read: true })
+          .in('id', unreadMessageIds)
+          .then(() => refetchMessages());
+      }
+    }
+  }, [selectedConversation, user]);
+
+  const handleSendReply = async () => {
+    if (!selectedConversation || !user || !replyContent.trim()) return;
+    
+    setIsSending(true);
     try {
       const { error } = await supabase
         .from('messages')
-        .update({ read: true })
-        .eq('id', messageId);
+        .insert({
+          sender_id: user.id,
+          receiver_id: selectedConversation.otherUserId,
+          listing_id: selectedConversation.listingId,
+          content: replyContent.trim(),
+          read: false
+        });
 
       if (error) throw error;
-      refetchMessages();
+
+      setReplyContent('');
+      await refetchMessages();
+      
+      toast({
+        title: 'Message sent',
+        description: 'Your reply has been sent successfully.',
+      });
     } catch (error) {
-      console.error('Error marking message as read:', error);
+      toast({
+        title: 'Error sending message',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -250,7 +350,6 @@ const MessagesInbox = () => {
     }
   };
 
-  const unreadCount = messages.filter(m => !m.read).length;
   const pendingOffersCount = receivedOffers.filter(o => o.status === 'pending').length;
 
   if (messagesLoading || offersLoading) {
@@ -311,84 +410,164 @@ const MessagesInbox = () => {
         </TabsList>
 
         <TabsContent value="messages" className="space-y-4">
-          {messages.length === 0 ? (
+          {conversationsList.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No messages yet</p>
               </CardContent>
             </Card>
+          ) : selectedConversation ? (
+            <Card className="shadow-soft">
+              <CardHeader className="border-b">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedConversation(null)}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <Avatar className="w-10 h-10 border-2 border-border">
+                    <AvatarImage src={selectedConversation.otherUserProfile?.avatar_url} />
+                    <AvatarFallback>
+                      {selectedConversation.otherUserProfile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold">
+                      @{selectedConversation.otherUserProfile?.username || 'Anonymous'}
+                    </p>
+                    <button
+                      onClick={() => navigate(`/listing/${selectedConversation.listingId}`)}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {selectedConversation.listing?.title}
+                    </button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[400px] p-4">
+                  <div className="space-y-4">
+                    {selectedConversation.messages.map((message) => {
+                      const isCurrentUser = message.sender_id === user?.id;
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
+                        >
+                          <Avatar className="w-8 h-8 flex-shrink-0">
+                            <AvatarImage src={
+                              isCurrentUser 
+                                ? message.sender_profile?.avatar_url 
+                                : message.receiver_profile?.avatar_url
+                            } />
+                            <AvatarFallback>
+                              {isCurrentUser 
+                                ? message.sender_profile?.username?.charAt(0)?.toUpperCase()
+                                : message.receiver_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className={`flex-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                            <div
+                              className={`inline-block max-w-[80%] rounded-lg p-3 ${
+                                isCurrentUser
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              <p className="text-sm break-words">{message.content}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(message.created_at).toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+                <div className="border-t p-4">
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Type your reply..."
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      className="resize-none"
+                      rows={3}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendReply();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleSendReply}
+                      disabled={isSending || !replyContent.trim()}
+                      size="sm"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            messages.map((message) => (
-              <Card key={message.id} className={`shadow-soft hover:shadow-medium transition-shadow ${!message.read ? 'border-primary' : ''}`}>
-                 <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-4">
-                      <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-border">
-                        <AvatarImage src={message.sender_profile?.avatar_url} />
-                         <AvatarFallback className="border-2 border-border">
-                           {message.sender_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
-                         </AvatarFallback>
-                      </Avatar>
-                     
-                     <div className="flex-1 min-w-0 w-full">
-                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
-                         <div className="min-w-0 flex-1">
-                           <p className="font-semibold text-base">
-                             @{message.sender_profile?.username || 'Anonymous'}
-                           </p>
-                           <p className="text-sm text-muted-foreground">
-                             About:{' '}
-                             <button
-                               onClick={() => navigate(`/listing/${message.listing_id}`)}
-                               className="text-primary hover:underline font-medium"
-                             >
-                               {message.listing?.title}
-                             </button>
-                           </p>
-                         </div>
-                         <div className="flex items-center gap-2 flex-shrink-0">
-                           <p className="text-xs text-muted-foreground whitespace-nowrap">
-                             {new Date(message.created_at).toLocaleDateString('en-GB', {
-                               day: '2-digit',
-                               month: '2-digit',
-                               year: 'numeric'
-                             })}
-                           </p>
-                           {!message.read && (
-                             <Badge variant="default" className="text-xs">New</Badge>
-                           )}
-                         </div>
-                       </div>
-                       
-                       <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                         <p className="text-sm break-words">{message.content}</p>
-                       </div>
-                       
-                       <div className="flex flex-wrap gap-2">
-                         <Button 
-                           size="sm" 
-                           onClick={() => setReplyMessage({
-                             senderId: message.sender_id,
-                             listingId: message.listing_id,
-                             listingTitle: message.listing?.title || 'Listing'
-                           })}
-                         >
-                           <Reply className="mr-2 h-4 w-4" />
-                           Reply
-                         </Button>
-                         {!message.read && (
-                           <Button 
-                             size="sm" 
-                             variant="outline"
-                             onClick={() => handleMarkAsRead(message.id)}
-                           >
-                             Mark as Read
-                           </Button>
-                         )}
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
+            conversationsList.map((conversation) => (
+              <Card
+                key={`${conversation.listingId}-${conversation.otherUserId}`}
+                className={`shadow-soft hover:shadow-medium transition-shadow cursor-pointer ${
+                  conversation.unreadCount > 0 ? 'border-primary' : ''
+                }`}
+                onClick={() => setSelectedConversation(conversation)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-border">
+                      <AvatarImage src={conversation.otherUserProfile?.avatar_url} />
+                      <AvatarFallback>
+                        {conversation.otherUserProfile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold">
+                            @{conversation.otherUserProfile?.username || 'Anonymous'}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conversation.listing?.title}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <p className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(conversation.lastMessage.created_at).toLocaleDateString('en-GB')}
+                          </p>
+                          {conversation.unreadCount > 0 && (
+                            <Badge variant="default" className="text-xs">
+                              {conversation.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {conversation.lastMessage.sender_id === user?.id ? 'You: ' : ''}
+                        {conversation.lastMessage.content}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             ))
           )}
@@ -547,7 +726,6 @@ const MessagesInbox = () => {
                           variant="outline"
                           onClick={() => navigate(`/listing/${offer.listing_id}`)}
                         >
-                          <Eye className="mr-2 h-3 w-3" />
                           View Listing
                         </Button>
                       </div>
@@ -559,21 +737,6 @@ const MessagesInbox = () => {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Reply Dialog */}
-      {replyMessage && (
-        <MessageDialog
-          listingId={replyMessage.listingId}
-          sellerId={replyMessage.senderId}
-          listingTitle={replyMessage.listingTitle}
-          open={!!replyMessage}
-          onOpenChange={(open) => {
-            if (!open) {
-              setReplyMessage(null);
-            }
-          }}
-        />
-      )}
     </div>
   );
 };
