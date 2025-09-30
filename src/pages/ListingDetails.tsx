@@ -420,14 +420,40 @@ const ListingDetails = () => {
             
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-2">
+              {user?.id !== listing.seller_id && (
+                <>
+                  <Button 
+                    onClick={handleMakeOffer}
+                    size="lg"
+                    className="flex-1 sm:flex-none sm:px-8"
+                  >
+                    <PoundSterling className="mr-2 h-5 w-5" />
+                    Buy Now
+                  </Button>
+                  
+                  {listing.allow_offers && (
+                    <Button 
+                      onClick={handleMakeOffer}
+                      variant="secondary"
+                      size="lg"
+                      className="flex-1 sm:flex-none sm:px-8"
+                    >
+                      Make Offer
+                    </Button>
+                  )}
+                </>
+              )}
+              
               <Button 
                 onClick={handleContact} 
                 disabled={user?.id === listing.seller_id}
+                variant={user?.id === listing.seller_id ? "default" : "outline"}
                 className="flex-1 sm:flex-none sm:px-6"
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
                 {user?.id === listing.seller_id ? 'Your Listing' : 'Contact Seller'}
               </Button>
+              
               <Button variant="outline" size="icon" onClick={handleFavourite}>
                 <Heart className={`h-4 w-4 ${isFavourited ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
