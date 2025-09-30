@@ -1,9 +1,10 @@
-import { Search, ArrowRight, Recycle, Shield, Truck } from "lucide-react";
+import { Search, ArrowRight, Shield, Truck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import heroImage from "@/assets/hero-construction.jpg";
+import recyclingSymbol from "@/assets/recycling-symbol.svg";
 
 const HeroSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +42,7 @@ const HeroSection = () => {
             {/* Large Recycling Symbol */}
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
-                <Recycle className="h-12 w-12 text-primary" strokeWidth={2.5} />
+                <img src={recyclingSymbol} alt="Recycling symbol" className="h-12 w-12" />
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-foreground leading-tight">
@@ -121,7 +122,7 @@ const HeroSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto pt-8">
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                <Recycle className="h-8 w-8 text-primary" />
+                <img src={recyclingSymbol} alt="Recycling symbol" className="h-8 w-8" />
               </div>
               <div className="text-2xl font-bold text-foreground">2.4M kg</div>
               <div className="text-muted-foreground">CO₂ Saved</div>
