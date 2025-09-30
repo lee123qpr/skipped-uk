@@ -1,4 +1,4 @@
-import { Search, ArrowRight, Shield, Trash2 } from "lucide-react";
+import { Search, ArrowRight, Shield, Container } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,10 +138,10 @@ const HeroSection = () => {
             
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-warning/10 rounded-2xl flex items-center justify-center mx-auto">
-                <Trash2 className="h-8 w-8 text-warning" />
+                <Container className="h-8 w-8 text-warning" />
               </div>
-              <div className="text-2xl font-bold text-foreground">850+</div>
-              <div className="text-muted-foreground">Tonnes Saved from Landfill</div>
+              <div className="text-2xl font-bold text-foreground">850+ Tonnes</div>
+              <div className="text-muted-foreground">Saved from Landfill</div>
             </div>
           </div>
 
