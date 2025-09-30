@@ -274,6 +274,31 @@ const MessagesInbox = () => {
   const madeOffers = madeOffersData;
   const unreadCount = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
+  // Realtime subscription for instant message updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('messages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${user.id},receiver_id=eq.${user.id}`
+        },
+        () => {
+          refetchMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refetchMessages]);
+
   // Mark all messages in conversation as read
   useEffect(() => {
     if (selectedConversation && user) {
