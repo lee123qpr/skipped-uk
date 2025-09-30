@@ -15,10 +15,12 @@ import {
   XCircle, 
   Clock, 
   Eye,
-  Calendar
+  Calendar,
+  Reply
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import MessageDialog from '@/components/MessageDialog';
 
 interface Message {
   id: string;
@@ -68,6 +70,11 @@ const MessagesInbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [replyMessage, setReplyMessage] = useState<{
+    senderId: string;
+    listingId: string;
+    listingTitle: string;
+  } | null>(null);
 
   // Fetch messages with sender profile
   const { data: messagesData = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
@@ -344,30 +351,44 @@ const MessagesInbox = () => {
                          </div>
                        </div>
                        
-                       <p className="mt-2 text-sm break-words">{message.content}</p>
-                       
-                       <div className="flex flex-col xs:flex-row gap-2 mt-3">
-                         <Button 
-                           size="sm" 
-                           variant="outline"
-                           onClick={() => navigate(`/listing/${message.listing_id}`)}
-                           className="text-xs"
-                         >
-                           <Eye className="mr-1 h-3 w-3" />
-                           <span className="hidden xs:inline">View Listing</span>
-                           <span className="xs:hidden">View</span>
-                         </Button>
-                         {!message.read && (
-                           <Button 
-                             size="sm" 
-                             variant="ghost"
-                             onClick={() => handleMarkAsRead(message.id)}
-                             className="text-xs"
-                           >
-                             Mark Read
-                           </Button>
-                         )}
-                       </div>
+                        <p className="mt-2 text-sm break-words">{message.content}</p>
+                        
+                        <div className="flex flex-col xs:flex-row gap-2 mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => setReplyMessage({
+                              senderId: message.sender_id,
+                              listingId: message.listing_id,
+                              listingTitle: message.listing?.title || 'Listing'
+                            })}
+                            className="text-xs"
+                          >
+                            <Reply className="mr-1 h-3 w-3" />
+                            <span className="hidden xs:inline">Reply</span>
+                            <span className="xs:hidden">Reply</span>
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigate(`/listing/${message.listing_id}`)}
+                            className="text-xs"
+                          >
+                            <Eye className="mr-1 h-3 w-3" />
+                            <span className="hidden xs:inline">View Listing</span>
+                            <span className="xs:hidden">View</span>
+                          </Button>
+                          {!message.read && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => handleMarkAsRead(message.id)}
+                              className="text-xs"
+                            >
+                              Mark Read
+                            </Button>
+                          )}
+                        </div>
                      </div>
                    </div>
                  </CardContent>
@@ -541,6 +562,21 @@ const MessagesInbox = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Reply Dialog */}
+      {replyMessage && (
+        <MessageDialog
+          listingId={replyMessage.listingId}
+          sellerId={replyMessage.senderId}
+          listingTitle={replyMessage.listingTitle}
+          open={!!replyMessage}
+          onOpenChange={(open) => {
+            if (!open) {
+              setReplyMessage(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
