@@ -56,7 +56,7 @@ const HeroSection = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-6">
+          <div className="max-w-2xl mx-auto">
             <div className="flex bg-card border border-border rounded-2xl p-2 shadow-medium">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
