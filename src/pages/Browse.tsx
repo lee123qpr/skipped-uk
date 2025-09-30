@@ -273,11 +273,11 @@ const Browse = () => {
             
             {/* Search Bar */}
             <div className="max-w-md mx-auto relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary z-10" />
               <Input 
                 ref={searchInputRef}
                 placeholder="Search materials..." 
-                className="pl-10 pr-10 py-3 text-base border-2 focus:border-primary"
+                className="pl-10 pr-10 py-3 text-base border-2 border-primary/30 bg-background shadow-elegant hover:shadow-strong focus:border-primary focus:shadow-strong focus:scale-[1.02] transition-all duration-300"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setShowSearchSuggestions(true)}
