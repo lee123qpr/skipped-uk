@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Building, ArrowLeft, Phone, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Building, ArrowLeft, Phone, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthContext";
@@ -120,6 +121,14 @@ const SignUp = () => {
               <h1 className="text-2xl font-bold text-foreground mb-1">Join the marketplace</h1>
               <p className="text-muted-foreground text-sm">Create your account and start saving</p>
             </header>
+
+          {/* Info Alert */}
+          <Alert className="mb-4 bg-primary/5 border-primary/20">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-sm">
+              Create your account to start buying and selling construction materials. We'll need your contact details to facilitate secure transactions.
+            </AlertDescription>
+          </Alert>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
