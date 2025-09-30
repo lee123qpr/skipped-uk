@@ -181,9 +181,9 @@ const SignUp = () => {
                 <input type="checkbox" className="rounded border-border mt-0.5" required />
                 <span className="text-muted-foreground leading-relaxed">
                   I agree to the{" "}
-                  <a href="#" className="text-primary hover:text-primary-hover">Terms of Service</a>
+                  <a href="/terms-of-service" className="text-primary hover:text-primary-hover">Terms of Service</a>
                   {" "}and{" "}
-                  <a href="#" className="text-primary hover:text-primary-hover">Privacy Policy</a>
+                  <a href="/privacy-policy" className="text-primary hover:text-primary-hover">Privacy Policy</a>
                 </span>
               </label>
             </div>

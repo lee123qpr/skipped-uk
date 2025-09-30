@@ -25,11 +25,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Marketplace</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-smooth">Browse Materials</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Sell Items</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Buyer Protection</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Delivery Options</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Carbon Calculator</a></li>
+              <li><a href="/browse" className="hover:text-primary transition-smooth">Browse Materials</a></li>
+              <li><a href="/sell" className="hover:text-primary transition-smooth">Sell Items</a></li>
+              <li><a href="/browse" className="hover:text-primary transition-smooth">Buyer Protection</a></li>
+              <li><a href="/browse" className="hover:text-primary transition-smooth">Delivery Options</a></li>
+              <li><a href="/browse" className="hover:text-primary transition-smooth">Carbon Calculator</a></li>
             </ul>
           </div>
 
@@ -77,9 +77,9 @@ const Footer = () => {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">© 2026 Skipped. All rights reserved.</p>
           <div className="flex space-x-6 text-sm text-muted-foreground mt-4 md:mt-0">
-            <a href="#" className="hover:text-primary transition-smooth">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-smooth">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-smooth">Cookie Policy</a>
+            <a href="/privacy-policy" className="hover:text-primary transition-smooth">Privacy Policy</a>
+            <a href="/terms-of-service" className="hover:text-primary transition-smooth">Terms of Service</a>
+            <a href="/cookie-policy" className="hover:text-primary transition-smooth">Cookie Policy</a>
           </div>
         </div>
       </div>

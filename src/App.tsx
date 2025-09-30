@@ -28,6 +28,9 @@ import Sell from "./pages/Sell";
 import CreateListing from "./pages/CreateListing";
 import Dashboard from "./pages/Dashboard";
 import ListingDetails from "./pages/ListingDetails";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CookiePolicy from "./pages/CookiePolicy";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -51,6 +54,9 @@ const App = () => (
                 <Route path="/create-listing" element={<CreateListing />} />
                 <Route path="/listing/:id/edit" element={<CreateListing />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
