@@ -41,7 +41,7 @@ const HeroSection = () => {
           <div className="space-y-4">
             {/* Large Recycling Symbol */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse-slow">
                 <img src={recyclingSymbol} alt="Recycling symbol" className="h-12 w-12" />
               </div>
             </div>
