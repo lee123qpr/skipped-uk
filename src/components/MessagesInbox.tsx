@@ -111,11 +111,11 @@ const MessagesInbox = () => {
       if (messagesError) throw messagesError;
       if (!messages || messages.length === 0) return [];
 
-      // Get all unique user IDs
+      // Get all unique user IDs (including current user for their own messages)
       const userIds = [...new Set([
         ...messages.map(m => m.sender_id),
         ...messages.map(m => m.receiver_id)
-      ])].filter(id => id !== user.id);
+      ])];
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
