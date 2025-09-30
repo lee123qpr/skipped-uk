@@ -1,17 +1,23 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Building, ArrowLeft, Phone } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User, Building, ArrowLeft, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/AuthContext";
 import SEOHead from "@/components/SEOHead";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -21,10 +27,67 @@ const SignUp = () => {
     confirmPassword: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign up logic here - all users get 'user' role by default
-    console.log("Sign up attempt:", { ...formData, role: "user" });
+    
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please ensure both passwords are identical.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await signUp(
+        formData.email,
+        formData.password,
+        {
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+        }
+      );
+
+      if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message || "Failed to create account. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Account created!",
+        description: "Please check your email to verify your account.",
+      });
+
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -188,8 +251,15 @@ const SignUp = () => {
               </label>
             </div>
 
-            <Button type="submit" variant="marketplace" size="lg" className="w-full">
-              Create Account
+            <Button type="submit" variant="marketplace" size="lg" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
           </form>
 
