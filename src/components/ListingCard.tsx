@@ -20,6 +20,7 @@ interface ListingCardProps {
   deliveryAvailable?: boolean;
   pickupAvailable?: boolean;
   allowOffers?: boolean;
+  variant?: "grid" | "list";
 }
 
 const ListingCard = ({ 
@@ -35,7 +36,8 @@ const ListingCard = ({
   quantity,
   deliveryAvailable,
   pickupAvailable,
-  allowOffers
+  allowOffers,
+  variant = "grid"
 }: ListingCardProps) => {
   const navigate = useNavigate();
   
@@ -71,17 +73,17 @@ const ListingCard = ({
 
   return (
     <Card 
-      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${className}`}
+      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${variant === "list" ? "flex flex-row" : ""} ${className}`}
       onClick={handleCardClick}
     >
       {/* Image Carousel */}
-      <div className="relative aspect-[4/3] bg-muted">
+      <div className={`relative bg-muted ${variant === "list" ? "w-80 flex-shrink-0" : "aspect-[4/3]"}`}>
         {images && images.length > 0 ? (
           <Carousel className="w-full h-full">
             <CarouselContent>
               {images.map((image, index) => (
                 <CarouselItem key={index}>
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  <div className={`relative overflow-hidden ${variant === "list" ? "h-full" : "aspect-[4/3]"}`}>
                     <img 
                       src={image} 
                       alt={`${title} - Image ${index + 1}`}
@@ -130,7 +132,7 @@ const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className={`p-4 space-y-3 ${variant === "list" ? "flex-1" : ""}`}>
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-3">
           <h3 className="font-bold text-lg text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1">

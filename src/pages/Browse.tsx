@@ -610,7 +610,7 @@ const Browse = () => {
                 </div>
               ) : (
                 listings.map((listing) => (
-                  <ListingCard key={listing.id} {...formatListingForCard(listing)} />
+                  <ListingCard key={listing.id} {...formatListingForCard(listing)} variant={viewMode} />
                 ))
               )}
             </section>

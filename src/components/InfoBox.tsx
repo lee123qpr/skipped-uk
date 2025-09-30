@@ -17,6 +17,13 @@ const InfoBox = ({
     accent: "text-accent",
     warning: "text-warning"
   };
-  return;
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border ${variantStyles[variant]} mb-6`}>
+      <Info className={`h-5 w-5 mt-0.5 flex-shrink-0 ${iconStyles[variant]}`} />
+      <div className="flex-1 text-sm leading-relaxed">
+        {children}
+      </div>
+    </div>
+  );
 };
 export default InfoBox;
