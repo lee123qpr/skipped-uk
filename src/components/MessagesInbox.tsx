@@ -452,26 +452,28 @@ const MessagesInbox = () => {
                   <div className="space-y-4">
                     {selectedConversation.messages.map((message) => {
                       const isCurrentUser = message.sender_id === user?.id;
+                      const displayProfile = isCurrentUser 
+                        ? message.sender_profile 
+                        : message.sender_profile;
+                      const displayUsername = displayProfile?.username || 'Anonymous';
+                      
                       return (
                         <div
                           key={message.id}
                           className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          <Avatar className="w-8 h-8 flex-shrink-0">
-                            <AvatarImage src={
-                              isCurrentUser 
-                                ? message.sender_profile?.avatar_url 
-                                : message.receiver_profile?.avatar_url
-                            } />
+                          <Avatar className="w-8 h-8 flex-shrink-0 border border-border">
+                            <AvatarImage src={displayProfile?.avatar_url} />
                             <AvatarFallback>
-                              {isCurrentUser 
-                                ? message.sender_profile?.username?.charAt(0)?.toUpperCase()
-                                : message.receiver_profile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                              {displayUsername.charAt(0)?.toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className={`flex-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                          <div className={`flex-1 max-w-[70%] ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                            <p className={`text-xs font-medium mb-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                              @{displayUsername}
+                            </p>
                             <div
-                              className={`inline-block max-w-[80%] rounded-lg p-3 ${
+                              className={`inline-block rounded-lg p-3 ${
                                 isCurrentUser
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted'
