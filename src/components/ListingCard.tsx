@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/components/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ListingCardProps {
   id: string;
@@ -40,6 +42,8 @@ const ListingCard = ({
   variant = "grid"
 }: ListingCardProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   
   const conditionConfig = {
     new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
@@ -124,6 +128,14 @@ const ListingCard = ({
           className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm hover:bg-background z-10"
           onClick={(e) => {
             e.stopPropagation();
+            if (!user) {
+              toast({
+                title: "Sign in required",
+                description: "You need to be signed in to save favourites. Please sign in or create an account.",
+                variant: "default",
+              });
+              return;
+            }
             // TODO: Implement favourite functionality
           }}
         >
