@@ -292,7 +292,7 @@ const ProfileEdit = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
