@@ -244,13 +244,6 @@ const SignUp = () => {
                   <a href="#" className="text-primary hover:text-primary-hover">Privacy Policy</a>
                 </span>
               </label>
-              
-              <label className="flex items-start space-x-2 text-sm">
-                <input type="checkbox" className="rounded border-border mt-0.5" />
-                <span className="text-muted-foreground leading-relaxed">
-                  I'd like to receive marketing emails about new materials and sustainability tips
-                </span>
-              </label>
             </div>
 
             <Button type="submit" variant="marketplace" size="lg" className="w-full" disabled={isLoading}>
