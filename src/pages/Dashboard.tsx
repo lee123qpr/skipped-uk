@@ -41,6 +41,14 @@ const Dashboard = () => {
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
 
+  // Function to capitalise each word in a name
+  const capitaliseName = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   // Function to get time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -134,7 +142,7 @@ const Dashboard = () => {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-xl mb-1">
-                      {getGreeting()}, {profile?.display_name || profile?.username || 'User'}!
+                      {getGreeting()}, {capitaliseName(profile?.display_name || profile?.username || 'User')}!
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       @{profile?.username || 'username'}
