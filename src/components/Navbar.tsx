@@ -1,7 +1,8 @@
-import { User, Heart, ShoppingBag, Plus, LogOut } from "lucide-react";
+import { User, Heart, ShoppingBag, Plus, LogOut, Bell } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthContext";
+import { useNotifications } from "@/components/NotificationProvider";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 import {
   DropdownMenu,
@@ -13,7 +14,10 @@ import {
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
+  const { counts } = useNotifications();
   const navigate = useNavigate();
+
+  const totalNotifications = counts.unreadMessages + counts.pendingOffers + counts.newOffers;
 
   const handleSignOut = async () => {
     await signOut();
@@ -51,6 +55,20 @@ const Navbar = () => {
               
               {user && (
                 <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate("/dashboard?tab=messages")}
+                    className="relative"
+                  >
+                    <Bell className="h-4 w-4" />
+                    {totalNotifications > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                        {totalNotifications > 9 ? '9+' : totalNotifications}
+                      </span>
+                    )}
+                  </Button>
+
                   <Button 
                     variant="ghost" 
                     size="sm"
@@ -113,6 +131,21 @@ const Navbar = () => {
               <Button variant="marketplace" size="sm" onClick={handleSellClick}>
                 <Plus className="h-4 w-4" />
               </Button>
+              {user && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate("/dashboard?tab=messages")}
+                  className="relative"
+                >
+                  <Bell className="h-4 w-4" />
+                  {totalNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-medium">
+                      {totalNotifications > 9 ? '9+' : totalNotifications}
+                    </span>
+                  )}
+                </Button>
+              )}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
