@@ -2,20 +2,14 @@ import { Leaf, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
-
 const Footer = () => {
-  return (
-    <footer className="bg-card border-t border-border">
+  return <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <div>
-              <img 
-                src={skippedLogo} 
-                alt="Skipped - Construction Materials Marketplace" 
-                className="h-8 w-auto object-contain"
-              />
+              <img src={skippedLogo} alt="Skipped - Construction Materials Marketplace" className="h-8 w-auto object-contain" />
             </div>
             <p className="text-muted-foreground leading-relaxed">
               The UK's premier marketplace for sustainable construction materials. 
@@ -58,10 +52,7 @@ const Footer = () => {
               Get notified about new materials and sustainability tips
             </p>
             <div className="flex space-x-2">
-              <Input 
-                placeholder="Enter email" 
-                className="flex-1 bg-input border-border"
-              />
+              <Input placeholder="Enter email" className="flex-1 bg-input border-border" />
               <Button variant="default" size="sm">
                 Subscribe
               </Button>
@@ -84,9 +75,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 Skipped. All rights reserved.
-          </p>
+          <p className="text-sm text-muted-foreground">© 2026 Skipped. All rights reserved.</p>
           <div className="flex space-x-6 text-sm text-muted-foreground mt-4 md:mt-0">
             <a href="#" className="hover:text-primary transition-smooth">Privacy Policy</a>
             <a href="#" className="hover:text-primary transition-smooth">Terms of Service</a>
@@ -94,8 +83,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
