@@ -17,6 +17,7 @@ const queryClient = new QueryClient({
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/components/AuthContext";
+import { NotificationProvider } from "@/components/NotificationProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
@@ -33,27 +34,29 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/sign-in" element={<SignIn />} />
-              <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/browse" element={<Browse />} />
-              <Route path="/sell" element={<Sell />} />
-              <Route path="/listing/:id" element={<ListingDetails />} />
-              <Route path="/create-listing" element={<CreateListing />} />
-              <Route path="/listing/:id/edit" element={<CreateListing />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/sign-in" element={<SignIn />} />
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/browse" element={<Browse />} />
+                <Route path="/sell" element={<Sell />} />
+                <Route path="/listing/:id" element={<ListingDetails />} />
+                <Route path="/create-listing" element={<CreateListing />} />
+                <Route path="/listing/:id/edit" element={<CreateListing />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>
