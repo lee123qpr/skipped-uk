@@ -90,14 +90,16 @@ const Dashboard = () => {
         />
         <div className="min-h-screen bg-background">
           <Navbar />
-          <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
-            <ProfileSkeleton />
-            <div className="mt-6">
-              <div className="grid w-full grid-cols-4 mb-6 h-12 bg-muted rounded-md animate-pulse"></div>
+          <main className="container mx-auto px-4 py-6 pb-24 max-w-7xl">
+            <div className="max-w-5xl mx-auto space-y-8">
+              <ProfileSkeleton />
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <MyListingSkeleton key={i} />
-                ))}
+                <div className="grid w-full grid-cols-4 mb-6 h-12 bg-muted rounded-md animate-pulse"></div>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <MyListingSkeleton key={i} />
+                  ))}
+                </div>
               </div>
             </div>
           </main>
@@ -116,12 +118,12 @@ const Dashboard = () => {
       />
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
-          <div className="grid gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 border-2 border-border">
+        <main className="container mx-auto px-4 py-6 pb-24 max-w-7xl">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <Card className="shadow-soft">
+              <CardHeader className="pb-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <Avatar className="h-16 w-16 border-2 border-border flex-shrink-0">
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-primary/10 text-primary text-lg border-2 border-border">
                       {profile?.display_name?.charAt(0)?.toUpperCase() || 
@@ -129,8 +131,8 @@ const Dashboard = () => {
                        user?.email?.charAt(0)?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <CardTitle className="text-xl">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-xl mb-1">
                       {getGreeting()}, {profile?.display_name || profile?.username || 'User'}!
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2">
@@ -142,21 +144,21 @@ const Dashboard = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                   <div className="min-w-0">
-                    <span className="text-muted-foreground block">Email:</span>
+                    <span className="text-muted-foreground block mb-1">Email:</span>
                     <p className="font-medium truncate">{user?.email}</p>
                   </div>
                   {profile?.phone && (
                     <div className="min-w-0">
-                      <span className="text-muted-foreground block">Phone:</span>
+                      <span className="text-muted-foreground block mb-1">Phone:</span>
                       <p className="font-medium truncate">{profile.phone}</p>
                     </div>
                   )}
                   {profile?.location && (
                     <div className="min-w-0">
-                      <span className="text-muted-foreground block">Location:</span>
+                      <span className="text-muted-foreground block mb-1">Location:</span>
                       <p className="font-medium truncate">{profile.location}</p>
                     </div>
                   )}
@@ -166,7 +168,7 @@ const Dashboard = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={(value) => navigate(`/dashboard?tab=${value}`)} className="w-full">
-            <div className="overflow-x-auto mb-6 sticky top-20 z-10">
+            <div className="overflow-x-auto mb-6 sticky top-20 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4">
               <TabsList className="grid w-full grid-cols-4 bg-muted/80 backdrop-blur-sm border h-auto p-1 min-w-[320px]">
                 <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Package className="h-4 w-4 flex-shrink-0" />
@@ -192,19 +194,19 @@ const Dashboard = () => {
               </TabsList>
             </div>
             
-            <TabsContent value="listings" className="space-y-4">
+            <TabsContent value="listings" className="space-y-4 mt-0">
               <MyListings />
             </TabsContent>
             
-            <TabsContent value="messages" className="space-y-4">
+            <TabsContent value="messages" className="space-y-4 mt-0">
               <MessagesInbox />
             </TabsContent>
             
-            <TabsContent value="favourites" className="space-y-4">
+            <TabsContent value="favourites" className="space-y-4 mt-0">
               <FavouritesTab />
             </TabsContent>
             
-            <TabsContent value="profile" className="space-y-4">
+            <TabsContent value="profile" className="space-y-4 mt-0">
               <ProfileEdit />
               <TransactionReviews />
             </TabsContent>

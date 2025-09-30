@@ -313,9 +313,10 @@ const MessagesInbox = () => {
             </Card>
           ) : (
             messages.map((message) => (
-              <Card key={message.id} className={!message.read ? 'border-primary' : ''}>
+              <Card key={message.id} className={`shadow-soft hover:shadow-medium transition-shadow ${!message.read ? 'border-primary' : ''}`}>
                  <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                   <div className="flex flex-col sm:flex-row items-start gap-4"
+                   >
                       <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
                         <AvatarImage src={message.sender_profile?.avatar_url} />
                          <AvatarFallback className="border-2 border-border">
@@ -385,9 +386,10 @@ const MessagesInbox = () => {
             </Card>
           ) : (
             receivedOffers.map((offer) => (
-              <Card key={offer.id}>
+              <Card key={offer.id} className="shadow-soft hover:shadow-medium transition-shadow">
                  <CardContent className="p-4 sm:p-6">
-                   <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                   <div className="flex flex-col sm:flex-row items-start gap-4"
+                   >
                       <Avatar className="w-10 h-10 flex-shrink-0 border-2 border-border">
                         <AvatarImage src={offer.buyer_profile?.avatar_url} />
                         <AvatarFallback className="border-2 border-border">

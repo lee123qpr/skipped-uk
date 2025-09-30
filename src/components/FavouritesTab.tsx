@@ -163,13 +163,14 @@ const FavouritesTab = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-1">
         {favourites.map((favourite) => (
-          <Card key={favourite.id}>
+          <Card key={favourite.id} className="shadow-soft hover:shadow-medium transition-shadow">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-start gap-4">
                 {/* Image */}
-                <div className="w-20 sm:w-24 aspect-[4/3] rounded-lg bg-muted flex-shrink-0 overflow-hidden">
+                <div className="w-24 sm:w-28 md:w-32 aspect-[4/3] rounded-lg bg-muted flex-shrink-0 overflow-hidden border"
+                >
                   {favourite.listing.images && favourite.listing.images.length > 0 ? (
                     <img 
                       src={favourite.listing.images[0]} 
@@ -179,7 +180,7 @@ const FavouritesTab = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Package className="h-6 w-6 text-muted-foreground" />
+                      <Package className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
                 </div>
