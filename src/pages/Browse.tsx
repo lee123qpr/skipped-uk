@@ -26,6 +26,15 @@ const Browse = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // Get search param from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+  }, []);
   const [selectedCondition, setSelectedCondition] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState<string>("all");
@@ -92,12 +101,9 @@ const Browse = () => {
         `)
         .eq('status', 'active');
 
-      // Apply search filter using full-text search
+      // Apply search filter - search in title and description only
       if (debouncedSearchTerm) {
-        query = query.textSearch('search_vector', debouncedSearchTerm, {
-          type: 'websearch',
-          config: 'english'
-        });
+        query = query.or(`title.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%`);
       }
 
       // Apply category filter

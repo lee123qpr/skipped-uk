@@ -1,10 +1,27 @@
 import { Search, ArrowRight, Recycle, Shield, Truck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import heroImage from "@/assets/hero-construction.jpg";
 
 const HeroSection = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/browse?search=${encodeURIComponent(searchTerm)}`);
+    } else {
+      navigate('/browse');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted">
       {/* Background Image with Overlay */}
@@ -46,14 +63,15 @@ const HeroSection = () => {
                 <Input
                   placeholder="Search timber, bricks, steel, insulation, scaffolding..."
                   className="pl-12 pr-4 py-3 text-base md:text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
                 />
               </div>
-              <Link to="/browse">
-                <Button size="lg" variant="marketplace" className="px-6 md:px-8">
-                  Search
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
+              <Button size="lg" variant="marketplace" className="px-6 md:px-8" onClick={handleSearch}>
+                Search
+                <ArrowRight className="h-5 w-5" />
+              </Button>
             </div>
             
             {/* Quick Search Options */}
