@@ -69,7 +69,7 @@ const SignIn = () => {
           <Card className="p-6 md:p-8 shadow-strong bg-card border-border">
             {/* Header */}
             <header className="text-center mb-8">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden mx-auto mb-4">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden mx-auto mb-4">
                 <img src={skippedLogo} alt="Skipped" className="w-full h-full object-contain" />
               </div>
               <h1 className="text-2xl font-bold text-foreground mb-2">Welcome back</h1>
