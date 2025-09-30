@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import heroImage from "@/assets/hero-construction.jpg";
+import heroImage from "@/assets/hero-construction-warehouse.jpg";
 import recyclingSymbol from "@/assets/recycling-symbol.svg";
 
 const HeroSection = () => {
