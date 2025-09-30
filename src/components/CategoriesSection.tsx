@@ -12,6 +12,7 @@ import CategoryCard from "./CategoryCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/useCategories";
+import { useState } from "react";
 
 const iconMap = {
   TreePine,
@@ -26,6 +27,13 @@ const iconMap = {
 const CategoriesSection = () => {
   // Use shared categories hook
   const { data: categories, isLoading } = useCategories();
+  const [showAll, setShowAll] = useState(false);
+  
+  const INITIAL_DISPLAY_COUNT = 8;
+  const displayedCategories = showAll 
+    ? categories 
+    : categories?.slice(0, INITIAL_DISPLAY_COUNT);
+  
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
@@ -44,7 +52,7 @@ const CategoriesSection = () => {
               <Skeleton key={i} className="h-32 rounded-lg" />
             ))
           ) : (
-            categories?.map((category) => {
+            displayedCategories?.map((category) => {
               const IconComponent = iconMap[category.icon_name as keyof typeof iconMap] || Home;
               return (
                 <CategoryCard
@@ -52,18 +60,25 @@ const CategoriesSection = () => {
                   title={category.name}
                   icon={IconComponent}
                   itemCount={category.item_count}
+                  categoryId={category.id}
                 />
               );
             })
           )}
         </div>
 
-        <div className="text-center">
-          <Button variant="outline" size="lg">
-            View All Categories
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
+        {!isLoading && categories && categories.length > INITIAL_DISPLAY_COUNT && (
+          <div className="text-center">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? 'Show Less' : 'Show More'}
+              <ArrowRight className={`h-4 w-4 transition-transform ${showAll ? 'rotate-180' : ''}`} />
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );
