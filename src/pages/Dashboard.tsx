@@ -31,7 +31,7 @@ interface UserProfile {
 }
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { counts } = useNotifications();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -50,13 +50,14 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/sign-in");
       return;
     }
 
     fetchProfile();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -80,7 +81,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <>
         <SEOHead
