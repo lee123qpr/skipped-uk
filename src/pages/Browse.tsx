@@ -388,9 +388,9 @@ const Browse = () => {
 
             {/* Filter Panel */}
             {showFilters && (
-              <Card className="p-6 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-foreground">Filter Options</h3>
+              <Card className="p-4 mb-6 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
+                  <h3 className="text-base font-semibold text-foreground">Filters</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -404,17 +404,20 @@ const Browse = () => {
                       setPickupAvailable(null);
                       setAcceptsOffers(null);
                     }}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-xs text-muted-foreground hover:text-foreground w-fit"
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="h-3 w-3 mr-1" />
                     Clear All
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Category</label>
+                
+                {/* Compact Grid Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Category */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Category</label>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="All categories" />
                       </SelectTrigger>
                       <SelectContent>
@@ -428,13 +431,14 @@ const Browse = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Condition</label>
+                  {/* Condition */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Condition</label>
                     <Select value={selectedCondition} onValueChange={setSelectedCondition}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Any condition" />
                       </SelectTrigger>
-                        <SelectContent>
+                      <SelectContent>
                         <SelectItem value="all">Any Condition</SelectItem>
                         <SelectItem value="new">New</SelectItem>
                         <SelectItem value="like_new">Like New</SelectItem>
@@ -447,19 +451,11 @@ const Browse = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Location</label>
-                    <LocationAutocomplete
-                      value={selectedLocation}
-                      onChange={(locationData) => setSelectedLocation(locationData.publicLocation)}
-                      placeholder="Start typing a location..."
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-foreground">Price</label>
+                  {/* Price */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Price Range</label>
                     <Select value={priceRange} onValueChange={setPriceRange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Any price" />
                       </SelectTrigger>
                       <SelectContent>
@@ -473,11 +469,76 @@ const Browse = () => {
                     </Select>
                   </div>
 
-                  {/* Row 2: Advanced Filters */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Reason for Selling</label>
+                  {/* Location */}
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                    <label className="text-xs font-medium text-muted-foreground">Location</label>
+                    <LocationAutocomplete
+                      value={selectedLocation}
+                      onChange={(locationData) => setSelectedLocation(locationData.publicLocation)}
+                      placeholder="Location..."
+                    />
+                  </div>
+
+                  {/* Delivery Options */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Delivery</label>
+                    <Select 
+                      value={deliveryAvailable === null ? "all" : deliveryAvailable ? "delivery" : "collection"} 
+                      onValueChange={(value) => {
+                        if (value === "all") {
+                          setDeliveryAvailable(null);
+                          setPickupAvailable(null);
+                        } else if (value === "delivery") {
+                          setDeliveryAvailable(true);
+                          setPickupAvailable(null);
+                        } else if (value === "collection") {
+                          setDeliveryAvailable(null);
+                          setPickupAvailable(true);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Any option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Option</SelectItem>
+                        <SelectItem value="delivery">Delivery Available</SelectItem>
+                        <SelectItem value="collection">Collection Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Offers */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Offers</label>
+                    <Select 
+                      value={acceptsOffers === null ? "all" : acceptsOffers ? "accepts" : "fixed"} 
+                      onValueChange={(value) => {
+                        if (value === "all") {
+                          setAcceptsOffers(null);
+                        } else if (value === "accepts") {
+                          setAcceptsOffers(true);
+                        } else {
+                          setAcceptsOffers(false);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Any option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Any Option</SelectItem>
+                        <SelectItem value="accepts">Accepts Offers</SelectItem>
+                        <SelectItem value="fixed">Fixed Price Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Reason for Selling */}
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+                    <label className="text-xs font-medium text-muted-foreground">Reason for Selling</label>
                     <Select value={selectedReason} onValueChange={setSelectedReason}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Any reason" />
                       </SelectTrigger>
                       <SelectContent>
@@ -494,119 +555,6 @@ const Browse = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Delivery Options</label>
-                    <Select 
-                      value={deliveryAvailable === null ? "all" : deliveryAvailable ? "delivery" : "collection"} 
-                      onValueChange={(value) => {
-                        if (value === "all") {
-                          setDeliveryAvailable(null);
-                          setPickupAvailable(null);
-                        } else if (value === "delivery") {
-                          setDeliveryAvailable(true);
-                          setPickupAvailable(null);
-                        } else if (value === "collection") {
-                          setDeliveryAvailable(null);
-                          setPickupAvailable(true);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any delivery option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any Option</SelectItem>
-                        <SelectItem value="delivery">Delivery Available</SelectItem>
-                        <SelectItem value="collection">Collection Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Offers</label>
-                    <Select 
-                      value={acceptsOffers === null ? "all" : acceptsOffers ? "accepts" : "fixed"} 
-                      onValueChange={(value) => {
-                        if (value === "all") {
-                          setAcceptsOffers(null);
-                        } else if (value === "accepts") {
-                          setAcceptsOffers(true);
-                        } else {
-                          setAcceptsOffers(false);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any offer option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any Option</SelectItem>
-                        <SelectItem value="accepts">Accepts Offers</SelectItem>
-                        <SelectItem value="fixed">Fixed Price Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Carbon Savings</label>
-                    <Select 
-                      value={priceRange} 
-                      onValueChange={setPriceRange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any carbon savings" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Any Amount</SelectItem>
-                        <SelectItem value="high-carbon">High Impact (500+ kg CO₂)</SelectItem>
-                        <SelectItem value="medium-carbon">Medium Impact (100-500 kg CO₂)</SelectItem>
-                        <SelectItem value="low-carbon">Low Impact (Under 100 kg CO₂)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Filter Summary */}
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {selectedCategory !== "all" && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {categories.find(c => c.id === selectedCategory)?.name}
-                    </span>
-                  )}
-                  {selectedCondition !== "all" && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {selectedCondition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  )}
-                  {selectedLocation && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      📍 {selectedLocation}
-                    </span>
-                  )}
-                  {priceRange !== "all" && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {priceRange === "free" ? "Free" : 
-                       priceRange === "under-100" ? "Under £100" :
-                       priceRange === "100-500" ? "£100-£500" :
-                       priceRange === "500-1000" ? "£500-£1,000" :
-                       "Over £1,000"}
-                    </span>
-                  )}
-                  {selectedReason !== "all" && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {selectedReason.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  )}
-                  {deliveryAvailable !== null && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {deliveryAvailable ? "🚚 Delivery" : "📦 Collection"}
-                    </span>
-                  )}
-                  {acceptsOffers !== null && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                      {acceptsOffers ? "💬 Accepts Offers" : "💳 Fixed Price"}
-                    </span>
-                  )}
                 </div>
               </Card>
             )}
