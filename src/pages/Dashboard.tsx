@@ -3,12 +3,13 @@ import { useNotifications } from "@/components/NotificationProvider";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Package, Settings, LogOut, MessageCircle, PoundSterling, Heart } from "lucide-react";
+import { Package, MessageCircle, Heart, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SEOHead from "@/components/SEOHead";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import MyListings from "@/components/MyListings";
 import MessagesInbox from "@/components/MessagesInbox";
@@ -79,11 +80,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
   if (loading) {
     return (
       <>
@@ -92,16 +88,8 @@ const Dashboard = () => {
           description="Manage your Skipped account, listings, and profile"
           keywords="dashboard, account, profile, listings"
         />
-        <div className="bg-background">
-          <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-              <Button variant="outline" disabled>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </header>
+        <div className="min-h-screen bg-background">
+          <Navbar />
           <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
             <ProfileSkeleton />
             <div className="mt-6">
@@ -113,6 +101,7 @@ const Dashboard = () => {
               </div>
             </div>
           </main>
+          <Footer />
         </div>
       </>
     );
@@ -125,21 +114,8 @@ const Dashboard = () => {
         description="Manage your Skipped account, listings, and profile"
         keywords="dashboard, account, profile, listings"
       />
-      <div className="bg-background">
-        <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <Button 
-              variant="outline" 
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </header>
-
+      <div className="min-h-screen bg-background">
+        <Navbar />
         <main className="container mx-auto px-4 py-6 pb-24 max-w-full overflow-x-hidden">
           <div className="grid gap-6 mb-8">
             <Card>
@@ -234,6 +210,7 @@ const Dashboard = () => {
             </TabsContent>
           </Tabs>
         </main>
+        <Footer />
       </div>
     </>
   );
