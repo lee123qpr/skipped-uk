@@ -181,7 +181,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onChange={handleInputChange}
           placeholder={placeholder}
           required={required}
-          disabled={disabled || isLoading}
+          disabled={disabled}
           className={cn(className)}
           autoComplete="off"
         />
