@@ -127,12 +127,19 @@ const MessagesInbox = () => {
     originalAmount: number;
     listingPrice: number;
   } | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when conversation changes or messages update
+  // Scroll to show latest messages when conversation loads
   useEffect(() => {
-    if (selectedConversation && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (selectedConversation && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        // Scroll to 75% of the way down to show recent messages while keeping older ones visible
+        const scrollHeight = scrollContainer.scrollHeight;
+        const clientHeight = scrollContainer.clientHeight;
+        const scrollPosition = Math.max(0, scrollHeight - clientHeight - 100);
+        scrollContainer.scrollTop = scrollPosition;
+      }
     }
   }, [selectedConversation?.messages.length, selectedConversation?.listingId]);
 
@@ -532,7 +539,7 @@ const MessagesInbox = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="h-[400px] px-3 py-2">
+                <ScrollArea ref={scrollAreaRef} className="h-[400px] px-3 py-2">
                   <div className="space-y-2">
                     {selectedConversation.messages.map((message) => {
                       const isCurrentUser = message.sender_id === user?.id;
@@ -662,7 +669,6 @@ const MessagesInbox = () => {
                         </div>
                       );
                     })}
-                    <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
 
