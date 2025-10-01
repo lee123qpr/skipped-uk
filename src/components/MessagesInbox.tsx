@@ -18,7 +18,17 @@ import {
   XCircle, 
   Clock, 
   ArrowLeft,
-  Send
+  Send,
+  Mail,
+  ArrowRightLeft,
+  ShoppingCart,
+  CreditCard,
+  Package,
+  Truck,
+  Star,
+  PartyPopper,
+  AlertTriangle,
+  Inbox
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -53,6 +63,8 @@ interface Message {
     amount: number;
     status: string;
     message: string;
+    buyer_id: string;
+    seller_id: string;
   };
 }
 
@@ -83,6 +95,13 @@ interface Conversation {
     delivery_confirmed_at: string | null;
     dispute_reason: string | null;
   };
+}
+
+interface ConversationStatus {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  bgColor: string;
 }
 
 interface Offer {
@@ -129,6 +148,160 @@ const MessagesInbox = () => {
   } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Determine conversation status based on offer and transaction state
+  const getConversationStatus = (conversation: Conversation, userId: string): ConversationStatus | null => {
+    const { transaction } = conversation;
+    const latestOffer = conversation.messages
+      .filter(m => m.offer)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.offer;
+    
+    const isBuyer = transaction?.buyer_id === userId || latestOffer?.buyer_id === userId;
+    
+    // Priority 1: Disputes
+    if (transaction?.status === 'disputed') {
+      return {
+        label: 'Disputed',
+        icon: AlertTriangle,
+        variant: 'destructive',
+        bgColor: 'bg-destructive/10'
+      };
+    }
+    
+    // Priority 2: Completed transaction
+    if (transaction?.status === 'completed') {
+      return {
+        label: 'Completed',
+        icon: PartyPopper,
+        variant: 'secondary',
+        bgColor: 'bg-secondary/10'
+      };
+    }
+    
+    // Priority 3: Active transaction states
+    if (transaction) {
+      if (transaction.status === 'delivered') {
+        return isBuyer 
+          ? {
+              label: 'Ready to Complete',
+              icon: Star,
+              variant: 'default',
+              bgColor: 'bg-primary/10'
+            }
+          : {
+              label: 'Item Delivered',
+              icon: CheckCircle,
+              variant: 'secondary',
+              bgColor: 'bg-secondary/10'
+            };
+      }
+      
+      if (transaction.status === 'dispatched') {
+        return {
+          label: 'Item Shipped',
+          icon: Truck,
+          variant: 'secondary',
+          bgColor: 'bg-secondary/10'
+        };
+      }
+      
+      if (transaction.status === 'paid') {
+        return isBuyer 
+          ? {
+              label: 'Payment Made',
+              icon: CheckCircle,
+              variant: 'secondary',
+              bgColor: 'bg-secondary/10'
+            }
+          : {
+              label: 'Payment Received',
+              icon: CreditCard,
+              variant: 'default',
+              bgColor: 'bg-primary/10'
+            };
+      }
+      
+      if (transaction.status === 'pending_payment') {
+        return isBuyer 
+          ? {
+              label: 'Payment Required',
+              icon: CreditCard,
+              variant: 'default',
+              bgColor: 'bg-primary/10'
+            }
+          : {
+              label: 'Awaiting Payment',
+              icon: Clock,
+              variant: 'outline',
+              bgColor: 'bg-muted/50'
+            };
+      }
+      
+      if (transaction.status === 'pending') {
+        return {
+          label: 'Transaction Pending',
+          icon: Clock,
+          variant: 'outline',
+          bgColor: 'bg-muted/50'
+        };
+      }
+    }
+    
+    // Priority 4: Offer states
+    if (latestOffer) {
+      if (latestOffer.status === 'accepted') {
+        return isBuyer 
+          ? {
+              label: 'Offer Accepted',
+              icon: CheckCircle,
+              variant: 'default',
+              bgColor: 'bg-primary/10'
+            }
+          : {
+              label: 'Offer Accepted',
+              icon: CheckCircle,
+              variant: 'secondary',
+              bgColor: 'bg-secondary/10'
+            };
+      }
+      
+      if (latestOffer.status === 'declined') {
+        return {
+          label: 'Offer Declined',
+          icon: XCircle,
+          variant: 'destructive',
+          bgColor: 'bg-destructive/10'
+        };
+      }
+      
+      if (latestOffer.status === 'countered') {
+        return {
+          label: 'Counter Offer',
+          icon: ArrowRightLeft,
+          variant: 'default',
+          bgColor: 'bg-primary/10'
+        };
+      }
+      
+      if (latestOffer.status === 'pending') {
+        return isBuyer 
+          ? {
+              label: 'Offer Sent',
+              icon: Clock,
+              variant: 'outline',
+              bgColor: 'bg-muted/50'
+            }
+          : {
+              label: 'Offer Received',
+              icon: Inbox,
+              variant: 'default',
+              bgColor: 'bg-primary/10'
+            };
+      }
+    }
+    
+    return null;
+  };
+
   // Scroll to show latest messages when conversation loads
   useEffect(() => {
     if (selectedConversation && scrollAreaRef.current) {
@@ -165,7 +338,7 @@ const MessagesInbox = () => {
       if (offerIds.length > 0) {
         const { data: offersData, error: offersError } = await supabase
           .from('offers')
-          .select('id, amount, status, message')
+          .select('id, amount, status, message, buyer_id, seller_id')
           .in('id', offerIds);
         
         if (offersError) throw offersError;
@@ -756,6 +929,22 @@ const MessagesInbox = () => {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Status Badge */}
+                      {(() => {
+                        const status = getConversationStatus(conversation, user?.id || '');
+                        if (status) {
+                          const StatusIcon = status.icon;
+                          return (
+                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full mb-2 ${status.bgColor}`}>
+                              <StatusIcon className="h-3 w-3" />
+                              <span className="text-xs font-medium">{status.label}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                      
                       <p className="text-sm text-muted-foreground truncate">
                         {conversation.lastMessage.sender_id === user?.id ? 'You: ' : ''}
                         {conversation.lastMessage.content}
