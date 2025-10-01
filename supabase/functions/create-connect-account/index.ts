@@ -35,7 +35,7 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
+      apiVersion: "2024-06-20",
     });
 
     // Check if user already has a Connect account
