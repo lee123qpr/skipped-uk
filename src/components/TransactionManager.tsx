@@ -56,7 +56,8 @@ export const TransactionManager = ({
         body: { 
           transactionId: transaction.id,
           amount: transaction.amount,
-          buyerProtectionFee: transaction.amount * 0.05 // 5% buyer protection
+          buyerProtectionFee: transaction.amount * 0.05, // 5% buyer protection
+          returnUrl: window.location.origin,
         },
       });
 

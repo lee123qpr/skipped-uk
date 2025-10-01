@@ -18,9 +18,9 @@ serve(async (req) => {
   }
 
   try {
-    const { transactionId, amount, buyerProtectionFee } = await req.json();
+    const { transactionId, amount, buyerProtectionFee, returnUrl } = await req.json();
     
-    logStep("Request received", { transactionId, amount, buyerProtectionFee });
+    logStep("Request received", { transactionId, amount, buyerProtectionFee, returnUrl });
 
     if (!transactionId || !amount) {
       throw new Error("Missing required fields: transactionId and amount");
@@ -139,7 +139,7 @@ serve(async (req) => {
     }
 
     // Create Stripe Checkout Session
-    const origin = req.headers.get("origin") || Deno.env.get("SUPABASE_URL");
+    const origin = (returnUrl && typeof returnUrl === 'string') ? returnUrl : (req.headers.get("origin") || Deno.env.get("SUPABASE_URL"));
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "payment",
