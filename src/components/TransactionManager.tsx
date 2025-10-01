@@ -243,7 +243,7 @@ export const TransactionManager = ({
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {transaction.status === "pending" && (
+            {(transaction.status === "pending" || transaction.status === "pending_payment") && (
               <Button 
                 onClick={handlePayment}
                 disabled={isLoading}
