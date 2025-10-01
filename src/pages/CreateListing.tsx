@@ -25,7 +25,9 @@ const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
   price: z.number().nonnegative('Price must be zero (free) or a positive amount').max(999999, 'Price must be less than £1,000,000'),
-  condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'salvage', 'parts_repair']),
+  condition: z.enum(['new', 'like_new', 'excellent', 'good', 'fair', 'salvage', 'parts_repair'], {
+    errorMap: () => ({ message: 'Please select a condition' })
+  }),
   location: z.string().min(2, 'Location is required').max(100, 'Location must be less than 100 characters'),
   category_id: z.string().uuid('Please select a category'),
   quantity: z.number().int().positive('Quantity must be at least 1'),
@@ -40,10 +42,14 @@ const listingSchema = z.object({
   delivery_available: z.boolean(),
   pickup_available: z.boolean(),
   collection_location: z.string().optional(),
-  collection_notes: z.string().optional(),
+  collection_notes: z.string().max(500, 'Collection notes must be less than 500 characters').optional(),
   delivery_radius: z.number().int().positive().optional(),
   delivery_cost: z.number().nonnegative().optional(),
+  delivery_notes: z.string().max(500, 'Delivery notes must be less than 500 characters').optional(),
   reason_for_selling: z.string().optional(),
+}).refine(data => data.delivery_available || data.pickup_available, {
+  message: 'You must enable at least collection or delivery',
+  path: ['pickup_available']
 });
 
 interface MediaFile {
@@ -65,6 +71,7 @@ const CreateListing = () => {
   const [isDraft, setIsDraft] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Immediate authentication check - redirect if not signed in
   useEffect(() => {
@@ -102,6 +109,7 @@ const CreateListing = () => {
     collection_notes: '',
     delivery_radius: '10',
     delivery_cost: '',
+    delivery_notes: '',
     reason_for_selling: '',
     // Additional location fields for privacy and mapping
     fullAddress: '',
@@ -201,6 +209,7 @@ const CreateListing = () => {
           collection_notes: listing.collection_notes || '',
           delivery_radius: listing.delivery_radius?.toString() || '10',
           delivery_cost: listing.delivery_cost?.toString() || '',
+          delivery_notes: (listing as any).delivery_notes || '',
           reason_for_selling: listing.reason_for_selling || '',
           fullAddress: listing.full_address || '',
           latitude: listing.latitude || 0,
@@ -339,6 +348,7 @@ const CreateListing = () => {
 
   const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
     e.preventDefault();
+    setFieldErrors({}); // Clear previous errors
     
     try {
       // Prepare dimensions object with proper validation
@@ -399,6 +409,7 @@ const CreateListing = () => {
         collection_notes: formData.pickup_available && formData.collection_notes ? formData.collection_notes : undefined,
         delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
+        delivery_notes: formData.delivery_available && formData.delivery_notes ? formData.delivery_notes : undefined,
         reason_for_selling: formData.reason_for_selling || undefined,
       });
 
@@ -478,11 +489,28 @@ const CreateListing = () => {
     } catch (error) {
       console.error('Form submission error:', error);
       if (error instanceof z.ZodError) {
+        // Map errors to fields for visual feedback
+        const errors: Record<string, string> = {};
+        error.errors.forEach(err => {
+          const path = err.path.join('.');
+          errors[path] = err.message;
+        });
+        setFieldErrors(errors);
+        
+        // Show first error in toast
+        const firstError = error.errors[0];
+        const fieldName = firstError.path.join(' > ') || 'Form';
         toast({
-          title: 'Validation error',
-          description: error.errors[0].message,
+          title: `Error: ${fieldName}`,
+          description: firstError.message,
           variant: 'destructive',
         });
+        
+        // Scroll to first error field
+        const firstErrorField = document.querySelector('[data-error="true"]');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } else if (error instanceof Error) {
         toast({
           title: 'Validation error',
@@ -567,7 +595,12 @@ const CreateListing = () => {
                       placeholder="e.g., Reclaimed Oak Beams - Grade A Quality"
                       required
                       disabled={isLoading}
+                      data-error={!!fieldErrors.title}
+                      className={fieldErrors.title ? 'border-destructive' : ''}
                     />
+                    {fieldErrors.title && (
+                      <p className="text-sm text-destructive">{fieldErrors.title}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -578,7 +611,10 @@ const CreateListing = () => {
                         onValueChange={(value) => handleInputChange('category_id', value)}
                         disabled={isLoading}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger
+                          data-error={!!fieldErrors.category_id}
+                          className={fieldErrors.category_id ? 'border-destructive' : ''}
+                        >
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -589,6 +625,9 @@ const CreateListing = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {fieldErrors.category_id && (
+                        <p className="text-sm text-destructive">{fieldErrors.category_id}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -611,6 +650,9 @@ const CreateListing = () => {
                           <SelectItem value="parts_repair">Parts/Repair (damaged, may need repair or for parts only)</SelectItem>
                         </SelectContent>
                       </Select>
+                      {fieldErrors.condition && (
+                        <p className="text-sm text-destructive">{fieldErrors.condition}</p>
+                      )}
                     </div>
                   </div>
 
@@ -647,7 +689,15 @@ const CreateListing = () => {
                       rows={4}
                       required
                       disabled={isLoading}
+                      data-error={!!fieldErrors.description}
+                      className={fieldErrors.description ? 'border-destructive' : ''}
                     />
+                    {fieldErrors.description && (
+                      <p className="text-sm text-destructive">{fieldErrors.description}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      {formData.description.length}/1000 characters
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -926,37 +976,59 @@ const CreateListing = () => {
                   </div>
 
                   {formData.delivery_available && (
-                    <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Delivery Method</Label>
-                        <Select 
-                          value={formData.delivery_radius} 
-                          onValueChange={(value) => handleInputChange('delivery_radius', value)}
-                          disabled={isLoading}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">Via courier/post</SelectItem>
-                            <SelectItem value="5">5 miles</SelectItem>
-                            <SelectItem value="10">10 miles</SelectItem>
-                            <SelectItem value="25">25 miles</SelectItem>
-                            <SelectItem value="50">50 miles</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="ml-6 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Delivery Method</Label>
+                          <Select 
+                            value={formData.delivery_radius} 
+                            onValueChange={(value) => handleInputChange('delivery_radius', value)}
+                            disabled={isLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Via courier/post</SelectItem>
+                              <SelectItem value="5">5 miles</SelectItem>
+                              <SelectItem value="10">10 miles</SelectItem>
+                              <SelectItem value="25">25 miles</SelectItem>
+                              <SelectItem value="50">50 miles</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Delivery Cost (£)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.delivery_cost}
+                            onChange={(e) => handleInputChange('delivery_cost', e.target.value)}
+                            placeholder="0.00"
+                            disabled={isLoading}
+                          />
+                        </div>
                       </div>
+
                       <div className="space-y-2">
-                        <Label>Delivery Cost (£)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.delivery_cost}
-                          onChange={(e) => handleInputChange('delivery_cost', e.target.value)}
-                          placeholder="0.00"
+                        <Label htmlFor="delivery-notes">Delivery Notes (Optional)</Label>
+                        <Textarea
+                          id="delivery-notes"
+                          value={formData.delivery_notes}
+                          onChange={(e) => handleInputChange('delivery_notes', e.target.value)}
+                          placeholder="e.g. I can deliver personally on weekends, or can arrange courier..."
                           disabled={isLoading}
+                          rows={2}
+                          data-error={!!fieldErrors.delivery_notes}
+                          className={fieldErrors.delivery_notes ? 'border-destructive' : ''}
                         />
+                        {fieldErrors.delivery_notes && (
+                          <p className="text-sm text-destructive">{fieldErrors.delivery_notes}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground">
+                          Add any special delivery arrangements or options you can offer
+                        </p>
                       </div>
                     </div>
                   )}
