@@ -87,6 +87,7 @@ export type Database = {
           created_at: string
           delivery_available: boolean | null
           delivery_cost: number | null
+          delivery_notes: string | null
           delivery_radius: number | null
           description: string | null
           dimensions: Json | null
@@ -120,6 +121,7 @@ export type Database = {
           created_at?: string
           delivery_available?: boolean | null
           delivery_cost?: number | null
+          delivery_notes?: string | null
           delivery_radius?: number | null
           description?: string | null
           dimensions?: Json | null
@@ -153,6 +155,7 @@ export type Database = {
           created_at?: string
           delivery_available?: boolean | null
           delivery_cost?: number | null
+          delivery_notes?: string | null
           delivery_radius?: number | null
           description?: string | null
           dimensions?: Json | null
