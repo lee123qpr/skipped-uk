@@ -13,6 +13,7 @@ import {
   Package
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
+import { TransactionTimeline } from "./TransactionTimeline";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -24,8 +25,12 @@ interface Transaction {
   amount: number;
   status: string;
   stripe_payment_intent_id: string | null;
+  created_at: string;
+  paid_at: string | null;
   dispatch_confirmed_at: string | null;
   delivery_confirmed_at: string | null;
+  completed_at: string | null;
+  disputed_at: string | null;
   dispute_reason: string | null;
   listings?: {
     title: string;
@@ -331,22 +336,9 @@ export const TransactionManager = ({
         )}
 
         {/* Timeline */}
-        <div className="pt-4 border-t space-y-2">
-          <h4 className="text-sm font-medium">Transaction Timeline</h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            {transaction.dispatch_confirmed_at && (
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Dispatched: {new Date(transaction.dispatch_confirmed_at).toLocaleDateString()}
-              </div>
-            )}
-            {transaction.delivery_confirmed_at && (
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                Delivered: {new Date(transaction.delivery_confirmed_at).toLocaleDateString()}
-              </div>
-            )}
-          </div>
+        <div className="pt-4 border-t">
+          <h4 className="text-sm font-medium mb-4">Transaction Timeline</h4>
+          <TransactionTimeline transaction={transaction} userRole={userRole} />
         </div>
       </CardContent>
     </Card>

@@ -81,6 +81,7 @@ serve(async (req) => {
       .from("transactions")
       .update({
         status: "paid",
+        paid_at: new Date().toISOString(),
       })
       .eq("id", transactionId)
       .eq("buyer_id", user.id);

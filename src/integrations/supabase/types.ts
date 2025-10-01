@@ -459,6 +459,7 @@ export type Database = {
           id: string
           listing_id: string
           offer_id: string | null
+          paid_at: string | null
           refunded_at: string | null
           seller_id: string
           status: string
@@ -479,6 +480,7 @@ export type Database = {
           id?: string
           listing_id: string
           offer_id?: string | null
+          paid_at?: string | null
           refunded_at?: string | null
           seller_id: string
           status?: string
@@ -499,6 +501,7 @@ export type Database = {
           id?: string
           listing_id?: string
           offer_id?: string | null
+          paid_at?: string | null
           refunded_at?: string | null
           seller_id?: string
           status?: string

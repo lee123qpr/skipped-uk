@@ -91,8 +91,12 @@ interface Conversation {
     amount: number;
     status: string;
     stripe_payment_intent_id: string | null;
+    created_at: string;
+    paid_at: string | null;
     dispatch_confirmed_at: string | null;
     delivery_confirmed_at: string | null;
+    completed_at: string | null;
+    disputed_at: string | null;
     dispute_reason: string | null;
   };
 }
