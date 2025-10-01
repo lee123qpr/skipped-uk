@@ -38,6 +38,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasListings, setHasListings] = useState(false);
 
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
@@ -83,6 +84,14 @@ const Dashboard = () => {
       } else {
         setProfile(data);
       }
+
+      // Check if user has any listings (is a seller)
+      const { count } = await supabase
+        .from('listings')
+        .select('*', { count: 'exact', head: true })
+        .eq('seller_id', user.id);
+
+      setHasListings((count || 0) > 0);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -217,7 +226,7 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4 mt-0">
-              <StripeConnectOnboarding />
+              {hasListings && <StripeConnectOnboarding />}
               <ProfileEdit />
               <TransactionReviews />
             </TabsContent>
