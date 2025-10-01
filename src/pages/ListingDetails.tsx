@@ -718,9 +718,9 @@ const ListingDetails = () => {
                           <span className="font-semibold text-foreground">Delivery cost:</span> £{listing.delivery_cost}
                         </p>
                       )}
-                      {listing.delivery_radius && (
+                      {listing.delivery_radius !== null && listing.delivery_radius !== undefined && (
                         <p className="text-sm text-muted-foreground">
-                          <span className="font-semibold text-foreground">Delivery radius:</span> {listing.delivery_radius} miles
+                          <span className="font-semibold text-foreground">Delivery:</span> {listing.delivery_radius === 0 ? 'Via courier/post' : `${listing.delivery_radius} miles`}
                         </p>
                       )}
                     </div>

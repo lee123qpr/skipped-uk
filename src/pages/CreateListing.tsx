@@ -928,7 +928,7 @@ const CreateListing = () => {
                   {formData.delivery_available && (
                     <div className="ml-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Delivery Radius (miles)</Label>
+                        <Label>Delivery Method</Label>
                         <Select 
                           value={formData.delivery_radius} 
                           onValueChange={(value) => handleInputChange('delivery_radius', value)}
@@ -938,6 +938,7 @@ const CreateListing = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="0">Via courier/post</SelectItem>
                             <SelectItem value="5">5 miles</SelectItem>
                             <SelectItem value="10">10 miles</SelectItem>
                             <SelectItem value="25">25 miles</SelectItem>
