@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { MyListingSkeleton } from '@/components/LoadingSkeletons';
+import { EmptyState } from '@/components/EmptyState';
 import { 
   Package, 
   Edit3, 
@@ -164,21 +165,13 @@ const MyListings = () => {
 
   if (listings.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Listings</CardTitle>
-          <CardDescription>Manage your construction material listings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">You haven't created any listings yet</p>
-            <Button onClick={() => navigate('/sell')}>
-              Create Your First Listing
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={Package}
+        title="No listings yet"
+        description="Create your first listing to start selling construction materials and reduce waste."
+        actionLabel="Create Your First Listing"
+        onAction={() => navigate('/sell')}
+      />
     );
   }
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { MyListingSkeleton } from '@/components/LoadingSkeletons';
+import { EmptyState } from '@/components/EmptyState';
 import { 
   Heart, 
   Trash2, 
@@ -128,24 +129,13 @@ const FavouritesTab = () => {
 
   if (favourites.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Favourites</CardTitle>
-          <CardDescription>Items you've saved for later</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No favourites yet</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Save items you're interested in to view them here
-            </p>
-            <Button onClick={() => navigate('/browse')}>
-              Browse Materials
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={Heart}
+        title="No favourites yet"
+        description="Save construction materials you're interested in to view them here for easy access later."
+        actionLabel="Browse Materials"
+        onAction={() => navigate('/browse')}
+      />
     );
   }
 
