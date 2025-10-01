@@ -86,8 +86,8 @@ const OfferDialog = ({
 
       setIsLoading(true);
 
-      // Create the offer
-      const { data: offerData, error: offerError } = await supabase
+      // Create the offer (message will be created automatically by database trigger)
+      const { error: offerError } = await supabase
         .from('offers')
         .insert({
           listing_id: listingId,
@@ -96,30 +96,9 @@ const OfferDialog = ({
           amount: validatedData.amount,
           message: validatedData.message,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        })
-        .select()
-        .single();
-
-      if (offerError) throw offerError;
-
-      // Create a message in the conversation thread
-      const offerMessage = validatedData.message 
-        ? `Made an offer of £${validatedData.amount}\n\n${validatedData.message}`
-        : `Made an offer of £${validatedData.amount}`;
-
-      const { error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: user.id,
-          receiver_id: sellerId,
-          listing_id: listingId,
-          content: offerMessage,
-          message_type: 'offer',
-          offer_id: offerData.id,
-          read: false
         });
 
-      if (messageError) throw messageError;
+      if (offerError) throw offerError;
 
       toast({
         title: 'Offer sent!',
