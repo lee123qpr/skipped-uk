@@ -42,7 +42,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [isLoading, setIsLoading] = useState(false);
-  const [autocomplete, setAutocomplete] = useState<any>(null);
+  const autocompleteRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -134,7 +134,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onChange(locationData);
         });
 
-        setAutocomplete(autocompleteInstance);
+        autocompleteRef.current = autocompleteInstance;
       } catch (error) {
         console.error('Error loading Google Maps:', error);
       } finally {
@@ -145,8 +145,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     initializeAutocomplete();
 
     return () => {
-      if (autocomplete) {
-        (window as any).google.maps.event.clearInstanceListeners(autocomplete);
+      if (autocompleteRef.current) {
+        (window as any).google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, []);
@@ -184,6 +184,10 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           disabled={disabled}
           className={cn(className)}
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="search"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -191,7 +195,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           </div>
         )}
       </div>
-      {!isLoading && autocomplete && (
+      {!isLoading && autocompleteRef.current && (
         <p className="text-xs text-muted-foreground">
           Enter a postcode or town/city. We never share exact addresses publicly.
         </p>
