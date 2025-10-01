@@ -850,7 +850,7 @@ const MessagesInbox = () => {
 
                 {/* Transaction Management */}
                 {selectedConversation.transaction && (
-                  <div className="border-t p-3">
+                  <div className="border-t p-3 bg-muted/30">
                     <TransactionManager
                       transaction={{
                         ...selectedConversation.transaction,
@@ -865,10 +865,15 @@ const MessagesInbox = () => {
                   </div>
                 )}
 
-                <div className="border-t p-3">
+                {/* Message Input - Always Available */}
+                <div className="border-t-2 bg-background p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">Continue messaging</p>
+                  </div>
                   <div className="flex gap-2">
                     <Textarea
-                      placeholder="Type your reply..."
+                      placeholder="Type your message..."
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       className="resize-none"
@@ -884,10 +889,14 @@ const MessagesInbox = () => {
                       onClick={handleSendReply}
                       disabled={isSending || !replyContent.trim()}
                       size="sm"
+                      className="self-end"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Press Enter to send, Shift+Enter for new line
+                  </p>
                 </div>
               </CardContent>
             </Card>
