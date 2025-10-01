@@ -62,15 +62,14 @@ export const TransactionManager = ({
 
       if (error) throw error;
 
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe failed to load");
-
-      // Redirect to Stripe Checkout or use Elements
-      // For now, we'll show the client secret
-      toast({
-        title: "Payment Ready",
-        description: "Payment intent created. Integrate Stripe Elements to complete payment.",
-      });
+      // Redirect to Stripe Checkout
+      if (data?.checkoutUrl) {
+        window.open(data.checkoutUrl, '_blank');
+        toast({
+          title: "Redirecting to payment",
+          description: "Opening Stripe Checkout in a new tab...",
+        });
+      }
 
       onUpdate();
     } catch (error: any) {
@@ -224,28 +223,32 @@ export const TransactionManager = ({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Amount:</span>
-            <span className="font-semibold">£{transaction.amount}</span>
+            <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Buyer Protection:</span>
-            <span className="font-semibold">£{(transaction.amount * 0.05).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm border-t pt-2">
-            <span className="font-medium">Total:</span>
-            <span className="font-bold">£{(transaction.amount * 1.05).toFixed(2)}</span>
-          </div>
+          {userRole === "buyer" && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Buyer Protection:</span>
+                <span className="font-semibold">£{(transaction.amount * 0.05).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t pt-2">
+                <span className="font-medium">Total:</span>
+                <span className="font-bold">£{(transaction.amount * 1.05).toFixed(2)}</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {transaction.status === "pending_payment" && (
+            {transaction.status === "pending" && (
               <Button 
                 onClick={handlePayment}
                 disabled={isLoading}
                 className="w-full"
               >
-                Complete Payment
+                Buy Now
               </Button>
             )}
 
@@ -256,7 +259,7 @@ export const TransactionManager = ({
                   disabled={isLoading}
                   className="w-full"
                 >
-                  Confirm Receipt & Release Funds
+                  Confirm Received - No Issues
                 </Button>
                 <Button 
                   onClick={() => setShowDisputeForm(true)}
@@ -311,14 +314,14 @@ export const TransactionManager = ({
                 disabled={isLoading}
                 className="w-full"
               >
-                Confirm Item Dispatched
+                Mark as Shipped
               </Button>
             )}
 
             {transaction.status === "dispatched" && (
               <div className="p-3 bg-muted rounded-md">
                 <p className="text-sm text-muted-foreground">
-                  Waiting for buyer to confirm receipt. Funds will be released automatically.
+                  Awaiting buyer confirmation. Funds will be released when buyer confirms receipt.
                 </p>
               </div>
             )}

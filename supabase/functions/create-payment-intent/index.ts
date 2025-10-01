@@ -46,7 +46,7 @@ serve(async (req) => {
       .from("transactions")
       .select(`
         *,
-        listings(*),
+        listings(title, images),
         profiles!transactions_seller_id_fkey(
           stripe_account_id,
           stripe_onboarding_complete
@@ -78,13 +78,14 @@ serve(async (req) => {
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2024-06-20",
+      apiVersion: "2025-08-27.basil",
     });
 
     // Calculate amounts
     const protectionFee = buyerProtectionFee || (amount * 0.05); // 5% default
     const platformFee = Math.round(amount * 0.03 * 100); // 3% platform fee in pence
     const totalAmount = Math.round((parseFloat(amount) + protectionFee) * 100); // Convert to pence
+    const itemAmount = Math.round(parseFloat(amount) * 100); // Item amount in pence
 
     logStep("Calculated amounts", {
       itemPrice: amount,
@@ -114,39 +115,68 @@ serve(async (req) => {
       logStep("New customer created", { customerId });
     }
 
-    // Create DESTINATION CHARGE (funds go to platform, no time limit!)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: "gbp",
+    // Create Stripe Checkout Session
+    const origin = req.headers.get("origin") || Deno.env.get("SUPABASE_URL");
+    const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      // NO capture_method - charge is captured immediately to platform
-      application_fee_amount: platformFee,
-      transfer_data: {
-        // This links it to seller but doesn't transfer yet
-        destination: sellerProfile.stripe_account_id,
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: transaction.listings.title,
+              images: transaction.listings.images?.slice(0, 1) || [],
+              description: `Purchase of ${transaction.listings.title}`,
+            },
+            unit_amount: itemAmount,
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: "Buyer Protection",
+              description: "5% buyer protection fee",
+            },
+            unit_amount: Math.round(protectionFee * 100),
+          },
+          quantity: 1,
+        }
+      ],
+      payment_intent_data: {
+        application_fee_amount: platformFee,
+        transfer_data: {
+          destination: sellerProfile.stripe_account_id,
+        },
+        metadata: {
+          transaction_id: transactionId,
+          listing_id: transaction.listing_id,
+          seller_id: transaction.seller_id,
+          buyer_id: user.id,
+          item_amount: amount,
+          protection_fee: protectionFee,
+        },
+        description: `Purchase: ${transaction.listings.title}`,
       },
+      success_url: `${origin}/dashboard?tab=messages&payment=success`,
+      cancel_url: `${origin}/dashboard?tab=messages&payment=cancelled`,
       metadata: {
         transaction_id: transactionId,
-        listing_id: transaction.listing_id,
-        seller_id: transaction.seller_id,
-        buyer_id: user.id,
-        item_amount: amount,
-        protection_fee: protectionFee,
-      },
-      description: `Purchase: ${transaction.listings.title}`,
+      }
     });
 
-    logStep("Destination charge created", {
-      paymentIntentId: paymentIntent.id,
-      status: paymentIntent.status,
-      destination: sellerProfile.stripe_account_id
+    logStep("Checkout session created", {
+      sessionId: session.id,
+      checkoutUrl: session.url
     });
 
-    // Update transaction with payment details
+    // Update transaction with pending payment status
     const { error: updateError } = await supabaseClient
       .from("transactions")
       .update({
-        stripe_payment_intent_id: paymentIntent.id,
+        stripe_payment_intent_id: session.payment_intent as string,
         buyer_protection_fee: protectionFee,
         status: "pending_payment",
       })
@@ -161,8 +191,8 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
+        checkoutUrl: session.url,
+        sessionId: session.id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
