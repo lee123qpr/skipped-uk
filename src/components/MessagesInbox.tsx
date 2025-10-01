@@ -572,14 +572,14 @@ const MessagesInbox = () => {
                                  <div className="flex items-center gap-2 mb-2">
                                    <PoundSterling className="h-4 w-4" />
                                    <span className="text-lg font-bold">£{message.offer.amount.toLocaleString()}</span>
-                                   <Badge variant={
-                                     message.offer.status === 'pending' ? 'default' : 
-                                     message.offer.status === 'accepted' ? 'secondary' :
-                                     message.offer.status === 'countered' ? 'outline' :
-                                     'destructive'
-                                   } className="text-xs">
-                                     {message.offer.status}
-                                   </Badge>
+                                    <Badge variant={
+                                      message.offer.status === 'pending' ? 'default' : 
+                                      message.offer.status === 'accepted' ? 'secondary' :
+                                      message.offer.status === 'countered' ? 'outline' :
+                                      'destructive'
+                                    } className="text-xs">
+                                      {message.offer.status.charAt(0).toUpperCase() + message.offer.status.slice(1)}
+                                    </Badge>
                                  </div>
                                 
                                 {message.offer.message && (
