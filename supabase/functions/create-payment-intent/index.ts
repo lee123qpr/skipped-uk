@@ -41,32 +41,55 @@ serve(async (req) => {
 
     logStep("User authenticated", { userId: user.id });
 
-    // Get transaction details including seller's Stripe account
+    // Get transaction details
     const { data: transaction, error: txError } = await supabaseClient
       .from("transactions")
-      .select(`
-        *,
-        listings(title, images),
-        profiles!transactions_seller_id_fkey(
-          stripe_account_id,
-          stripe_onboarding_complete
-        )
-      `)
+      .select("*")
       .eq("id", transactionId)
       .eq("buyer_id", user.id)
+      .maybeSingle();
+
+    if (txError) {
+      logStep("Transaction query error", txError);
+      throw new Error(`Database error: ${txError.message}`);
+    }
+
+    if (!transaction) {
+      logStep("Transaction not found", { transactionId, buyerId: user.id });
+      throw new Error("Transaction not found or you are not authorized to pay for this transaction");
+    }
+
+    // Get listing details
+    const { data: listing, error: listingError } = await supabaseClient
+      .from("listings")
+      .select("title, images, seller_id")
+      .eq("id", transaction.listing_id)
       .single();
 
-    if (txError || !transaction) {
-      throw new Error("Transaction not found or unauthorized");
+    if (listingError || !listing) {
+      logStep("Listing not found", listingError);
+      throw new Error("Listing not found");
+    }
+
+    // Get seller profile
+    const { data: sellerProfile, error: sellerError } = await supabaseClient
+      .from("profiles")
+      .select("stripe_account_id, stripe_onboarding_complete")
+      .eq("user_id", transaction.seller_id)
+      .single();
+
+    if (sellerError || !sellerProfile) {
+      logStep("Seller profile not found", sellerError);
+      throw new Error("Seller profile not found");
     }
 
     logStep("Transaction found", { 
       transactionId: transaction.id,
-      status: transaction.status 
+      status: transaction.status,
+      listingId: transaction.listing_id
     });
 
     // Verify seller has completed Stripe Connect onboarding
-    const sellerProfile = transaction.profiles;
     if (!sellerProfile?.stripe_account_id || !sellerProfile?.stripe_onboarding_complete) {
       throw new Error("Seller has not completed payment setup. Please contact the seller.");
     }
@@ -125,9 +148,9 @@ serve(async (req) => {
           price_data: {
             currency: "gbp",
             product_data: {
-              name: transaction.listings.title,
-              images: transaction.listings.images?.slice(0, 1) || [],
-              description: `Purchase of ${transaction.listings.title}`,
+              name: listing.title,
+              images: listing.images?.slice(0, 1) || [],
+              description: `Purchase of ${listing.title}`,
             },
             unit_amount: itemAmount,
           },
@@ -158,7 +181,7 @@ serve(async (req) => {
           item_amount: amount,
           protection_fee: protectionFee,
         },
-        description: `Purchase: ${transaction.listings.title}`,
+        description: `Purchase: ${listing.title}`,
       },
       success_url: `${origin}/dashboard?tab=messages&payment=success`,
       cancel_url: `${origin}/dashboard?tab=messages&payment=cancelled`,
