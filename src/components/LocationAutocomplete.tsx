@@ -81,9 +81,9 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           return;
         }
 
-        // Create autocomplete restricted to regions (towns/cities and postcodes)
+        // Create autocomplete with UK/IE restriction
         const autocompleteInstance = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
-          types: ['geocode'],
+          // types removed to avoid deprecated behaviour causing freezes on some devices
           componentRestrictions: { country: ['gb', 'ie'] },
           fields: ['address_components', 'formatted_address', 'geometry', 'place_id', 'name']
         });
