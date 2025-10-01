@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -43,8 +43,37 @@ const OfferDialog = ({
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sellerConnected, setSellerConnected] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   const offerPercentage = amount ? Math.round((parseFloat(amount) / listingPrice) * 100) : 0;
+
+  // Check if seller has completed Stripe Connect onboarding
+  useEffect(() => {
+    const checkSellerStatus = async () => {
+      if (!sellerId || !open) return;
+
+      try {
+        setCheckingStatus(true);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('stripe_onboarding_complete')
+          .eq('user_id', sellerId)
+          .single();
+
+        if (error) throw error;
+
+        setSellerConnected(data?.stripe_onboarding_complete || false);
+      } catch (error) {
+        console.error('Error checking seller status:', error);
+        setSellerConnected(false);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    checkSellerStatus();
+  }, [sellerId, open]);
 
   const handleMakeOffer = async () => {
     if (!user) return;
@@ -130,12 +159,24 @@ const OfferDialog = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex justify-between items-center text-sm">
-              <span>Asking price:</span>
-              <span className="font-semibold">£{listingPrice.toLocaleString()}</span>
+          {checkingStatus ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          </div>
+          ) : !sellerConnected ? (
+            <div className="bg-destructive/10 border border-destructive/30 p-4 rounded-lg">
+              <p className="text-sm text-destructive">
+                This seller hasn't set up payment processing yet. They won't be able to receive payments until they complete their Stripe account setup.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-muted p-4 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span>Asking price:</span>
+                  <span className="font-semibold">£{listingPrice.toLocaleString()}</span>
+                </div>
+              </div>
 
           <div className="space-y-2">
             <Label htmlFor="amount">Your Offer *</Label>
@@ -176,33 +217,35 @@ const OfferDialog = ({
             </p>
           </div>
           
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleMakeOffer} 
-              className="flex-1"
-              disabled={isLoading || !amount || parseFloat(amount) <= 0}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <PoundSterling className="mr-2 h-4 w-4" />
-                  Make Offer
-                </>
-              )}
-            </Button>
-          </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleMakeOffer} 
+                  className="flex-1"
+                  disabled={isLoading || !amount || parseFloat(amount) <= 0 || !sellerConnected}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <PoundSterling className="mr-2 h-4 w-4" />
+                      Make Offer
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

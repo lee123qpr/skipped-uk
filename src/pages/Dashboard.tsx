@@ -18,6 +18,7 @@ import ProfileEdit from "@/components/ProfileEdit";
 import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import TransactionReviews from "@/components/TransactionReviews";
+import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 
 interface UserProfile {
   display_name: string | null;
@@ -216,6 +217,7 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4 mt-0">
+              <StripeConnectOnboarding />
               <ProfileEdit />
               <TransactionReviews />
             </TabsContent>

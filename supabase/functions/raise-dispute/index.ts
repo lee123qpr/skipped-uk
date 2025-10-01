@@ -62,19 +62,30 @@ serve(async (req) => {
       paymentIntentId: transaction.stripe_payment_intent_id 
     });
 
-    // Initialize Stripe and cancel the payment intent
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Cancel the payment intent (refund the buyer)
-    const paymentIntent = await stripe.paymentIntents.cancel(
+    // Get payment intent details
+    const paymentIntent = await stripe.paymentIntents.retrieve(
       transaction.stripe_payment_intent_id
     );
 
-    console.log("[RAISE-DISPUTE] Payment intent cancelled", {
-      paymentIntentId: paymentIntent.id,
-      status: paymentIntent.status
+    // Create refund for the completed charge
+    const refund = await stripe.refunds.create({
+      payment_intent: transaction.stripe_payment_intent_id,
+      reason: "requested_by_customer",
+      metadata: {
+        transaction_id: transactionId,
+        dispute_reason: reason,
+      },
+    });
+
+    console.log("[RAISE-DISPUTE] Refund created", {
+      refundId: refund.id,
+      status: refund.status,
+      amount: refund.amount / 100
     });
 
     // Update transaction status to disputed/refunded

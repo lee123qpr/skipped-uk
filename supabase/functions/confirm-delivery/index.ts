@@ -61,27 +61,57 @@ serve(async (req) => {
       paymentIntentId: transaction.stripe_payment_intent_id 
     });
 
-    // Initialize Stripe and capture the payment
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Capture the payment (release funds from escrow)
-    const paymentIntent = await stripe.paymentIntents.capture(
+    // Get payment intent to retrieve seller account ID from metadata
+    const paymentIntent = await stripe.paymentIntents.retrieve(
       transaction.stripe_payment_intent_id
     );
 
-    console.log("[CONFIRM-DELIVERY] Payment captured", {
+    if (!paymentIntent.transfer_data?.destination) {
+      throw new Error("No destination account found for transfer");
+    }
+
+    console.log("[CONFIRM-DELIVERY] Payment intent retrieved", {
       paymentIntentId: paymentIntent.id,
       status: paymentIntent.status,
-      amount: paymentIntent.amount
+      amount: paymentIntent.amount,
+      destination: paymentIntent.transfer_data.destination
     });
 
-    // Update transaction status to completed
+    // Payment was already captured to platform at purchase time
+    // Now create Transfer to seller's Connect account
+    const itemAmount = parseFloat(paymentIntent.metadata.item_amount) * 100;
+    
+    const transfer = await stripe.transfers.create({
+      amount: itemAmount, // Transfer item price only (platform keeps protection fee)
+      currency: "gbp",
+      destination: paymentIntent.transfer_data.destination,
+      transfer_group: transaction.id,
+      metadata: {
+        transaction_id: transaction.id,
+        listing_id: transaction.listing_id,
+        buyer_id: transaction.buyer_id,
+        seller_id: transaction.seller_id,
+      },
+      description: `Payout for transaction ${transaction.id}`,
+    });
+
+    console.log("[CONFIRM-DELIVERY] Transfer created", {
+      transferId: transfer.id,
+      amount: transfer.amount / 100,
+      destination: transfer.destination
+    });
+
+    // Update transaction status to completed with transfer ID
     const { error: updateError } = await supabaseClient
       .from("transactions")
       .update({
         status: "completed",
+        stripe_transfer_id: transfer.id,
         delivery_confirmed_at: new Date().toISOString(),
         completed_at: new Date().toISOString(),
       })
@@ -113,13 +143,14 @@ serve(async (req) => {
         read: false,
       });
 
-    console.log("[CONFIRM-DELIVERY] Delivery confirmed and funds released");
+    console.log("[CONFIRM-DELIVERY] Delivery confirmed and funds transferred");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         status: "completed",
-        paymentCaptured: true 
+        transferCompleted: true,
+        transferId: transfer.id
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

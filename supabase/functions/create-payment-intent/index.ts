@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-PAYMENT-INTENT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -15,7 +20,7 @@ serve(async (req) => {
   try {
     const { transactionId, amount, buyerProtectionFee } = await req.json();
     
-    console.log("[CREATE-PAYMENT-INTENT] Request received", { transactionId, amount, buyerProtectionFee });
+    logStep("Request received", { transactionId, amount, buyerProtectionFee });
 
     if (!transactionId || !amount) {
       throw new Error("Missing required fields: transactionId and amount");
@@ -34,12 +39,19 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) throw new Error("Authentication failed");
 
-    console.log("[CREATE-PAYMENT-INTENT] User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId: user.id });
 
-    // Get transaction details
+    // Get transaction details including seller's Stripe account
     const { data: transaction, error: txError } = await supabaseClient
       .from("transactions")
-      .select("*, listings(*), profiles!transactions_seller_id_fkey(*)")
+      .select(`
+        *,
+        listings(*),
+        profiles!transactions_seller_id_fkey(
+          stripe_account_id,
+          stripe_onboarding_complete
+        )
+      `)
       .eq("id", transactionId)
       .eq("buyer_id", user.id)
       .single();
@@ -48,9 +60,20 @@ serve(async (req) => {
       throw new Error("Transaction not found or unauthorized");
     }
 
-    console.log("[CREATE-PAYMENT-INTENT] Transaction found", { 
+    logStep("Transaction found", { 
       transactionId: transaction.id,
       status: transaction.status 
+    });
+
+    // Verify seller has completed Stripe Connect onboarding
+    const sellerProfile = transaction.profiles;
+    if (!sellerProfile?.stripe_account_id || !sellerProfile?.stripe_onboarding_complete) {
+      throw new Error("Seller has not completed payment setup. Please contact the seller.");
+    }
+
+    logStep("Seller verified", { 
+      stripeAccountId: sellerProfile.stripe_account_id,
+      onboardingComplete: sellerProfile.stripe_onboarding_complete
     });
 
     // Initialize Stripe
@@ -58,13 +81,15 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Calculate total amount (item price + buyer protection fee)
+    // Calculate amounts
     const protectionFee = buyerProtectionFee || (amount * 0.05); // 5% default
+    const platformFee = Math.round(amount * 0.03 * 100); // 3% platform fee in pence
     const totalAmount = Math.round((parseFloat(amount) + protectionFee) * 100); // Convert to pence
 
-    console.log("[CREATE-PAYMENT-INTENT] Calculated amounts", {
+    logStep("Calculated amounts", {
       itemPrice: amount,
       protectionFee,
+      platformFee: platformFee / 100,
       totalAmount: totalAmount / 100
     });
 
@@ -77,7 +102,7 @@ serve(async (req) => {
     let customerId: string;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      console.log("[CREATE-PAYMENT-INTENT] Existing customer found", { customerId });
+      logStep("Existing customer found", { customerId });
     } else {
       const customer = await stripe.customers.create({
         email: user.email!,
@@ -86,27 +111,35 @@ serve(async (req) => {
         },
       });
       customerId = customer.id;
-      console.log("[CREATE-PAYMENT-INTENT] New customer created", { customerId });
+      logStep("New customer created", { customerId });
     }
 
-    // Create Payment Intent with manual capture (holds funds in escrow)
+    // Create DESTINATION CHARGE (funds go to platform, no time limit!)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
       currency: "gbp",
       customer: customerId,
-      capture_method: "manual", // This holds the funds without capturing
+      // NO capture_method - charge is captured immediately to platform
+      application_fee_amount: platformFee,
+      transfer_data: {
+        // This links it to seller but doesn't transfer yet
+        destination: sellerProfile.stripe_account_id,
+      },
       metadata: {
         transaction_id: transactionId,
         listing_id: transaction.listing_id,
         seller_id: transaction.seller_id,
         buyer_id: user.id,
+        item_amount: amount,
+        protection_fee: protectionFee,
       },
       description: `Purchase: ${transaction.listings.title}`,
     });
 
-    console.log("[CREATE-PAYMENT-INTENT] Payment Intent created", {
+    logStep("Destination charge created", {
       paymentIntentId: paymentIntent.id,
-      status: paymentIntent.status
+      status: paymentIntent.status,
+      destination: sellerProfile.stripe_account_id
     });
 
     // Update transaction with payment details
@@ -120,11 +153,11 @@ serve(async (req) => {
       .eq("id", transactionId);
 
     if (updateError) {
-      console.error("[CREATE-PAYMENT-INTENT] Failed to update transaction", updateError);
+      logStep("Failed to update transaction", updateError);
       throw new Error("Failed to update transaction");
     }
 
-    console.log("[CREATE-PAYMENT-INTENT] Transaction updated successfully");
+    logStep("Transaction updated successfully");
 
     return new Response(
       JSON.stringify({
@@ -137,9 +170,10 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("[CREATE-PAYMENT-INTENT] Error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.raise-dispute]
 verify_jwt = true
+
+[functions.create-connect-account]
+verify_jwt = true
+
+[functions.check-connect-status]
+verify_jwt = true
