@@ -163,3 +163,23 @@
     transition: var(--transition-bounce);
   }
 }
+
+/* Google Places Autocomplete dropdown styling */
+.pac-container {
+  z-index: 2147483647 !important; /* ensure above dialogs/popovers */
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-medium);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.pac-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+.pac-item:hover,
+.pac-item-selected {
+  background: hsl(var(--accent) / 0.08);
+}
+

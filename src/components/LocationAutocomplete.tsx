@@ -83,7 +83,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
         // Create autocomplete restricted to regions (towns/cities and postcodes)
         const autocompleteInstance = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
-          types: ['(regions)'],
+          types: ['geocode'],
           componentRestrictions: { country: ['gb', 'ie'] },
           fields: ['address_components', 'formatted_address', 'geometry', 'place_id', 'name']
         });
@@ -149,7 +149,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         (window as any).google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
-  }, [onChange]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
