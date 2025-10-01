@@ -19,6 +19,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/components/AuthContext";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import ScrollToTop from "@/components/ScrollToTop";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import PaymentVerifier from "@/components/PaymentVerifier";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
@@ -37,15 +38,16 @@ import NotFound from "./pages/NotFound";
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ScrollToTop />
-              <PaymentVerifier />
-              <Routes>
+      <ErrorBoundary>
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ScrollToTop />
+                <PaymentVerifier />
+                <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/sign-in" element={<SignIn />} />
                 <Route path="/sign-up" element={<SignUp />} />
@@ -66,6 +68,7 @@ const App = () => (
           </TooltipProvider>
         </NotificationProvider>
       </AuthProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   </HelmetProvider>
 );

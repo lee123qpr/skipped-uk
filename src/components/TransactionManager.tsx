@@ -15,6 +15,7 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
 import ErrorBoundary from "./ErrorBoundary";
+import { getStatusConfig, canBuyerPay, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -183,37 +184,11 @@ export const TransactionManager = ({
     }
   };
 
+  const statusConfig = getStatusConfig(transaction.status);
+  const StatusIcon = statusConfig.icon;
+
   const getStatusBadge = () => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "destructive" | "outline" | "secondary"; className?: string }> = {
-      pending_payment: { label: "Awaiting Payment", variant: "outline", className: "border-amber-500 text-amber-700 dark:text-amber-400" },
-      paid: { label: "Paid - Awaiting Dispatch", variant: "default", className: "bg-blue-500 hover:bg-blue-600 text-white" },
-      dispatched: { label: "Item Dispatched", variant: "default", className: "bg-purple-500 hover:bg-purple-600 text-white" },
-      delivered: { label: "Delivered", variant: "default", className: "bg-green-600 hover:bg-green-700 text-white" },
-      completed: { label: "Completed", variant: "default", className: "bg-green-600 hover:bg-green-700 text-white" },
-      disputed: { label: "Disputed", variant: "destructive" },
-      refunded: { label: "Refunded", variant: "destructive" },
-    };
-
-    const config = statusConfig[transaction.status] || { label: transaction.status, variant: "outline" };
-    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
-  };
-
-  const getStatusIcon = () => {
-    switch (transaction.status) {
-      case "pending_payment":
-        return <Clock className="h-5 w-5 text-muted-foreground" />;
-      case "paid":
-        return <Package className="h-5 w-5 text-blue-500" />;
-      case "dispatched":
-        return <Truck className="h-5 w-5 text-primary" />;
-      case "completed":
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-      case "disputed":
-      case "refunded":
-        return <AlertTriangle className="h-5 w-5 text-destructive" />;
-      default:
-        return <Clock className="h-5 w-5" />;
-    }
+    return <Badge variant={statusConfig.variant} className={statusConfig.className}>{statusConfig.label}</Badge>;
   };
 
   return (
@@ -221,7 +196,7 @@ export const TransactionManager = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            {getStatusIcon()}
+            <StatusIcon className="h-5 w-5" />
             Transaction Status
           </CardTitle>
           {getStatusBadge()}
@@ -250,7 +225,7 @@ export const TransactionManager = ({
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {(transaction.status === "pending" || transaction.status === "pending_payment") && (
+            {canBuyerPay(transaction.status) && (
               <ErrorBoundary fallback={<div className="text-destructive text-sm">Payment unavailable. Please refresh.</div>}>
                 <Button 
                   onClick={handlePayment}
@@ -262,7 +237,7 @@ export const TransactionManager = ({
               </ErrorBoundary>
             )}
 
-            {transaction.status === "dispatched" && !showDisputeForm && (
+            {canBuyerConfirmDelivery(transaction.status) && !showDisputeForm && (
               <>
                 <Button 
                   onClick={handleConfirmDelivery}
@@ -318,7 +293,7 @@ export const TransactionManager = ({
         {/* Seller Actions */}
         {userRole === "seller" && (
           <div className="space-y-2">
-            {transaction.status === "paid" && (
+            {canSellerDispatch(transaction.status) && (
               <Button 
                 onClick={handleConfirmDispatch}
                 disabled={isLoading}
