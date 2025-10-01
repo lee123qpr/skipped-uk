@@ -114,8 +114,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
           apiKey,
           version: 'weekly',
           language: 'en-GB',
-          region: 'GB',
-          libraries: ['marker']
+          region: 'GB'
         });
 
         await loader.load();
@@ -225,29 +224,25 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
       const position = { lat: listing.latitude, lng: listing.longitude };
       
-      // Create custom marker pin with price label
-      const priceLabel = document.createElement('div');
-      priceLabel.className = 'custom-marker';
-      priceLabel.style.cssText = `
-        background: hsl(var(--primary));
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: bold;
-        font-size: 14px;
-        white-space: nowrap;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        cursor: pointer;
-        border: 2px solid white;
-      `;
-      priceLabel.textContent = listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`;
-      
-      // Create advanced marker using new API
-      const marker = new (window as any).google.maps.marker.AdvancedMarkerElement({
+      // Create marker with custom styling
+      const marker = new (window as any).google.maps.Marker({
         position,
         map,
         title: listing.title,
-        content: priceLabel
+        icon: {
+          path: (window as any).google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: 'hsl(var(--primary))',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+        },
+        label: {
+          text: listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`,
+          color: 'white',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        }
       });
 
       // Add click listener for info window
