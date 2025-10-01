@@ -230,7 +230,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
       const priceLabel = document.createElement('div');
       priceLabel.className = 'custom-marker';
       priceLabel.style.cssText = `
-        background: hsl(var(--primary));
+        background: #EF4444;
         color: white;
         padding: 6px 12px;
         border-radius: 20px;
