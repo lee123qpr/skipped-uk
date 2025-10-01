@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/components/NotificationProvider';
 import { TransactionManager } from '@/components/TransactionManager';
+import CounterOfferDialog from '@/components/CounterOfferDialog';
 import { 
   MessageCircle, 
   PoundSterling, 
@@ -117,6 +118,15 @@ const MessagesInbox = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [counterOfferDialog, setCounterOfferDialog] = useState<{
+    open: boolean;
+    offerId: string;
+    buyerId: string;
+    listingId: string;
+    listingTitle: string;
+    originalAmount: number;
+    listingPrice: number;
+  } | null>(null);
 
   // Fetch all messages (sent and received)
   const { data: allMessagesData = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
@@ -559,25 +569,26 @@ const MessagesInbox = () => {
                                   ? 'bg-primary/10 border-primary'
                                   : 'bg-accent/10 border-accent'
                               } max-w-full`}>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <PoundSterling className="h-4 w-4" />
-                                  <span className="text-lg font-bold">£{message.offer.amount.toLocaleString()}</span>
-                                  <Badge variant={
-                                    message.offer.status === 'pending' ? 'default' : 
-                                    message.offer.status === 'accepted' ? 'secondary' : 
-                                    'destructive'
-                                  } className="text-xs">
-                                    {message.offer.status}
-                                  </Badge>
-                                </div>
+                                 <div className="flex items-center gap-2 mb-2">
+                                   <PoundSterling className="h-4 w-4" />
+                                   <span className="text-lg font-bold">£{message.offer.amount.toLocaleString()}</span>
+                                   <Badge variant={
+                                     message.offer.status === 'pending' ? 'default' : 
+                                     message.offer.status === 'accepted' ? 'secondary' :
+                                     message.offer.status === 'countered' ? 'outline' :
+                                     'destructive'
+                                   } className="text-xs">
+                                     {message.offer.status}
+                                   </Badge>
+                                 </div>
                                 
                                 {message.offer.message && (
                                   <p className="text-sm mb-2 break-words">{message.offer.message}</p>
                                 )}
                                 
-                                {/* Accept/Decline buttons for seller on pending offers */}
+                                {/* Accept/Decline/Counter buttons for seller on pending offers */}
                                 {!isCurrentUser && message.offer.status === 'pending' && (
-                                  <div className="flex gap-2 mt-2">
+                                  <div className="flex gap-2 mt-2 flex-wrap">
                                     <Button 
                                       size="sm" 
                                       variant="outline"
@@ -586,6 +597,25 @@ const MessagesInbox = () => {
                                     >
                                       <XCircle className="mr-1 h-3 w-3" />
                                       Decline
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setCounterOfferDialog({
+                                          open: true,
+                                          offerId: message.offer!.id,
+                                          buyerId: selectedConversation.otherUserId,
+                                          listingId: selectedConversation.listingId,
+                                          listingTitle: selectedConversation.listing.title,
+                                          originalAmount: message.offer!.amount,
+                                          listingPrice: selectedConversation.listing.price
+                                        });
+                                      }}
+                                      className="text-xs h-7"
+                                    >
+                                      <PoundSterling className="mr-1 h-3 w-3" />
+                                      Counter
                                     </Button>
                                     <Button 
                                       size="sm"
@@ -724,6 +754,28 @@ const MessagesInbox = () => {
         </TabsContent>
 
       </Tabs>
+
+      {/* Counter Offer Dialog */}
+      {counterOfferDialog && (
+        <CounterOfferDialog
+          originalOfferId={counterOfferDialog.offerId}
+          buyerId={counterOfferDialog.buyerId}
+          listingId={counterOfferDialog.listingId}
+          listingTitle={counterOfferDialog.listingTitle}
+          originalAmount={counterOfferDialog.originalAmount}
+          listingPrice={counterOfferDialog.listingPrice}
+          open={counterOfferDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCounterOfferDialog(null);
+            }
+          }}
+          onSuccess={() => {
+            refetchMessages();
+            refetchOffers();
+          }}
+        />
+      )}
     </div>
   );
 };
