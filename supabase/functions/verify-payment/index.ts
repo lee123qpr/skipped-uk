@@ -100,18 +100,33 @@ serve(async (req) => {
       .single();
 
     if (transaction) {
-      await supabaseClient
+      // Check if payment confirmation message already exists
+      const { data: existingMessage } = await supabaseClient
         .from("messages")
-        .insert({
-          sender_id: user.id,
-          receiver_id: transaction.seller_id,
-          listing_id: transaction.listing_id,
-          content: `Payment of £${transaction.amount} received. Please mark as shipped when dispatched.`,
-          message_type: "system",
-          read: false,
-        });
-      
-      logStep("Notification sent to seller");
+        .select("id")
+        .eq("listing_id", transaction.listing_id)
+        .eq("sender_id", user.id)
+        .eq("receiver_id", transaction.seller_id)
+        .eq("message_type", "system")
+        .ilike("content", `Payment of £${transaction.amount} received%`)
+        .single();
+
+      if (!existingMessage) {
+        await supabaseClient
+          .from("messages")
+          .insert({
+            sender_id: user.id,
+            receiver_id: transaction.seller_id,
+            listing_id: transaction.listing_id,
+            content: `Payment of £${transaction.amount} received. Please mark as shipped when dispatched.`,
+            message_type: "system",
+            read: false,
+          });
+        
+        logStep("Notification sent to seller");
+      } else {
+        logStep("Payment notification already exists, skipping");
+      }
     }
 
     return new Response(

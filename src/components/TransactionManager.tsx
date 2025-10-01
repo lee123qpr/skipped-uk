@@ -178,18 +178,18 @@ export const TransactionManager = ({
   };
 
   const getStatusBadge = () => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
-      pending_payment: { label: "Awaiting Payment", variant: "outline" },
-      paid: { label: "Paid - Awaiting Dispatch", variant: "secondary" },
-      dispatched: { label: "Item Dispatched", variant: "default" },
-      delivered: { label: "Delivered", variant: "default" },
-      completed: { label: "Completed", variant: "default" },
+    const statusConfig: Record<string, { label: string; variant: "default" | "destructive" | "outline" | "secondary"; className?: string }> = {
+      pending_payment: { label: "Awaiting Payment", variant: "outline", className: "border-amber-500 text-amber-700 dark:text-amber-400" },
+      paid: { label: "Paid - Awaiting Dispatch", variant: "default", className: "bg-blue-500 hover:bg-blue-600 text-white" },
+      dispatched: { label: "Item Dispatched", variant: "default", className: "bg-purple-500 hover:bg-purple-600 text-white" },
+      delivered: { label: "Delivered", variant: "default", className: "bg-green-600 hover:bg-green-700 text-white" },
+      completed: { label: "Completed", variant: "default", className: "bg-green-600 hover:bg-green-700 text-white" },
       disputed: { label: "Disputed", variant: "destructive" },
       refunded: { label: "Refunded", variant: "destructive" },
     };
 
     const config = statusConfig[transaction.status] || { label: transaction.status, variant: "outline" };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
   };
 
   const getStatusIcon = () => {
