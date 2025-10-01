@@ -8,6 +8,7 @@ import { MapPin, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGoogleMapsApiKey } from '@/lib/googleMaps';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface Listing {
   id: string;
@@ -43,6 +44,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
   showSearchButton = true,
   showDebug = false,
 }) => {
+  const navigate = useNavigate();
   const [map, setMap] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -254,28 +256,36 @@ const MapSearch: React.FC<MapSearchProps> = ({
           deliveryOptions.push(`<svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg> Delivery`);
         }
         
+        // Get first image or use placeholder
+        const imageUrl = listing.images && listing.images.length > 0 
+          ? listing.images[0] 
+          : 'https://images.unsplash.com/photo-1590845947670-c009801ffa74?w=400&h=300&fit=crop';
+        
         const content = `
-          <div class="p-3 max-w-[280px]">
-            <h3 class="font-semibold text-sm mb-2 line-clamp-2">${listing.title}</h3>
-            <p class="text-lg font-bold mb-2" style="color: hsl(var(--primary))">
-              ${listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`}
-            </p>
-            <div class="flex flex-wrap gap-1 mb-2">
-              ${conditionInfo ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: ${conditionInfo.color}">${conditionInfo.label}</span>` : ''}
-              ${listing.quantity && listing.quantity > 1 ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #22C55E">${listing.quantity} UNITS</span>` : ''}
+          <div class="overflow-hidden max-w-[280px]">
+            <img src="${imageUrl}" alt="${listing.title}" class="w-full h-32 object-cover" />
+            <div class="p-2">
+              <h3 class="font-semibold text-sm mb-1 line-clamp-2">${listing.title}</h3>
+              <p class="text-lg font-bold mb-1" style="color: hsl(var(--primary))">
+                ${listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`}
+              </p>
+              <div class="flex flex-wrap gap-1 mb-1">
+                ${conditionInfo ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: ${conditionInfo.color}">${conditionInfo.label}</span>` : ''}
+                ${listing.quantity && listing.quantity > 1 ? `<span class="inline-block px-2 py-0.5 text-[10px] font-semibold text-white rounded-full" style="background-color: #22C55E">${listing.quantity} UNITS</span>` : ''}
+              </div>
+              <p class="text-xs mb-1" style="color: hsl(var(--muted-foreground))">
+                <span class="inline-flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                  </svg>
+                  ${listing.public_location}
+                </span>
+              </p>
+              ${deliveryOptions.length > 0 ? `<p class="text-xs mb-2" style="color: hsl(var(--muted-foreground))">${deliveryOptions.join(' • ')}</p>` : ''}
+              <button onclick="window.selectMapListing('${listing.id}')" class="w-full px-3 py-1.5 text-xs font-medium rounded transition-colors" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground))">
+                View Details
+              </button>
             </div>
-            <p class="text-xs mb-2" style="color: hsl(var(--muted-foreground))">
-              <span class="inline-flex items-center gap-1">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                </svg>
-                ${listing.public_location}
-              </span>
-            </p>
-            ${deliveryOptions.length > 0 ? `<p class="text-xs mb-3" style="color: hsl(var(--muted-foreground))">${deliveryOptions.join(' • ')}</p>` : ''}
-            <button onclick="window.selectMapListing('${listing.id}')" class="w-full mt-2 px-3 py-1.5 text-xs font-medium rounded transition-colors" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground))">
-              View Details
-            </button>
           </div>
         `;
 
@@ -314,8 +324,14 @@ const MapSearch: React.FC<MapSearchProps> = ({
     // Add global function for info window button clicks
     (window as any).selectMapListing = (listingId: string) => {
       const listing = listings.find(l => l.id === listingId);
-      if (listing && onListingSelect) {
-        onListingSelect(listing);
+      if (listing) {
+        // Navigate to listing details page
+        navigate(`/listing/${listingId}`);
+        
+        // Also call callback if provided
+        if (onListingSelect) {
+          onListingSelect(listing);
+        }
       }
     };
 
