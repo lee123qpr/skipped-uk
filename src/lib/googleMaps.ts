@@ -1,26 +1,35 @@
 import { supabase } from '@/integrations/supabase/client';
 
 let cachedApiKey: string | null = null;
+let cachedMapId: string | null = null;
 
-export async function getGoogleMapsApiKey(): Promise<string> {
-  if (cachedApiKey) return cachedApiKey;
+export async function getGoogleMapsConfig(): Promise<{ apiKey: string; mapId: string }> {
+  if (cachedApiKey && cachedMapId) return { apiKey: cachedApiKey, mapId: cachedMapId };
 
   try {
     // Always fetch from Edge Function (works in dev and prod)
     const { data, error } = await supabase.functions.invoke('get-google-maps-key');
 
     if (error) {
-      console.error('Error fetching Google Maps API key:', error);
-      return '';
+      console.error('Error fetching Google Maps config:', error);
+      return { apiKey: '', mapId: '' };
     }
 
-    const key = data?.apiKey || '';
-    cachedApiKey = key;
-    return key;
+    const apiKey = data?.apiKey || '';
+    const mapId = data?.mapId || '';
+    cachedApiKey = apiKey;
+    cachedMapId = mapId;
+    return { apiKey, mapId };
   } catch (error) {
-    console.error('Error fetching Google Maps API key:', error);
-    return '';
+    console.error('Error fetching Google Maps config:', error);
+    return { apiKey: '', mapId: '' };
   }
+}
+
+// Legacy function for backwards compatibility
+export async function getGoogleMapsApiKey(): Promise<string> {
+  const { apiKey } = await getGoogleMapsConfig();
+  return apiKey;
 }
 
 export interface LocationBounds {

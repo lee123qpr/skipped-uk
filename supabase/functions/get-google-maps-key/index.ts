@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const googleMapsApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
+    const googleMapId = Deno.env.get('GOOGLE_MAP_ID')
     
     if (!googleMapsApiKey) {
       return new Response(
@@ -25,7 +26,10 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ apiKey: googleMapsApiKey }),
+      JSON.stringify({ 
+        apiKey: googleMapsApiKey,
+        mapId: googleMapId 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }

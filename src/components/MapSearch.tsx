@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getGoogleMapsApiKey } from '@/lib/googleMaps';
+import { getGoogleMapsConfig } from '@/lib/googleMaps';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -101,7 +101,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
       try {
         setIsLoading(true);
         setDebugInfo((d) => ({ ...d, error: '' }));
-        const apiKey = await getGoogleMapsApiKey();
+        const { apiKey, mapId } = await getGoogleMapsConfig();
         const snippet = apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '';
         setDebugInfo((d) => ({ ...d, invoked: true, apiKeyOk: !!apiKey, apiKeySnippet: snippet }));
         if (!apiKey) {
@@ -114,7 +114,8 @@ const MapSearch: React.FC<MapSearchProps> = ({
           apiKey,
           version: 'weekly',
           language: 'en-GB',
-          region: 'GB'
+          region: 'GB',
+          libraries: ['marker']
         });
 
         await loader.load();
@@ -122,6 +123,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
         // Default to UK center
         const mapInstance = new (window as any).google.maps.Map(mapRef.current, {
+          mapId: mapId || undefined,
           center: { lat: 54.5, lng: -2.5 }, // UK center
           zoom: 6,
           styles: [
@@ -224,25 +226,29 @@ const MapSearch: React.FC<MapSearchProps> = ({
 
       const position = { lat: listing.latitude, lng: listing.longitude };
       
-      // Create marker with custom styling
-      const marker = new (window as any).google.maps.Marker({
+      // Create custom marker pin with price label
+      const priceLabel = document.createElement('div');
+      priceLabel.className = 'custom-marker';
+      priceLabel.style.cssText = `
+        background: hsl(var(--primary));
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        cursor: pointer;
+        border: 2px solid white;
+      `;
+      priceLabel.textContent = listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`;
+      
+      // Create advanced marker using new API
+      const marker = new (window as any).google.maps.marker.AdvancedMarkerElement({
         position,
         map,
         title: listing.title,
-        icon: {
-          path: (window as any).google.maps.SymbolPath.CIRCLE,
-          scale: 12,
-          fillColor: 'hsl(var(--primary))',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-        },
-        label: {
-          text: listing.price === 0 ? 'FREE' : `£${listing.price.toLocaleString()}`,
-          color: 'white',
-          fontSize: '12px',
-          fontWeight: 'bold'
-        }
+        content: priceLabel
       });
 
       // Add click listener for info window
@@ -358,6 +364,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
     try {
       const { data, error } = await supabase.functions.invoke('get-google-maps-key');
       const apiKey = data?.apiKey as string | undefined;
+      const mapId = data?.mapId as string | undefined;
       setDebugInfo((d) => ({
         ...d,
         invoked: true,
@@ -365,7 +372,7 @@ const MapSearch: React.FC<MapSearchProps> = ({
         apiKeySnippet: apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '',
         error: error?.message || ''
       }));
-      console.log('Edge function response', { hasKey: !!apiKey, error });
+      console.log('Edge function response', { hasKey: !!apiKey, hasMapId: !!mapId, error });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setDebugInfo((d) => ({ ...d, error: msg }));
