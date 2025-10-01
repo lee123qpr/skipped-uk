@@ -64,10 +64,11 @@ export const TransactionManager = ({
 
       // Redirect to Stripe Checkout
       if (data?.checkoutUrl) {
-        window.open(data.checkoutUrl, '_blank');
+        // Use same-tab navigation to avoid iOS popup blockers
+        window.location.href = data.checkoutUrl as string;
         toast({
           title: "Redirecting to payment",
-          description: "Opening Stripe Checkout in a new tab...",
+          description: "Taking you to Stripe Checkout...",
         });
       }
 
