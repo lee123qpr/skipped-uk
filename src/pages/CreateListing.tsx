@@ -57,7 +57,7 @@ interface MediaFile {
 }
 
 const CreateListing = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { id: listingId } = useParams();
   const { toast } = useToast();
@@ -68,6 +68,7 @@ const CreateListing = () => {
 
   // Immediate authentication check - redirect if not signed in
   useEffect(() => {
+    if (loading) return; // Wait for auth to initialise (prevents iOS refresh sign-out)
     if (!user) {
       toast({
         title: 'Sign in required',
@@ -75,9 +76,8 @@ const CreateListing = () => {
         variant: 'destructive',
       });
       navigate('/sign-in');
-      return;
     }
-  }, [user, navigate, toast]);
+  }, [user, loading, navigate, toast]);
   const [originalListing, setOriginalListing] = useState<any>(null);
   
   const [formData, setFormData] = useState({

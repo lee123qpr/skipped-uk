@@ -68,7 +68,9 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         const loader = new Loader({
           apiKey,
           version: 'weekly',
-          libraries: ['places']
+          libraries: ['places'],
+          language: 'en-GB',
+          region: 'GB'
         });
 
         await loader.load();
