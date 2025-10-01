@@ -52,16 +52,23 @@ const StripeConnectOnboarding = () => {
   const handleConnectAccount = async () => {
     if (!user) return;
 
+    // Pre-open a tab synchronously to avoid iOS/Safari popup blocking
+    const preOpened = window.open('', '_blank');
+
     try {
       setActionLoading(true);
       const { data, error } = await supabase.functions.invoke('create-connect-account');
 
       if (error) throw error;
 
-      // Redirect to Stripe onboarding
       if (data?.url) {
-        window.open(data.url, '_blank');
-        
+        if (preOpened) {
+          preOpened.location.href = data.url;
+        } else {
+          // Fallback if the browser blocked the pre-opened tab
+          window.location.href = data.url;
+        }
+
         toast({
           title: 'Opening Stripe setup',
           description: 'Complete the setup to start receiving payments',
@@ -70,10 +77,19 @@ const StripeConnectOnboarding = () => {
         // Refresh status after a few seconds
         setTimeout(() => {
           fetchStatus();
-        }, 3000);
+        }, 4000);
+      } else {
+        // No URL returned
+        preOpened?.close();
+        toast({
+          title: 'Unable to start setup',
+          description: 'No onboarding link returned from Stripe. Please try again.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error creating Connect account:', error);
+      preOpened?.close();
       toast({
         title: 'Error',
         description: 'Failed to initiate payment setup',
