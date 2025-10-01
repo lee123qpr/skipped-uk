@@ -584,6 +584,9 @@ const MessagesInbox = () => {
                                   ? 'bg-primary/10 border-primary'
                                   : 'bg-accent/10 border-accent'
                               } max-w-full`}>
+                                 <p className="text-xs font-medium text-muted-foreground mb-2">
+                                   {selectedConversation.listing?.title}
+                                 </p>
                                  <div className="flex items-center gap-2 mb-2">
                                    <PoundSterling className="h-4 w-4" />
                                    <span className="text-lg font-bold">£{message.offer.amount.toLocaleString()}</span>
