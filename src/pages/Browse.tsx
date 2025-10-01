@@ -340,7 +340,10 @@ const Browse = () => {
                     size="sm"
                     onClick={() => {
                       setViewMode("map");
-                      setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+                      // Scroll to top of page after a brief delay to allow map to render
+                      setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }, 100);
                     }}
                     className="rounded-l-none flex-1 sm:flex-none"
                   >
@@ -356,7 +359,9 @@ const Browse = () => {
                       const next = !v;
                       if (next && viewMode !== "map") {
                         setViewMode("map");
-                        setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+                        setTimeout(() => {
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 100);
                         toast({
                           title: 'Debug enabled',
                           description: 'Switched to Map view to show the Maps Debug panel.'
