@@ -567,6 +567,43 @@ const MessagesInbox = () => {
   const madeOffers = madeOffersData;
   const unreadCount = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
+  // Realtime subscription for transaction updates
+  useEffect(() => {
+    if (!user) return;
+
+    const transactionChannel = supabase
+      .channel('transaction-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'transactions',
+          filter: `buyer_id=eq.${user.id}`,
+        },
+        () => {
+          refetchMessages();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'transactions',
+          filter: `seller_id=eq.${user.id}`,
+        },
+        () => {
+          refetchMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(transactionChannel);
+    };
+  }, [user, refetchMessages]);
+
   // Realtime subscription for instant message updates
   useEffect(() => {
     if (!user) return;

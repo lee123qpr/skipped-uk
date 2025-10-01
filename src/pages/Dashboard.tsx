@@ -19,6 +19,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import TransactionReviews from "@/components/TransactionReviews";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
+import { SellerAnalytics } from "@/components/SellerAnalytics";
 import { useToast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -299,7 +300,12 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4 mt-0">
-              {hasListings && <StripeConnectOnboarding />}
+              {hasListings && (
+                <>
+                  <SellerAnalytics />
+                  <StripeConnectOnboarding />
+                </>
+              )}
               <ProfileEdit />
               <TransactionReviews />
             </TabsContent>
