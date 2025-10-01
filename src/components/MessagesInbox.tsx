@@ -102,6 +102,8 @@ interface ConversationStatus {
   icon: React.ComponentType<{ className?: string }>;
   variant: 'default' | 'secondary' | 'destructive' | 'outline';
   bgColor: string;
+  textColor: string;
+  iconColor: string;
 }
 
 interface Offer {
@@ -163,7 +165,9 @@ const MessagesInbox = () => {
         label: 'Disputed',
         icon: AlertTriangle,
         variant: 'destructive',
-        bgColor: 'bg-destructive/10'
+        bgColor: 'bg-red-100 dark:bg-red-950',
+        textColor: 'text-red-700 dark:text-red-400',
+        iconColor: 'text-red-600 dark:text-red-500'
       };
     }
     
@@ -173,7 +177,9 @@ const MessagesInbox = () => {
         label: 'Completed',
         icon: PartyPopper,
         variant: 'secondary',
-        bgColor: 'bg-secondary/10'
+        bgColor: 'bg-green-100 dark:bg-green-950',
+        textColor: 'text-green-700 dark:text-green-400',
+        iconColor: 'text-green-600 dark:text-green-500'
       };
     }
     
@@ -185,13 +191,17 @@ const MessagesInbox = () => {
               label: 'Ready to Complete',
               icon: Star,
               variant: 'default',
-              bgColor: 'bg-primary/10'
+              bgColor: 'bg-green-100 dark:bg-green-950',
+              textColor: 'text-green-700 dark:text-green-400',
+              iconColor: 'text-green-600 dark:text-green-500'
             }
           : {
               label: 'Item Delivered',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-secondary/10'
+              bgColor: 'bg-green-100 dark:bg-green-950',
+              textColor: 'text-green-700 dark:text-green-400',
+              iconColor: 'text-green-600 dark:text-green-500'
             };
       }
       
@@ -200,7 +210,9 @@ const MessagesInbox = () => {
           label: 'Item Shipped',
           icon: Truck,
           variant: 'secondary',
-          bgColor: 'bg-secondary/10'
+          bgColor: 'bg-purple-100 dark:bg-purple-950',
+          textColor: 'text-purple-700 dark:text-purple-400',
+          iconColor: 'text-purple-600 dark:text-purple-500'
         };
       }
       
@@ -210,13 +222,17 @@ const MessagesInbox = () => {
               label: 'Payment Made',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-secondary/10'
+              bgColor: 'bg-blue-100 dark:bg-blue-950',
+              textColor: 'text-blue-700 dark:text-blue-400',
+              iconColor: 'text-blue-600 dark:text-blue-500'
             }
           : {
               label: 'Payment Received',
               icon: CreditCard,
               variant: 'default',
-              bgColor: 'bg-primary/10'
+              bgColor: 'bg-blue-100 dark:bg-blue-950',
+              textColor: 'text-blue-700 dark:text-blue-400',
+              iconColor: 'text-blue-600 dark:text-blue-500'
             };
       }
       
@@ -226,13 +242,17 @@ const MessagesInbox = () => {
               label: 'Payment Required',
               icon: CreditCard,
               variant: 'default',
-              bgColor: 'bg-primary/10'
+              bgColor: 'bg-amber-100 dark:bg-amber-950',
+              textColor: 'text-amber-700 dark:text-amber-400',
+              iconColor: 'text-amber-600 dark:text-amber-500'
             }
           : {
               label: 'Awaiting Payment',
               icon: Clock,
               variant: 'outline',
-              bgColor: 'bg-muted/50'
+              bgColor: 'bg-amber-100 dark:bg-amber-950',
+              textColor: 'text-amber-700 dark:text-amber-400',
+              iconColor: 'text-amber-600 dark:text-amber-500'
             };
       }
       
@@ -241,7 +261,9 @@ const MessagesInbox = () => {
           label: 'Transaction Pending',
           icon: Clock,
           variant: 'outline',
-          bgColor: 'bg-muted/50'
+          bgColor: 'bg-slate-100 dark:bg-slate-800',
+          textColor: 'text-slate-700 dark:text-slate-400',
+          iconColor: 'text-slate-600 dark:text-slate-500'
         };
       }
     }
@@ -254,13 +276,17 @@ const MessagesInbox = () => {
               label: 'Offer Accepted',
               icon: CheckCircle,
               variant: 'default',
-              bgColor: 'bg-primary/10'
+              bgColor: 'bg-green-100 dark:bg-green-950',
+              textColor: 'text-green-700 dark:text-green-400',
+              iconColor: 'text-green-600 dark:text-green-500'
             }
           : {
               label: 'Offer Accepted',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-secondary/10'
+              bgColor: 'bg-green-100 dark:bg-green-950',
+              textColor: 'text-green-700 dark:text-green-400',
+              iconColor: 'text-green-600 dark:text-green-500'
             };
       }
       
@@ -269,7 +295,9 @@ const MessagesInbox = () => {
           label: 'Offer Declined',
           icon: XCircle,
           variant: 'destructive',
-          bgColor: 'bg-destructive/10'
+          bgColor: 'bg-red-100 dark:bg-red-950',
+          textColor: 'text-red-700 dark:text-red-400',
+          iconColor: 'text-red-600 dark:text-red-500'
         };
       }
       
@@ -278,7 +306,9 @@ const MessagesInbox = () => {
           label: 'Counter Offer',
           icon: ArrowRightLeft,
           variant: 'default',
-          bgColor: 'bg-primary/10'
+          bgColor: 'bg-blue-100 dark:bg-blue-950',
+          textColor: 'text-blue-700 dark:text-blue-400',
+          iconColor: 'text-blue-600 dark:text-blue-500'
         };
       }
       
@@ -288,13 +318,17 @@ const MessagesInbox = () => {
               label: 'Offer Sent',
               icon: Clock,
               variant: 'outline',
-              bgColor: 'bg-muted/50'
+              bgColor: 'bg-slate-100 dark:bg-slate-800',
+              textColor: 'text-slate-700 dark:text-slate-400',
+              iconColor: 'text-slate-600 dark:text-slate-500'
             }
           : {
               label: 'Offer Received',
               icon: Inbox,
               variant: 'default',
-              bgColor: 'bg-primary/10'
+              bgColor: 'bg-blue-100 dark:bg-blue-950',
+              textColor: 'text-blue-700 dark:text-blue-400',
+              iconColor: 'text-blue-600 dark:text-blue-500'
             };
       }
     }
@@ -945,9 +979,9 @@ const MessagesInbox = () => {
                         if (status) {
                           const StatusIcon = status.icon;
                           return (
-                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full mb-2 ${status.bgColor}`}>
-                              <StatusIcon className="h-3 w-3" />
-                              <span className="text-xs font-medium">{status.label}</span>
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-2 ${status.bgColor}`}>
+                              <StatusIcon className={`h-3.5 w-3.5 ${status.iconColor}`} />
+                              <span className={`text-xs font-semibold ${status.textColor}`}>{status.label}</span>
                             </div>
                           );
                         }
