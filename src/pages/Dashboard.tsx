@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/AuthContext";
 import { useNotifications } from "@/components/NotificationProvider";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +42,21 @@ const Dashboard = () => {
 
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
+  const messagesSectionRef = useRef<HTMLDivElement>(null);
+
+  // Center the messages section vertically on load when opening the Messages tab
+  useEffect(() => {
+    if (activeTab !== 'messages') return;
+    const el = messagesSectionRef.current;
+    if (!el) return;
+
+    // Wait for layout to settle
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const target = window.scrollY + rect.top - (window.innerHeight - rect.height) / 2;
+      window.scrollTo({ top: Math.max(0, target), behavior: 'auto' });
+    }, 0);
+  }, [activeTab]);
 
   // Function to capitalise each word in a name
   const capitaliseName = (name: string) => {
@@ -218,7 +233,9 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="messages" className="space-y-4 mt-0">
-              <MessagesInbox />
+              <div ref={messagesSectionRef}>
+                <MessagesInbox />
+              </div>
             </TabsContent>
             
             <TabsContent value="favourites" className="space-y-4 mt-0">
