@@ -712,7 +712,7 @@ const ListingDetails = () => {
                     </span>
                   </div>
                   {listing.delivery_available && (
-                    <div className="ml-5 space-y-1">
+                    <div className="ml-5 space-y-2">
                       {listing.delivery_cost && (
                         <p className="text-sm text-muted-foreground">
                           <span className="font-semibold text-foreground">Delivery cost:</span> £{listing.delivery_cost}
@@ -722,6 +722,12 @@ const ListingDetails = () => {
                         <p className="text-sm text-muted-foreground">
                           <span className="font-semibold text-foreground">Delivery:</span> {listing.delivery_radius === 0 ? 'Via courier/post' : `${listing.delivery_radius} miles`}
                         </p>
+                      )}
+                      {listing.delivery_notes && (
+                        <div className="text-sm p-2 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
+                          <span className="font-medium text-blue-700 dark:text-blue-300">Delivery Notes:</span>
+                          <p className="text-blue-600 dark:text-blue-400 mt-1">{listing.delivery_notes}</p>
+                        </div>
                       )}
                     </div>
                   )}
