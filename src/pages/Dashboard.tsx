@@ -20,6 +20,7 @@ import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeleton
 import TransactionReviews from "@/components/TransactionReviews";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { useToast } from "@/hooks/use-toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface UserProfile {
   display_name: string | null;
@@ -287,7 +288,9 @@ const Dashboard = () => {
             
             <TabsContent value="messages" className="space-y-4 mt-0">
               <div ref={messagesSectionRef}>
-                <MessagesInbox />
+                <ErrorBoundary>
+                  <MessagesInbox />
+                </ErrorBoundary>
               </div>
             </TabsContent>
             

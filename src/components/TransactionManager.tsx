@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
+import ErrorBoundary from "./ErrorBoundary";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -250,13 +251,15 @@ export const TransactionManager = ({
         {userRole === "buyer" && (
           <div className="space-y-2">
             {(transaction.status === "pending" || transaction.status === "pending_payment") && (
-              <Button 
-                onClick={handlePayment}
-                disabled={isLoading}
-                className="w-full"
-              >
-                Buy Now
-              </Button>
+              <ErrorBoundary fallback={<div className="text-destructive text-sm">Payment unavailable. Please refresh.</div>}>
+                <Button 
+                  onClick={handlePayment}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  Buy Now
+                </Button>
+              </ErrorBoundary>
             )}
 
             {transaction.status === "dispatched" && !showDisputeForm && (
