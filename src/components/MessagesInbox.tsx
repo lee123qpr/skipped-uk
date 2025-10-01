@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -127,6 +127,14 @@ const MessagesInbox = () => {
     originalAmount: number;
     listingPrice: number;
   } | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when conversation changes or messages update
+  useEffect(() => {
+    if (selectedConversation && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedConversation?.messages.length, selectedConversation?.listingId]);
 
   // Fetch all messages (sent and received)
   const { data: allMessagesData = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
@@ -654,6 +662,7 @@ const MessagesInbox = () => {
                         </div>
                       );
                     })}
+                    <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
 
