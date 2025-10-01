@@ -165,9 +165,9 @@ const MessagesInbox = () => {
         label: 'Disputed',
         icon: AlertTriangle,
         variant: 'destructive',
-        bgColor: 'bg-red-100 dark:bg-red-950',
-        textColor: 'text-red-700 dark:text-red-400',
-        iconColor: 'text-red-600 dark:text-red-500'
+        bgColor: 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800',
+        textColor: 'text-red-800 dark:text-red-300',
+        iconColor: 'text-red-700 dark:text-red-400'
       };
     }
     
@@ -177,9 +177,9 @@ const MessagesInbox = () => {
         label: 'Completed',
         icon: PartyPopper,
         variant: 'secondary',
-        bgColor: 'bg-green-100 dark:bg-green-950',
-        textColor: 'text-green-700 dark:text-green-400',
-        iconColor: 'text-green-600 dark:text-green-500'
+        bgColor: 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800',
+        textColor: 'text-green-800 dark:text-green-300',
+        iconColor: 'text-green-700 dark:text-green-400'
       };
     }
     
@@ -191,17 +191,17 @@ const MessagesInbox = () => {
               label: 'Ready to Complete',
               icon: Star,
               variant: 'default',
-              bgColor: 'bg-green-100 dark:bg-green-950',
-              textColor: 'text-green-700 dark:text-green-400',
-              iconColor: 'text-green-600 dark:text-green-500'
+              bgColor: 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800',
+              textColor: 'text-green-800 dark:text-green-300',
+              iconColor: 'text-green-700 dark:text-green-400'
             }
           : {
               label: 'Item Delivered',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-green-100 dark:bg-green-950',
-              textColor: 'text-green-700 dark:text-green-400',
-              iconColor: 'text-green-600 dark:text-green-500'
+              bgColor: 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800',
+              textColor: 'text-green-800 dark:text-green-300',
+              iconColor: 'text-green-700 dark:text-green-400'
             };
       }
       
@@ -210,9 +210,9 @@ const MessagesInbox = () => {
           label: 'Item Shipped',
           icon: Truck,
           variant: 'secondary',
-          bgColor: 'bg-purple-100 dark:bg-purple-950',
-          textColor: 'text-purple-700 dark:text-purple-400',
-          iconColor: 'text-purple-600 dark:text-purple-500'
+          bgColor: 'bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800',
+          textColor: 'text-purple-800 dark:text-purple-300',
+          iconColor: 'text-purple-700 dark:text-purple-400'
         };
       }
       
@@ -222,17 +222,17 @@ const MessagesInbox = () => {
               label: 'Payment Made',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-blue-100 dark:bg-blue-950',
-              textColor: 'text-blue-700 dark:text-blue-400',
-              iconColor: 'text-blue-600 dark:text-blue-500'
+              bgColor: 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800',
+              textColor: 'text-blue-800 dark:text-blue-300',
+              iconColor: 'text-blue-700 dark:text-blue-400'
             }
           : {
               label: 'Payment Received',
               icon: CreditCard,
               variant: 'default',
-              bgColor: 'bg-blue-100 dark:bg-blue-950',
-              textColor: 'text-blue-700 dark:text-blue-400',
-              iconColor: 'text-blue-600 dark:text-blue-500'
+              bgColor: 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800',
+              textColor: 'text-blue-800 dark:text-blue-300',
+              iconColor: 'text-blue-700 dark:text-blue-400'
             };
       }
       
@@ -242,17 +242,17 @@ const MessagesInbox = () => {
               label: 'Payment Required',
               icon: CreditCard,
               variant: 'default',
-              bgColor: 'bg-amber-100 dark:bg-amber-950',
-              textColor: 'text-amber-700 dark:text-amber-400',
-              iconColor: 'text-amber-600 dark:text-amber-500'
+              bgColor: 'bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800',
+              textColor: 'text-amber-800 dark:text-amber-300',
+              iconColor: 'text-amber-700 dark:text-amber-400'
             }
           : {
               label: 'Awaiting Payment',
               icon: Clock,
               variant: 'outline',
-              bgColor: 'bg-amber-100 dark:bg-amber-950',
-              textColor: 'text-amber-700 dark:text-amber-400',
-              iconColor: 'text-amber-600 dark:text-amber-500'
+              bgColor: 'bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800',
+              textColor: 'text-amber-800 dark:text-amber-300',
+              iconColor: 'text-amber-700 dark:text-amber-400'
             };
       }
       
@@ -261,9 +261,9 @@ const MessagesInbox = () => {
           label: 'Transaction Pending',
           icon: Clock,
           variant: 'outline',
-          bgColor: 'bg-slate-100 dark:bg-slate-800',
-          textColor: 'text-slate-700 dark:text-slate-400',
-          iconColor: 'text-slate-600 dark:text-slate-500'
+          bgColor: 'bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700',
+          textColor: 'text-slate-800 dark:text-slate-300',
+          iconColor: 'text-slate-700 dark:text-slate-400'
         };
       }
     }
@@ -276,17 +276,17 @@ const MessagesInbox = () => {
               label: 'Offer Accepted',
               icon: CheckCircle,
               variant: 'default',
-              bgColor: 'bg-green-100 dark:bg-green-950',
-              textColor: 'text-green-700 dark:text-green-400',
-              iconColor: 'text-green-600 dark:text-green-500'
+              bgColor: 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800',
+              textColor: 'text-green-800 dark:text-green-300',
+              iconColor: 'text-green-700 dark:text-green-400'
             }
           : {
               label: 'Offer Accepted',
               icon: CheckCircle,
               variant: 'secondary',
-              bgColor: 'bg-green-100 dark:bg-green-950',
-              textColor: 'text-green-700 dark:text-green-400',
-              iconColor: 'text-green-600 dark:text-green-500'
+              bgColor: 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800',
+              textColor: 'text-green-800 dark:text-green-300',
+              iconColor: 'text-green-700 dark:text-green-400'
             };
       }
       
@@ -295,9 +295,9 @@ const MessagesInbox = () => {
           label: 'Offer Declined',
           icon: XCircle,
           variant: 'destructive',
-          bgColor: 'bg-red-100 dark:bg-red-950',
-          textColor: 'text-red-700 dark:text-red-400',
-          iconColor: 'text-red-600 dark:text-red-500'
+          bgColor: 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800',
+          textColor: 'text-red-800 dark:text-red-300',
+          iconColor: 'text-red-700 dark:text-red-400'
         };
       }
       
@@ -306,9 +306,9 @@ const MessagesInbox = () => {
           label: 'Counter Offer',
           icon: ArrowRightLeft,
           variant: 'default',
-          bgColor: 'bg-blue-100 dark:bg-blue-950',
-          textColor: 'text-blue-700 dark:text-blue-400',
-          iconColor: 'text-blue-600 dark:text-blue-500'
+          bgColor: 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800',
+          textColor: 'text-blue-800 dark:text-blue-300',
+          iconColor: 'text-blue-700 dark:text-blue-400'
         };
       }
       
@@ -318,17 +318,17 @@ const MessagesInbox = () => {
               label: 'Offer Sent',
               icon: Clock,
               variant: 'outline',
-              bgColor: 'bg-slate-100 dark:bg-slate-800',
-              textColor: 'text-slate-700 dark:text-slate-400',
-              iconColor: 'text-slate-600 dark:text-slate-500'
+              bgColor: 'bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700',
+              textColor: 'text-slate-800 dark:text-slate-300',
+              iconColor: 'text-slate-700 dark:text-slate-400'
             }
           : {
               label: 'Offer Received',
               icon: Inbox,
               variant: 'default',
-              bgColor: 'bg-blue-100 dark:bg-blue-950',
-              textColor: 'text-blue-700 dark:text-blue-400',
-              iconColor: 'text-blue-600 dark:text-blue-500'
+              bgColor: 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800',
+              textColor: 'text-blue-800 dark:text-blue-300',
+              iconColor: 'text-blue-700 dark:text-blue-400'
             };
       }
     }
