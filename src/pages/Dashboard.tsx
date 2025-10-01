@@ -19,6 +19,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import TransactionReviews from "@/components/TransactionReviews";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserProfile {
   display_name: string | null;
@@ -35,10 +36,11 @@ const Dashboard = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { counts } = useNotifications();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasListings, setHasListings] = useState(false);
+  const { toast } = useToast();
 
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
@@ -83,6 +85,57 @@ const Dashboard = () => {
 
     fetchProfile();
   }, [user, authLoading, navigate]);
+
+  // Handle payment verification
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+    
+    if (paymentStatus === 'success' && sessionId && user) {
+      verifyPayment(sessionId);
+    } else if (paymentStatus === 'cancelled') {
+      toast({
+        title: "Payment Cancelled",
+        description: "Your payment was cancelled. You can try again anytime.",
+        variant: "default",
+      });
+      // Clean up URL
+      setSearchParams({ tab: activeTab });
+    }
+  }, [searchParams, user]);
+
+  const verifyPayment = async (sessionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Payment Successful!",
+          description: "Your payment has been confirmed. The seller has been notified.",
+        });
+      } else {
+        toast({
+          title: "Payment Verification",
+          description: data?.message || "Payment status could not be verified.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Payment verification error:', error);
+      toast({
+        title: "Verification Error",
+        description: error.message || "Failed to verify payment status.",
+        variant: "destructive",
+      });
+    } finally {
+      // Clean up URL parameters
+      setSearchParams({ tab: activeTab });
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) return;

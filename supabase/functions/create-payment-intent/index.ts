@@ -183,7 +183,7 @@ serve(async (req) => {
         },
         description: `Purchase: ${listing.title}`,
       },
-      success_url: `${origin}/dashboard?tab=messages&payment=success`,
+      success_url: `${origin}/dashboard?tab=messages&payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?tab=messages&payment=cancelled`,
       metadata: {
         transaction_id: transactionId,
