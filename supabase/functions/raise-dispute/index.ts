@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { transactionId, reason } = await req.json();
+    const { transactionId, reason, description, disputeType, evidence } = await req.json();
     
-    console.log("[RAISE-DISPUTE] Request received", { transactionId, reason });
+    console.log("[RAISE-DISPUTE] Request received", { transactionId, reason, disputeType });
 
     if (!transactionId || !reason) {
       throw new Error("Missing required fields: transactionId and reason");
@@ -36,66 +36,79 @@ serve(async (req) => {
 
     console.log("[RAISE-DISPUTE] User authenticated", { userId: user.id });
 
-    // Get transaction and verify user is the buyer
+    // Get transaction and verify user is involved
     const { data: transaction, error: txError } = await supabaseClient
       .from("transactions")
       .select("*")
       .eq("id", transactionId)
-      .eq("buyer_id", user.id)
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .single();
 
     if (txError || !transaction) {
       throw new Error("Transaction not found or unauthorized");
     }
 
+    // Determine if user is buyer or seller
+    const isBuyer = transaction.buyer_id === user.id;
+    const isSeller = transaction.seller_id === user.id;
+
     // Can only dispute if payment has been made but not completed
     if (!["paid", "dispatched", "delivered"].includes(transaction.status)) {
       throw new Error("Cannot dispute transaction in current status");
     }
 
-    if (!transaction.stripe_payment_intent_id) {
-      throw new Error("No payment intent found for this transaction");
-    }
-
     console.log("[RAISE-DISPUTE] Transaction verified", { 
       transactionId: transaction.id,
-      paymentIntentId: transaction.stripe_payment_intent_id 
+      userRole: isBuyer ? "buyer" : "seller"
     });
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2024-06-20",
-    });
-
-    // Get payment intent details
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-      transaction.stripe_payment_intent_id
-    );
-
-    // Create refund for the completed charge
-    const refund = await stripe.refunds.create({
-      payment_intent: transaction.stripe_payment_intent_id,
-      reason: "requested_by_customer",
-      metadata: {
+    // Create dispute record
+    const { data: dispute, error: disputeError } = await supabaseClient
+      .from("disputes")
+      .insert({
         transaction_id: transactionId,
-        dispute_reason: reason,
-      },
-    });
+        listing_id: transaction.listing_id,
+        raised_by_id: user.id,
+        against_id: isBuyer ? transaction.seller_id : transaction.buyer_id,
+        dispute_type: disputeType || (isBuyer ? "buyer_item_issue" : "seller_non_payment"),
+        reason: reason,
+        description: description,
+        requested_amount: transaction.amount,
+        status: "pending"
+      })
+      .select()
+      .single();
 
-    console.log("[RAISE-DISPUTE] Refund created", {
-      refundId: refund.id,
-      status: refund.status,
-      amount: refund.amount / 100
-    });
+    if (disputeError || !dispute) {
+      console.error("[RAISE-DISPUTE] Failed to create dispute", disputeError);
+      throw new Error("Failed to create dispute record");
+    }
 
-    // Update transaction status to disputed/refunded
+    console.log("[RAISE-DISPUTE] Dispute created", { disputeId: dispute.id });
+
+    // Upload evidence if provided
+    if (evidence && evidence.length > 0) {
+      const evidenceRecords = evidence.map((item: any) => ({
+        dispute_id: dispute.id,
+        uploaded_by_id: user.id,
+        evidence_type: item.type || "photo",
+        file_url: item.url,
+        description: item.description
+      }));
+
+      await supabaseClient
+        .from("dispute_evidence")
+        .insert(evidenceRecords);
+    }
+
+    // Update transaction status to disputed
     const { error: updateError } = await supabaseClient
       .from("transactions")
       .update({
-        status: "refunded",
+        status: "disputed_pending_review",
+        dispute_id: dispute.id,
         dispute_reason: reason,
         disputed_at: new Date().toISOString(),
-        refunded_at: new Date().toISOString(),
       })
       .eq("id", transactionId);
 
@@ -104,44 +117,28 @@ serve(async (req) => {
       throw new Error("Failed to update transaction");
     }
 
-    // Make listing available again
-    await supabaseClient
-      .from("listings")
-      .update({ 
-        status: "active",
-        available: true 
-      })
-      .eq("id", transaction.listing_id);
-
     // Create system messages for both parties
     await supabaseClient
       .from("messages")
       .insert([
         {
-          sender_id: transaction.buyer_id,
-          receiver_id: transaction.seller_id,
+          sender_id: user.id,
+          receiver_id: isBuyer ? transaction.seller_id : transaction.buyer_id,
           listing_id: transaction.listing_id,
-          content: `Dispute raised: ${reason}. Transaction refunded.`,
-          message_type: "system",
-          read: false,
-        },
-        {
-          sender_id: transaction.seller_id,
-          receiver_id: transaction.buyer_id,
-          listing_id: transaction.listing_id,
-          content: "Your payment has been refunded due to the dispute.",
+          content: `Dispute raised: ${reason}. The dispute is under admin review.`,
           message_type: "system",
           read: false,
         },
       ]);
 
-    console.log("[RAISE-DISPUTE] Dispute processed and buyer refunded");
+    console.log("[RAISE-DISPUTE] Dispute created successfully, awaiting admin review");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        status: "refunded",
-        refunded: true 
+        disputeId: dispute.id,
+        status: "pending",
+        message: "Dispute submitted successfully. An admin will review it shortly."
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
