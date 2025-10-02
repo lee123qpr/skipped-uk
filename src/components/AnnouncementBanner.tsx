@@ -21,25 +21,37 @@ const AnnouncementBanner = () => {
   useEffect(() => {
     const fetchBanner = async () => {
       const dismissedId = localStorage.getItem("dismissed_banner_id");
+      const now = new Date().toISOString();
       
       const { data, error } = await supabase
         .from("site_banners")
         .select("*")
         .eq("is_active", true)
-        .or(`start_date.is.null,start_date.lte.${new Date().toISOString()}`)
-        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
 
-      if (data && !error && data.id !== dismissedId) {
-        setBanner(data as Banner);
+      if (error) {
+        console.error("Error fetching banner:", error);
+        return;
+      }
+
+      // Filter manually for date ranges since PostgREST OR logic is complex
+      const activeBanner = data?.find(banner => {
+        if (banner.id === dismissedId) return false;
+        
+        const startValid = !banner.start_date || new Date(banner.start_date) <= new Date(now);
+        const endValid = !banner.end_date || new Date(banner.end_date) >= new Date(now);
+        
+        return startValid && endValid;
+      });
+
+      if (activeBanner) {
+        setBanner(activeBanner as Banner);
         
         // Track view
         await supabase
           .from("site_banners")
-          .update({ view_count: data.view_count + 1 })
-          .eq("id", data.id);
+          .update({ view_count: activeBanner.view_count + 1 })
+          .eq("id", activeBanner.id);
       }
     };
 
