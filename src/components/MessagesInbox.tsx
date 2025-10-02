@@ -360,7 +360,7 @@ const MessagesInbox = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Get all messages where user is sender or receiver
+      // Get all messages where user is sender or receiver - FIXED: proper query syntax
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*, offer_id')

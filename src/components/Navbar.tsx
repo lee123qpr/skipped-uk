@@ -1,8 +1,11 @@
-import { User, Heart, ShoppingBag, Plus, LogOut, Bell } from "lucide-react";
+import { User, Heart, ShoppingBag, Plus, LogOut, Bell, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthContext";
 import { useNotifications } from "@/components/NotificationProvider";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 import {
   DropdownMenu,
@@ -16,6 +19,36 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const { counts } = useNotifications();
   const navigate = useNavigate();
+
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      return !!data;
+    },
+    enabled: !!user,
+  });
+
+  // Get pending disputes count for admin badge
+  const { data: pendingDisputesCount = 0 } = useQuery({
+    queryKey: ['pending-disputes-count'],
+    queryFn: async () => {
+      if (!isAdmin) return 0;
+      const { count } = await supabase
+        .from('disputes')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      return count || 0;
+    },
+    enabled: !!isAdmin,
+  });
 
   const totalNotifications = counts.unreadMessages + counts.pendingOffers + counts.newOffers;
 
@@ -159,12 +192,26 @@ const Navbar = () => {
                       Account
                     </Button>
                   </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
+                  <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>Favourites</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>Settings</DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate("/admin")} className="text-primary font-medium">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Panel
+                          {pendingDisputesCount > 0 && (
+                            <Badge variant="destructive" className="ml-auto">
+                              {pendingDisputesCount}
+                            </Badge>
+                          )}
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />

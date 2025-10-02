@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Package, DollarSign, AlertTriangle, Activity, TrendingUp } from "lucide-react";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminDisputes } from "@/components/admin/AdminDisputes";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminUsers } from "@/components/admin/AdminUsers";
+import { AdminListings } from "@/components/admin/AdminListings";
+import { AdminTransactions } from "@/components/admin/AdminTransactions";
 import { toast } from "sonner";
 
 export default function Admin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const section = searchParams.get('section') || 'overview';
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -20,6 +23,8 @@ export default function Admin() {
     totalRevenue: 0,
     liveUsers: 0,
     growthRate: 0,
+    conversionRate: 0,
+    avgTransactionValue: 0,
   });
 
   useEffect(() => {
@@ -79,21 +84,62 @@ export default function Admin() {
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
 
-      // Fetch total revenue
+      // Fetch total revenue and calculate metrics
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount")
+        .select("amount, status, created_at")
         .eq("status", "completed");
 
       const totalRevenue = transactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      const avgTransactionValue = transactions && transactions.length > 0 
+        ? totalRevenue / transactions.length 
+        : 0;
+
+      // Calculate growth rate (M-o-M)
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const twoMonthsAgo = new Date();
+      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+      const { count: lastMonthUsers } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", oneMonthAgo.toISOString());
+
+      const { count: prevMonthUsers } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", twoMonthsAgo.toISOString())
+        .lt("created_at", oneMonthAgo.toISOString());
+
+      const growthRate = prevMonthUsers && prevMonthUsers > 0
+        ? ((lastMonthUsers || 0) - (prevMonthUsers || 0)) / (prevMonthUsers || 1) * 100
+        : 0;
+
+      // Calculate conversion rate (offers → completed transactions)
+      const { count: totalOffers } = await supabase
+        .from("offers")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "accepted");
+
+      const { count: completedTransactions } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "completed");
+
+      const conversionRate = totalOffers && totalOffers > 0
+        ? ((completedTransactions || 0) / (totalOffers || 1)) * 100
+        : 0;
 
       setStats({
         totalUsers: userCount || 0,
         activeListings: listingCount || 0,
         pendingDisputes: disputeCount || 0,
         totalRevenue,
-        liveUsers: 0, // Would need real-time tracking
-        growthRate: 12.5, // Mock data - would calculate from historical data
+        liveUsers: 0, // Real-time tracking would use Supabase Realtime
+        growthRate: Math.round(growthRate * 10) / 10,
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        avgTransactionValue: Math.round(avgTransactionValue * 100) / 100,
       });
     } catch (error) {
       console.error("Failed to fetch dashboard stats:", error);
@@ -113,96 +159,54 @@ export default function Admin() {
     return null;
   }
 
+  const renderSection = () => {
+    switch (section) {
+      case 'overview':
+        return <AdminOverview stats={stats} />;
+      case 'disputes':
+        return <AdminDisputes onDisputeResolved={fetchDashboardStats} />;
+      case 'users':
+        return <AdminUsers />;
+      case 'listings':
+        return <AdminListings />;
+      case 'transactions':
+        return <AdminTransactions />;
+      case 'analytics':
+        return <AdminAnalytics />;
+      case 'health':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">System Health</h2>
+              <p className="text-muted-foreground mt-1">Coming soon - Monitor system performance and errors</p>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">Settings</h2>
+              <p className="text-muted-foreground mt-1">Coming soon - Platform configuration and settings</p>
+            </div>
+          </div>
+        );
+      default:
+        return <AdminOverview stats={stats} />;
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Manage disputes, users, and view platform analytics</p>
-      </div>
+    <div className="flex min-h-screen bg-background w-full">
+      {/* Sidebar */}
+      <AdminSidebar pendingDisputesCount={stats.pendingDisputes} />
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Users</p>
-              <p className="text-2xl font-bold">{stats.totalUsers}</p>
-            </div>
-            <Users className="h-8 w-8 text-blue-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Active Listings</p>
-              <p className="text-2xl font-bold">{stats.activeListings}</p>
-            </div>
-            <Package className="h-8 w-8 text-green-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Pending Disputes</p>
-              <p className="text-2xl font-bold">{stats.pendingDisputes}</p>
-            </div>
-            <AlertTriangle className="h-8 w-8 text-orange-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <p className="text-2xl font-bold">£{stats.totalRevenue.toFixed(2)}</p>
-            </div>
-            <DollarSign className="h-8 w-8 text-purple-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Live Users</p>
-              <p className="text-2xl font-bold">{stats.liveUsers}</p>
-            </div>
-            <Activity className="h-8 w-8 text-red-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Growth Rate</p>
-              <p className="text-2xl font-bold">{stats.growthRate}%</p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-emerald-500" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="disputes" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="disputes">Disputes</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="disputes">
-          <AdminDisputes onDisputeResolved={fetchDashboardStats} />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <AdminAnalytics />
-        </TabsContent>
-
-        <TabsContent value="users">
-          <AdminUsers />
-        </TabsContent>
-      </Tabs>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 md:px-6 py-8">
+          {renderSection()}
+        </div>
+      </main>
     </div>
   );
 }
