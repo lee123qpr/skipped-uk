@@ -41,7 +41,7 @@ const Browse = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [deliveryAvailable, setDeliveryAvailable] = useState<boolean | null>(null);
   const [pickupAvailable, setPickupAvailable] = useState<boolean | null>(null);
-  const [acceptsOffers, setAcceptsOffers] = useState<boolean | null>(null);
+  const [minCarbonSaved, setMinCarbonSaved] = useState<string>("all");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [mapBounds, setMapBounds] = useState<any>(null);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -63,7 +63,7 @@ const Browse = () => {
 
   // Fetch listings with filters
   const { data: listings = [], isLoading, error } = useQuery({
-    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, acceptsOffers],
+    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, minCarbonSaved],
     queryFn: async () => {
       let query = supabase
         .from('listings')
@@ -129,6 +129,12 @@ const Browse = () => {
       // Apply pickup available filter
       if (pickupAvailable !== null) {
         query = query.eq('pickup_available', pickupAvailable);
+      }
+
+      // Apply carbon savings filter
+      if (minCarbonSaved !== 'all') {
+        const minValue = parseInt(minCarbonSaved);
+        query = query.gte('carbon_saved', minValue);
       }
 
       // Apply price filter
@@ -398,7 +404,7 @@ const Browse = () => {
                       setPriceRange("all");
                       setDeliveryAvailable(null);
                       setPickupAvailable(null);
-                      setAcceptsOffers(null);
+                      setMinCarbonSaved("all");
                     }}
                     className="text-xs text-muted-foreground hover:text-foreground w-fit"
                   >
@@ -504,28 +510,22 @@ const Browse = () => {
                     </Select>
                   </div>
 
-                  {/* Offers */}
+                  {/* Carbon Savings Filter */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Offers</label>
-                    <Select 
-                      value={acceptsOffers === null ? "all" : acceptsOffers ? "accepts" : "fixed"} 
-                      onValueChange={(value) => {
-                        if (value === "all") {
-                          setAcceptsOffers(null);
-                        } else if (value === "accepts") {
-                          setAcceptsOffers(true);
-                        } else {
-                          setAcceptsOffers(false);
-                        }
-                      }}
+                    <label className="text-xs font-medium text-muted-foreground">Carbon Savings</label>
+                    <Select
+                      value={minCarbonSaved}
+                      onValueChange={setMinCarbonSaved}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Any option" />
+                        <SelectValue placeholder="Any amount" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Any Option</SelectItem>
-                        <SelectItem value="accepts">Accepts Offers</SelectItem>
-                        <SelectItem value="fixed">Fixed Price Only</SelectItem>
+                        <SelectItem value="all">Any Amount</SelectItem>
+                        <SelectItem value="10">10+ kg CO₂</SelectItem>
+                        <SelectItem value="50">50+ kg CO₂</SelectItem>
+                        <SelectItem value="100">100+ kg CO₂</SelectItem>
+                        <SelectItem value="500">500+ kg CO₂</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
