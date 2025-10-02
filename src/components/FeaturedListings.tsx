@@ -85,7 +85,7 @@ const FeaturedListings = () => {
           rating: 0, // No ratings yet - will be calculated from reviews later
           reviewCount: 0 // No reviews yet
         },
-        postedDate: formatPostedDate(listing.created_at),
+        postedDate: listing.created_at,
         quantity: listing.quantity,
         deliveryAvailable: listing.delivery_available,
         pickupAvailable: listing.pickup_available,
@@ -102,18 +102,6 @@ const FeaturedListings = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatPostedDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    return `${Math.ceil(diffDays / 30)} months ago`;
   };
 
   return (

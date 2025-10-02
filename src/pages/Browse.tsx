@@ -220,7 +220,7 @@ const Browse = () => {
       rating: 0, // No ratings yet - will be calculated from reviews later
       reviewCount: 0 // No reviews yet
     },
-    postedDate: new Date(listing.created_at).toLocaleDateString('en-GB'),
+    postedDate: listing.created_at,
     quantity: listing.quantity,
     deliveryAvailable: listing.delivery_available,
     pickupAvailable: listing.pickup_available,
