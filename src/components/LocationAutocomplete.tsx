@@ -195,11 +195,6 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           </div>
         )}
       </div>
-      {!isLoading && !!autocompleteRef.current && (
-        <p className="text-xs text-muted-foreground">
-          Enter a postcode or town/city. We never share exact addresses publicly.
-        </p>
-      )}
     </div>
   );
 };
