@@ -53,6 +53,7 @@ import OfferDialog from '@/components/OfferDialog';
 import { ReviewsList } from '@/components/ReviewsList';
 import { StarRating } from '@/components/StarRating';
 import { SellerOtherItems } from '@/components/SellerOtherItems';
+import { SellerReviews } from '@/components/SellerReviews';
 import { ImageModal } from '@/components/ImageModal';
 import { VerificationBadges } from '@/components/VerificationBadge';
 import { DeliveryMethodDialog } from '@/components/DeliveryMethodDialog';
@@ -859,13 +860,16 @@ const ListingDetails = () => {
             </div>
           </div>
 
-          {/* Reviews Section */}
+          {/* Seller Reviews Section */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Reviews & Feedback</CardTitle>
+              <CardTitle>Seller Reviews & Feedback</CardTitle>
+              <CardDescription>
+                See what buyers are saying about {listing.profiles?.username || 'this seller'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <ReviewsList listingId={listing.id} refreshTrigger={reviewsRefreshTrigger} />
+              <SellerReviews sellerId={listing.seller_id} limit={5} />
             </CardContent>
           </Card>
         </main>

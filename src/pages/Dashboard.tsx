@@ -20,6 +20,9 @@ import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeleton
 import TransactionReviews from "@/components/TransactionReviews";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
+import { SellerReviews } from "@/components/SellerReviews";
+import { StarRating } from "@/components/StarRating";
+import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -43,6 +46,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [hasListings, setHasListings] = useState(false);
   const { toast } = useToast();
+  
+  // Get seller rating for current user
+  const { data: sellerRating } = useSellerRating(user?.id);
 
   // Get tab from URL params, default to 'listings'
   const activeTab = searchParams.get('tab') || 'listings';
@@ -283,6 +289,17 @@ const Dashboard = () => {
                         <Badge variant="secondary" className="text-xs">Verified</Badge>
                       )}
                     </CardDescription>
+                    {sellerRating && sellerRating.totalReviews > 0 && (
+                      <div className="mt-2">
+                        <StarRating 
+                          rating={Math.round(sellerRating.averageRating)} 
+                          readonly 
+                          size="sm"
+                          showCount
+                          count={sellerRating.totalReviews}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -360,6 +377,22 @@ const Dashboard = () => {
                 </>
               )}
               <ProfileEdit />
+              
+              {/* Show seller reviews received */}
+              {sellerRating && sellerRating.totalReviews > 0 && (
+                <Card id="reviews">
+                  <CardHeader>
+                    <CardTitle>Your Reviews as a Seller</CardTitle>
+                    <CardDescription>
+                      Feedback from buyers who have purchased from you
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SellerReviews sellerId={user?.id || ''} />
+                  </CardContent>
+                </Card>
+              )}
+              
               <TransactionReviews />
             </TabsContent>
           </Tabs>
