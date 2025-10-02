@@ -242,14 +242,33 @@ export const TransactionManager = ({
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {canBuyerPay(transaction.status) && (
+            {transaction.status === "pending_payment" && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  ⏳ Verifying Payment
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  If you've completed payment and this hasn't updated, please refresh the page or contact support.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="mt-2 w-full"
+                >
+                  Refresh Status
+                </Button>
+              </div>
+            )}
+            
+            {transaction.status === "pending" && (
               <ErrorBoundary fallback={<div className="text-destructive text-sm">Payment unavailable. Please refresh.</div>}>
                 <Button 
                   onClick={handlePayment}
                   disabled={isLoading}
                   className="w-full"
                 >
-                  Buy Now
+                  {isLoading ? "Redirecting..." : "Buy Now - Complete Payment"}
                 </Button>
               </ErrorBoundary>
             )}
@@ -310,20 +329,39 @@ export const TransactionManager = ({
         {/* Seller Actions */}
         {userRole === "seller" && (
           <div className="space-y-2">
+            {transaction.status === "paid" && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md mb-2">
+                <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
+                  💰 Payment Received in Escrow (£{transaction.amount.toFixed(2)})
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-300">
+                  Funds are held securely. Mark as dispatched once you've sent the item.
+                </p>
+              </div>
+            )}
+            
             {canSellerDispatch(transaction.status) && (
               <Button 
                 onClick={handleConfirmDispatch}
                 disabled={isLoading}
                 className="w-full"
               >
-                Mark as Shipped
+                📦 {isLoading ? "Confirming..." : "Mark as Dispatched"}
               </Button>
             )}
 
             {transaction.status === "dispatched" && (
               <div className="p-3 bg-muted rounded-md">
                 <p className="text-sm text-muted-foreground">
-                  Awaiting buyer confirmation. Funds will be released when buyer confirms receipt.
+                  ⏳ Awaiting buyer confirmation. Funds will be released to you when buyer confirms receipt.
+                </p>
+              </div>
+            )}
+            
+            {transaction.status === "pending_payment" && (
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-sm text-muted-foreground">
+                  ⏳ Waiting for buyer to complete payment...
                 </p>
               </div>
             )}

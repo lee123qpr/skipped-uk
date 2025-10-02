@@ -32,21 +32,21 @@ export function TransactionTimeline({ transaction, userRole }: TransactionTimeli
         timestamp: transaction.created_at,
         status: "complete",
         icon: CheckCircle2,
-        description: userRole === "buyer" ? "You placed this order" : "Order received from buyer",
+        description: userRole === "buyer" ? "✓ You placed your order" : "✓ Buyer placed order",
       },
       {
-        label: "Payment Received",
+        label: "Payment in Escrow",
         timestamp: transaction.paid_at || undefined,
         status: transaction.paid_at ? "complete" : transaction.status === "pending_payment" ? "current" : "upcoming",
         icon: transaction.paid_at ? CheckCircle2 : Clock,
         description: transaction.paid_at 
-          ? "Payment processed successfully"
-          : userRole === "buyer" 
-            ? "Complete payment to continue"
-            : "Awaiting buyer payment",
+          ? (userRole === "buyer" ? "✓ Payment held securely in escrow" : "✓ Payment received and held in escrow")
+          : transaction.status === "pending_payment"
+            ? (userRole === "buyer" ? "⏳ Verifying your payment..." : "⏳ Awaiting buyer payment")
+            : (userRole === "buyer" ? "Complete payment to continue" : "Waiting for buyer payment"),
       },
       {
-        label: "Item Dispatched",
+        label: userRole === "seller" ? "Mark Item as Dispatched" : "Seller Dispatches Item",
         timestamp: transaction.dispatch_confirmed_at || undefined,
         status: transaction.dispatch_confirmed_at 
           ? "complete" 
@@ -55,13 +55,13 @@ export function TransactionTimeline({ transaction, userRole }: TransactionTimeli
             : "upcoming",
         icon: transaction.dispatch_confirmed_at ? CheckCircle2 : Package,
         description: transaction.dispatch_confirmed_at
-          ? "Item shipped by seller"
-          : userRole === "seller"
-            ? "Mark as shipped when dispatched"
-            : "Seller will dispatch the item soon",
+          ? (userRole === "buyer" ? "✓ Item dispatched by seller" : "✓ You marked item as dispatched")
+          : transaction.status === "paid"
+            ? (userRole === "seller" ? "👉 ACTION: Mark as dispatched when item is sent" : "⏳ Waiting for seller to dispatch item")
+            : (userRole === "seller" ? "Mark as shipped when paid" : "Seller will dispatch after payment"),
       },
       {
-        label: "Item Delivered",
+        label: userRole === "buyer" ? "Confirm Item Received" : "Buyer Confirms Delivery",
         timestamp: transaction.delivery_confirmed_at || undefined,
         status: transaction.delivery_confirmed_at 
           ? "complete" 
@@ -70,19 +70,19 @@ export function TransactionTimeline({ transaction, userRole }: TransactionTimeli
             : "upcoming",
         icon: transaction.delivery_confirmed_at ? CheckCircle2 : Truck,
         description: transaction.delivery_confirmed_at
-          ? "Delivery confirmed by buyer"
-          : userRole === "buyer"
-            ? "Confirm receipt when you receive the item"
-            : "Awaiting buyer confirmation",
+          ? (userRole === "buyer" ? "✓ You confirmed delivery" : "✓ Buyer confirmed delivery")
+          : transaction.status === "dispatched"
+            ? (userRole === "buyer" ? "👉 ACTION: Confirm when you receive the item" : "⏳ Waiting for buyer to confirm receipt")
+            : (userRole === "buyer" ? "Confirm receipt when delivered" : "Buyer will confirm delivery"),
       },
       {
-        label: "Transaction Complete",
+        label: "Complete & Leave Feedback",
         timestamp: transaction.completed_at || undefined,
         status: transaction.completed_at ? "complete" : "upcoming",
         icon: transaction.completed_at ? CheckCircle2 : Circle,
         description: transaction.completed_at
-          ? "Transaction successfully completed"
-          : "Funds will be released to seller",
+          ? "✓ Transaction complete - Thank you!"
+          : (userRole === "seller" ? "Funds released to you after confirmation" : "Leave feedback after delivery confirmation"),
       },
     ];
 

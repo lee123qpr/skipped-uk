@@ -20,39 +20,39 @@ export interface StatusConfig {
 
 export const TRANSACTION_STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
   pending: {
-    label: "Awaiting Payment",
+    label: "Order Created",
     variant: "outline",
     className: "border-amber-500 text-amber-700 dark:text-amber-400",
     icon: Clock,
-    description: "Transaction created, awaiting buyer payment"
+    description: "Order created - awaiting payment"
   },
   pending_payment: {
-    label: "Awaiting Payment",
+    label: "Processing Payment",
     variant: "outline",
-    className: "border-amber-500 text-amber-700 dark:text-amber-400",
+    className: "border-blue-500 text-blue-700 dark:text-blue-400",
     icon: CreditCard,
-    description: "Payment pending confirmation"
+    description: "Payment in progress - please wait"
   },
   paid: {
-    label: "Paid - Awaiting Dispatch",
+    label: "Payment in Escrow",
     variant: "default",
     className: "bg-blue-500 hover:bg-blue-600 text-white",
     icon: Package,
-    description: "Payment received, seller should dispatch item"
+    description: "Payment held securely - awaiting seller dispatch"
   },
   dispatched: {
     label: "Item Dispatched",
     variant: "default",
     className: "bg-purple-500 hover:bg-purple-600 text-white",
     icon: Truck,
-    description: "Item shipped, awaiting buyer confirmation"
+    description: "Item shipped - awaiting buyer confirmation"
   },
   delivered: {
-    label: "Delivered",
+    label: "Delivery Confirmed",
     variant: "default",
     className: "bg-green-600 hover:bg-green-700 text-white",
     icon: CheckCircle2,
-    description: "Item delivered and confirmed"
+    description: "Delivery confirmed - awaiting feedback"
   },
   completed: {
     label: "Completed",
