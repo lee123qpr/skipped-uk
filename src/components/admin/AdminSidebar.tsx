@@ -66,14 +66,14 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
 
   return (
     <aside className="hidden md:flex w-64 border-r bg-card flex-col">
-      <div className="p-6 border-b">
-        <Link to="/" className="flex items-center gap-3 mb-4">
-          <img src={skippedLogo} alt="Skipped Logo" className="h-10 w-10 rounded-lg" />
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Skipped</h2>
-            <p className="text-xs text-muted-foreground">Admin Panel</p>
-          </div>
+      <div className="p-6 border-b space-y-4">
+        <Link to="/" className="block">
+          <img src={skippedLogo} alt="Skipped Logo" className="h-16 w-full object-contain rounded-lg" />
         </Link>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-foreground">Admin Panel</h2>
+          <p className="text-xs text-muted-foreground">Platform Management</p>
+        </div>
       </div>
       
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
