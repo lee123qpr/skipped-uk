@@ -56,6 +56,7 @@ import { StarRating } from '@/components/StarRating';
 import { SellerOtherItems } from '@/components/SellerOtherItems';
 import { ImageModal } from '@/components/ImageModal';
 import { VerificationBadges } from '@/components/VerificationBadge';
+import { DeliveryMethodDialog } from '@/components/DeliveryMethodDialog';
 import { 
   Carousel,
   CarouselContent,
@@ -76,6 +77,7 @@ const ListingDetails = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
 
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
@@ -181,12 +183,19 @@ const ListingDetails = () => {
       return;
     }
     
+    // Show delivery method selection dialog
+    setShowDeliveryDialog(true);
+  };
+
+  const handleDeliveryMethodConfirmed = async (deliveryMethod: 'delivery' | 'pickup') => {
     try {
       setIsProcessingPayment(true);
       
-      // Calculate buyer protection fee (2.5% of price)
-      const buyerProtectionFee = listing.price * 0.025;
-      const totalAmount = listing.price + buyerProtectionFee;
+      // Calculate costs
+      const deliveryCost = deliveryMethod === 'delivery' && listing.delivery_cost ? listing.delivery_cost : 0;
+      const subtotal = listing.price + deliveryCost;
+      const buyerProtectionFee = subtotal * 0.025;
+      const totalAmount = subtotal + buyerProtectionFee;
       
       // Create transaction record
       const { data: transaction, error: txError } = await supabase
@@ -210,6 +219,8 @@ const ListingDetails = () => {
           transactionId: transaction.id,
           amount: totalAmount,
           buyerProtectionFee: buyerProtectionFee,
+          deliveryCost: deliveryCost,
+          deliveryMethod: deliveryMethod,
           returnUrl: `${window.location.origin}/listing/${listing.id}`
         }
       });
@@ -880,6 +891,15 @@ const ListingDetails = () => {
           sellerId={listing.seller_id}
           listingTitle={listing.title}
           listingPrice={listing.price}
+        />
+        
+        <DeliveryMethodDialog
+          open={showDeliveryDialog}
+          onOpenChange={setShowDeliveryDialog}
+          deliveryAvailable={listing.delivery_available}
+          pickupAvailable={listing.pickup_available}
+          deliveryCost={listing.delivery_cost || 0}
+          onConfirm={handleDeliveryMethodConfirmed}
         />
 
         {/* Image Modal */}
