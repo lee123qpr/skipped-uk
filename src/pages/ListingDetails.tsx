@@ -614,17 +614,6 @@ const ListingDetails = () => {
                       </div>
                     </div>
                   )}
-                  
-                  {listing.price > 0 && user?.id !== listing.seller_id && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleMakeOffer}
-                      className="w-full"
-                    >
-                      <PoundSterling className="mr-2 h-4 w-4" />
-                      Make an Offer
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardContent>
