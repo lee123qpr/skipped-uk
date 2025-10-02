@@ -608,15 +608,32 @@ const MessagesInbox = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('messages-changes')
+    // Split into two channels - one for sent messages, one for received
+    const senderChannel = supabase
+      .channel('messages-sender')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `sender_id=eq.${user.id},receiver_id=eq.${user.id}`
+          filter: `sender_id=eq.${user.id}`
+        },
+        () => {
+          refetchMessages();
+        }
+      )
+      .subscribe();
+
+    const receiverChannel = supabase
+      .channel('messages-receiver')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${user.id}`
         },
         () => {
           refetchMessages();
@@ -625,7 +642,8 @@ const MessagesInbox = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(senderChannel);
+      supabase.removeChannel(receiverChannel);
     };
   }, [user, refetchMessages]);
 
