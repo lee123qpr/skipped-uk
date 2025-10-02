@@ -226,7 +226,7 @@ const ListingCard = ({
               stripeVerified={sellerStripeVerified}
               identityVerified={sellerIdentityVerified}
               size="sm"
-              showLabel={false}
+              showLabel={true}
             />
           </div>
         )}

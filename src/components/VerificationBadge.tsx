@@ -1,4 +1,4 @@
-import { CheckCircle, Mail, DollarSign, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Mail, CreditCard, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -18,7 +18,7 @@ const badgeConfig = {
     description: 'Email address verified'
   },
   stripe: {
-    icon: DollarSign,
+    icon: CreditCard,
     label: 'Payment Verified',
     color: 'bg-green-500/10 text-green-700 border-green-200',
     description: 'Stripe payment account verified'
