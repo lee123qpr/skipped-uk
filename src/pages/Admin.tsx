@@ -11,6 +11,8 @@ import { AdminTransactions } from "@/components/admin/AdminTransactions";
 import { AdminFinancials } from "@/components/admin/AdminFinancials";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AdminSettings } from "@/components/admin/AdminSettings";
+import AdminBannerManager from "@/components/admin/AdminBannerManager";
+import AdminPlatformSettings from "@/components/admin/AdminPlatformSettings";
 import { toast } from "sonner";
 
 export default function Admin() {
@@ -182,6 +184,10 @@ export default function Admin() {
         return <AdminSystemHealth />;
       case 'settings':
         return <AdminSettings />;
+      case 'banners':
+        return <AdminBannerManager />;
+      case 'platform-settings':
+        return <AdminPlatformSettings />;
       default:
         return <AdminOverview stats={stats} />;
     }

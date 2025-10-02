@@ -1,5 +1,6 @@
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import HeroSection from "@/components/HeroSection";
 import CategoriesSection from "@/components/CategoriesSection";
 import FeaturedListings from "@/components/FeaturedListings";
@@ -32,6 +33,7 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background">
         <Navbar />
+        <AnnouncementBanner />
         <main>
           <HeroSection />
           <CategoriesSection />

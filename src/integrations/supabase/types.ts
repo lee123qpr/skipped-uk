@@ -417,6 +417,33 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -561,6 +588,51 @@ export type Database = {
           search_criteria?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      site_banners: {
+        Row: {
+          banner_type: string
+          click_count: number
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          link_text: string | null
+          link_url: string | null
+          message: string
+          start_date: string | null
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          banner_type?: string
+          click_count?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          message: string
+          start_date?: string | null
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          banner_type?: string
+          click_count?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          link_text?: string | null
+          link_url?: string | null
+          message?: string
+          start_date?: string | null
+          updated_at?: string
+          view_count?: number
         }
         Relationships: []
       }
