@@ -191,11 +191,10 @@ const ListingDetails = () => {
     try {
       setIsProcessingPayment(true);
       
-      // Calculate costs
+      // Calculate costs - buyer protection fee only applies to item price, not delivery
       const deliveryCost = deliveryMethod === 'delivery' && listing.delivery_cost ? listing.delivery_cost : 0;
-      const subtotal = listing.price + deliveryCost;
-      const buyerProtectionFee = subtotal * 0.025;
-      const totalAmount = subtotal + buyerProtectionFee;
+      const buyerProtectionFee = listing.price * 0.05; // 5% of item price only
+      const totalAmount = listing.price + deliveryCost + buyerProtectionFee;
       
       // Create transaction record
       const { data: transaction, error: txError } = await supabase

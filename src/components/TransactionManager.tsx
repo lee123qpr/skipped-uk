@@ -25,6 +25,7 @@ interface Transaction {
   buyer_id: string;
   seller_id: string;
   amount: number;
+  buyer_protection_fee?: number | null;
   status: string;
   stripe_payment_intent_id: string | null;
   created_at: string;
@@ -64,7 +65,7 @@ export const TransactionManager = ({
         body: { 
           transactionId: transaction.id,
           amount: transaction.amount,
-          buyerProtectionFee: transaction.amount * 0.05, // 5% buyer protection
+          buyerProtectionFee: transaction.buyer_protection_fee || (transaction.amount * 0.05), // Use saved fee or 5% of item only
           returnUrl: window.location.origin,
         },
       });
@@ -228,11 +229,11 @@ export const TransactionManager = ({
             <>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Buyer Protection:</span>
-                <span className="font-semibold">£{(transaction.amount * 0.05).toFixed(2)}</span>
+                <span className="font-semibold">£{(transaction.buyer_protection_fee || transaction.amount * 0.05).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm border-t pt-2">
                 <span className="font-medium">Total:</span>
-                <span className="font-bold">£{(transaction.amount * 1.05).toFixed(2)}</span>
+                <span className="font-bold">£{(transaction.amount + (transaction.buyer_protection_fee || transaction.amount * 0.05)).toFixed(2)}</span>
               </div>
             </>
           )}

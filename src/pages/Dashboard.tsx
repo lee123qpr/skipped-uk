@@ -101,8 +101,8 @@ const Dashboard = () => {
         description: "Your payment was cancelled. You can try again anytime.",
         variant: "default",
       });
-      // Clean up URL
-      setSearchParams({ tab: activeTab });
+      // Clean up URL and switch to messages tab
+      setSearchParams({ tab: 'messages' });
     }
   }, [searchParams, user]);
 
@@ -119,12 +119,17 @@ const Dashboard = () => {
           title: "Payment Successful!",
           description: "Your payment has been confirmed. The seller has been notified.",
         });
+        // Switch to messages tab and clean up URL to trigger refetch
+        setSearchParams({ tab: 'messages' });
+        // Force a small delay to ensure state updates
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Payment Verification",
           description: data?.message || "Payment status could not be verified.",
           variant: "destructive",
         });
+        setSearchParams({ tab: activeTab });
       }
     } catch (error: any) {
       console.error('Payment verification error:', error);
@@ -133,8 +138,6 @@ const Dashboard = () => {
         description: error.message || "Failed to verify payment status.",
         variant: "destructive",
       });
-    } finally {
-      // Clean up URL parameters
       setSearchParams({ tab: activeTab });
     }
   };
