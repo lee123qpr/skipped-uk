@@ -13,6 +13,8 @@ interface Review {
   comment: string | null;
   created_at: string;
   reviewer_type: string | null;
+  seller_reply: string | null;
+  seller_reply_created_at: string | null;
   profiles: {
     username: string | null;
     avatar_url: string | null;
@@ -44,6 +46,8 @@ export function SellerReviews({ sellerId, limit }: SellerReviewsProps) {
           comment,
           created_at,
           reviewer_type,
+          seller_reply,
+          seller_reply_created_at,
           profiles!reviews_reviewer_id_fkey (
             username,
             avatar_url
@@ -159,12 +163,21 @@ export function SellerReviews({ sellerId, limit }: SellerReviewsProps) {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-0 space-y-2">
+            <CardContent className="pt-0 space-y-3">
               {review.title && (
                 <h4 className="font-medium">{review.title}</h4>
               )}
               {review.comment && (
                 <p className="text-muted-foreground text-sm">{review.comment}</p>
+              )}
+              
+              {review.seller_reply && (
+                <div className="mt-4 pl-4 border-l-2 border-primary/20 bg-muted/30 p-3 rounded-r">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Seller's response • {format(new Date(review.seller_reply_created_at!), 'MMM d, yyyy')}
+                  </p>
+                  <p className="text-sm">{review.seller_reply}</p>
+                </div>
               )}
             </CardContent>
           </Card>

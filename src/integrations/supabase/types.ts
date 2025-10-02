@@ -598,6 +598,8 @@ export type Database = {
           reviewer_id: string
           reviewer_type: string | null
           seller_id: string
+          seller_reply: string | null
+          seller_reply_created_at: string | null
           title: string | null
           transaction_id: string | null
           updated_at: string
@@ -611,6 +613,8 @@ export type Database = {
           reviewer_id: string
           reviewer_type?: string | null
           seller_id: string
+          seller_reply?: string | null
+          seller_reply_created_at?: string | null
           title?: string | null
           transaction_id?: string | null
           updated_at?: string
@@ -624,6 +628,8 @@ export type Database = {
           reviewer_id?: string
           reviewer_type?: string | null
           seller_id?: string
+          seller_reply?: string | null
+          seller_reply_created_at?: string | null
           title?: string | null
           transaction_id?: string | null
           updated_at?: string
@@ -886,6 +892,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      send_review_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

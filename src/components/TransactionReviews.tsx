@@ -226,7 +226,30 @@ const TransactionReviews = () => {
   const canLeaveReview = (transaction: Transaction, reviewerType: 'buyer' | 'seller') => {
     const isCorrectUser = reviewerType === 'buyer' ? user?.id === transaction.buyer_id : user?.id === transaction.seller_id;
     const hasNotReviewed = reviewerType === 'buyer' ? !transaction.buyer_review : !transaction.seller_review;
+    
+    // Check if 30-day deadline has passed
+    if (transaction.completed_at) {
+      const completedDate = new Date(transaction.completed_at);
+      const daysSinceCompletion = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceCompletion > 30) return false;
+    }
+    
     return isCorrectUser && hasNotReviewed;
+  };
+
+  const getReviewDeadlineMessage = (transaction: Transaction) => {
+    if (!transaction.completed_at) return null;
+    
+    const completedDate = new Date(transaction.completed_at);
+    const daysSinceCompletion = Math.floor((Date.now() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = 30 - daysSinceCompletion;
+    
+    if (daysRemaining <= 0) {
+      return "Review period has ended (30 days after completion)";
+    } else if (daysRemaining <= 7) {
+      return `⏰ ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left to leave a review`;
+    }
+    return null;
   };
 
   if (loading) {
@@ -342,7 +365,12 @@ const TransactionReviews = () => {
                     </div>
                   ) : canReview ? (
                     <div className="bg-primary/5 rounded-lg p-4 mb-4">
-                      <Label className="text-sm font-medium mb-3 block">Leave a review:</Label>
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium">Leave a review:</Label>
+                        {getReviewDeadlineMessage(transaction) && (
+                          <span className="text-xs text-muted-foreground">{getReviewDeadlineMessage(transaction)}</span>
+                        )}
+                      </div>
                       
                       <div className="space-y-4">
                         <div>
@@ -390,6 +418,12 @@ const TransactionReviews = () => {
                           {submittingReview === transaction.id ? 'Submitting...' : 'Submit Review'}
                         </Button>
                       </div>
+                    </div>
+                  ) : !myReview && !canReview ? (
+                    <div className="bg-muted/30 rounded-lg p-4 mb-4 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Review period has ended (30 days after completion)
+                      </p>
                     </div>
                   ) : null}
 
