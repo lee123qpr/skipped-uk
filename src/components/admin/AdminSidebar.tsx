@@ -2,6 +2,7 @@ import { LayoutDashboard, AlertTriangle, Users, Package, DollarSign, TrendingUp,
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 interface AdminSidebarProps {
   pendingDisputesCount: number;
@@ -66,8 +67,13 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
   return (
     <aside className="hidden md:flex w-64 border-r bg-card flex-col">
       <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold text-foreground">Admin Panel</h2>
-        <p className="text-sm text-muted-foreground mt-1">Platform Management</p>
+        <Link to="/" className="flex items-center gap-3 mb-4">
+          <img src={skippedLogo} alt="Skipped Logo" className="h-10 w-10 rounded-lg" />
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Skipped</h2>
+            <p className="text-xs text-muted-foreground">Admin Panel</p>
+          </div>
+        </Link>
       </div>
       
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
