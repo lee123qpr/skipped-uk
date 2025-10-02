@@ -50,7 +50,6 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import BackToTop from '@/components/BackToTop';
 import MessageDialog from '@/components/MessageDialog';
 import OfferDialog from '@/components/OfferDialog';
-import { ReviewForm } from '@/components/ReviewForm';
 import { ReviewsList } from '@/components/ReviewsList';
 import { StarRating } from '@/components/StarRating';
 import { SellerOtherItems } from '@/components/SellerOtherItems';

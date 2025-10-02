@@ -10,7 +10,8 @@ import {
   Truck, 
   AlertTriangle, 
   Clock,
-  Package
+  Package,
+  Star
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
@@ -448,6 +449,37 @@ export const TransactionManager = ({
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Completed Transaction - Review Prompt */}
+        {transaction.status === "completed" && (
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md space-y-3">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
+                  ✅ Transaction Complete!
+                </p>
+                <p className="text-xs text-green-700 dark:text-green-300 mb-2">
+                  {userRole === "buyer" 
+                    ? "Thank you for your purchase! Help other buyers by leaving a review for the seller."
+                    : "Funds have been released to your account. Please leave feedback for the buyer."
+                  }
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => {
+                // Navigate to Dashboard profile tab where TransactionReviews is displayed
+                window.location.href = "/dashboard?tab=profile#reviews";
+              }}
+              className="w-full"
+              size="sm"
+            >
+              <Star className="h-4 w-4 mr-2" />
+              Leave a Review
+            </Button>
           </div>
         )}
 

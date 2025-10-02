@@ -131,19 +131,29 @@ serve(async (req) => {
       })
       .eq("id", transaction.listing_id);
 
-    // Create system message for seller
+    // Create system messages for both parties
     await supabaseClient
       .from("messages")
-      .insert({
-        sender_id: transaction.buyer_id,
-        receiver_id: transaction.seller_id,
-        listing_id: transaction.listing_id,
-        content: `✅ Delivery confirmed! The buyer has confirmed receipt. Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. Thank you!`,
-        message_type: "system",
-        read: false,
-      });
+      .insert([
+        {
+          sender_id: transaction.buyer_id,
+          receiver_id: transaction.seller_id,
+          listing_id: transaction.listing_id,
+          content: `✅ Delivery confirmed! The buyer has confirmed receipt. Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. You can now leave a review for the buyer in your Dashboard.`,
+          message_type: "system",
+          read: false,
+        },
+        {
+          sender_id: transaction.seller_id,
+          receiver_id: transaction.buyer_id,
+          listing_id: transaction.listing_id,
+          content: `✅ Transaction complete! Thank you for confirming delivery. Please leave a review for the seller to help other buyers.`,
+          message_type: "system",
+          read: false,
+        }
+      ]);
 
-    console.log("[CONFIRM-DELIVERY] Delivery confirmed and funds transferred");
+    console.log("[CONFIRM-DELIVERY] Delivery confirmed, funds transferred, and review notifications sent");
 
     return new Response(
       JSON.stringify({ 
