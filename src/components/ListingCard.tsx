@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/components/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { VerificationBadges } from "@/components/VerificationBadge";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ListingCardProps {
   id: string;
@@ -135,7 +136,7 @@ const ListingCard = ({
           size="icon" 
           variant="ghost"
           className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm hover:bg-background z-10"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
             if (!user) {
               toast({
@@ -145,10 +146,52 @@ const ListingCard = ({
               });
               return;
             }
-            // TODO: Implement favourite functionality
+            
+            try {
+              if (isFavorited) {
+                // Remove from favourites
+                const { error } = await supabase
+                  .from('favourites')
+                  .delete()
+                  .eq('user_id', user.id)
+                  .eq('listing_id', id);
+                
+                if (error) throw error;
+                
+                toast({
+                  title: "Removed from favourites",
+                  description: "This listing has been removed from your favourites.",
+                });
+              } else {
+                // Add to favourites
+                const { error } = await supabase
+                  .from('favourites')
+                  .insert({
+                    user_id: user.id,
+                    listing_id: id
+                  });
+                
+                if (error) throw error;
+                
+                toast({
+                  title: "Added to favourites",
+                  description: "This listing has been saved to your favourites.",
+                });
+              }
+              
+              // Trigger a refetch of favourites
+              window.location.reload();
+            } catch (error) {
+              console.error('Error toggling favourite:', error);
+              toast({
+                title: "Error",
+                description: "Failed to update favourites. Please try again.",
+                variant: "destructive",
+              });
+            }
           }}
         >
-          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} />
+          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
         </Button>
       </div>
 

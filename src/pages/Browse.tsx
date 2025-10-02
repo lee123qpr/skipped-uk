@@ -19,9 +19,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/hooks/useCategories";
+import { useAuth } from "@/components/AuthContext";
 
 const Browse = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +62,23 @@ const Browse = () => {
 
   // Fetch categories using shared hook
   const { data: categories = [] } = useCategories();
+
+  // Fetch user's favourites
+  const { data: userFavourites = [] } = useQuery({
+    queryKey: ['user-favourites', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('favourites')
+        .select('listing_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data.map(f => f.listing_id);
+    },
+    enabled: !!user
+  });
 
   // Fetch listings with filters
   const { data: listings = [], isLoading, error } = useQuery({
@@ -234,7 +253,8 @@ const Browse = () => {
     sellerStripeVerified: listing.profiles?.stripe_onboarding_complete || false,
     sellerIdentityVerified: listing.profiles?.identity_verified || false,
     weight: listing.weight,
-    dimensions: listing.dimensions
+    dimensions: listing.dimensions,
+    isFavorited: userFavourites.includes(listing.id)
   });
 
   return (
