@@ -77,7 +77,7 @@ serve(async (req) => {
         sender_id: transaction.seller_id,
         receiver_id: transaction.buyer_id,
         listing_id: transaction.listing_id,
-        content: "Item has been dispatched! You'll receive it soon.",
+        content: "📦 Item dispatched! Your order has been sent. Please confirm receipt when it arrives.",
         message_type: "system",
         read: false,
       });

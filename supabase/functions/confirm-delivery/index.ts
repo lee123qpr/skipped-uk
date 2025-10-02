@@ -138,7 +138,7 @@ serve(async (req) => {
         sender_id: transaction.buyer_id,
         receiver_id: transaction.seller_id,
         listing_id: transaction.listing_id,
-        content: "Buyer confirmed delivery. Funds have been released!",
+        content: `✅ Delivery confirmed! The buyer has confirmed receipt. Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. Thank you!`,
         message_type: "system",
         read: false,
       });
