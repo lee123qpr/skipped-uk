@@ -8,6 +8,7 @@ import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminListings } from "@/components/admin/AdminListings";
 import { AdminTransactions } from "@/components/admin/AdminTransactions";
+import { AdminFinancials } from "@/components/admin/AdminFinancials";
 import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { toast } from "sonner";
@@ -173,6 +174,8 @@ export default function Admin() {
         return <AdminListings />;
       case 'transactions':
         return <AdminTransactions />;
+      case 'financials':
+        return <AdminFinancials />;
       case 'analytics':
         return <AdminAnalytics />;
       case 'health':

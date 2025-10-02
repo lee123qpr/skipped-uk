@@ -1,7 +1,10 @@
-import { LayoutDashboard, AlertTriangle, Users, Package, DollarSign, TrendingUp, Settings, Activity } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, AlertTriangle, Users, Package, DollarSign, TrendingUp, Settings, Activity, Wallet, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/AuthContext";
+import { toast } from "sonner";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 interface AdminSidebarProps {
@@ -10,7 +13,19 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const currentSection = new URLSearchParams(location.search).get('section') || 'overview';
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Failed to sign out");
+    } else {
+      toast.success("Signed out successfully");
+      navigate("/");
+    }
+  };
 
   const navigation = [
     {
@@ -42,6 +57,12 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
       name: "Transactions",
       icon: DollarSign,
       section: "transactions",
+      badge: null,
+    },
+    {
+      name: "Financials",
+      icon: Wallet,
+      section: "financials",
       badge: null,
     },
     {
@@ -102,7 +123,15 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-3">
+        <Button 
+          onClick={handleSignOut} 
+          variant="outline" 
+          className="w-full justify-start"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
         <div className="px-3 py-2 bg-muted rounded-lg">
           <p className="text-xs font-medium text-muted-foreground">Admin Access</p>
           <p className="text-xs text-muted-foreground mt-1">Full platform control</p>
