@@ -1,4 +1,4 @@
-import { Heart, MapPin, Calendar, Package, Truck } from "lucide-react";
+import { Heart, MapPin, Calendar, Package, Truck, Leaf } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ interface ListingCardProps {
   sellerVerified?: boolean;
   sellerStripeVerified?: boolean;
   sellerIdentityVerified?: boolean;
+  carbonSaved?: number;
 }
 
 const ListingCard = ({ 
@@ -46,7 +47,8 @@ const ListingCard = ({
   variant = "grid",
   sellerVerified = false,
   sellerStripeVerified = false,
-  sellerIdentityVerified = false
+  sellerIdentityVerified = false,
+  carbonSaved = 0
 }: ListingCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -162,7 +164,7 @@ const ListingCard = ({
           </div>
         </div>
 
-        {/* Badges: Condition, Quantity, and Offers */}
+        {/* Badges: Condition, Quantity, Carbon Saved, and Offers */}
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
@@ -174,6 +176,12 @@ const ListingCard = ({
             <Badge variant="outline" className="bg-[#047857] text-white border-0 font-bold px-4 py-1.5 text-xs tracking-wider rounded-full shadow-sm flex items-center gap-1.5">
               <Package className="h-3.5 w-3.5" />
               {quantity} UNITS
+            </Badge>
+          )}
+          {carbonSaved > 0 && (
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-bold px-4 py-1.5 text-xs tracking-wider rounded-full shadow-sm flex items-center gap-1.5">
+              <Leaf className="h-3.5 w-3.5" />
+              {carbonSaved.toFixed(0)} kg CO₂
             </Badge>
           )}
           {allowOffers && (
