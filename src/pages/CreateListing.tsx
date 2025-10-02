@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MapPin, Truck, Package, Calendar, Save, Leaf } from 'lucide-react';
+import { Loader2, MapPin, Truck, Package, Calendar, Leaf } from 'lucide-react';
 import { z } from 'zod';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
@@ -74,7 +74,6 @@ const CreateListing = () => {
     toast
   } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDraft, setIsDraft] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -338,7 +337,7 @@ const CreateListing = () => {
   const handleMediaFilesChange = useCallback((files: MediaFile[]) => {
     setMediaFiles(files);
   }, []);
-  const handleSubmit = async (e: React.FormEvent, saveAsDraft = false) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({}); // Clear previous errors
 
@@ -399,7 +398,6 @@ const CreateListing = () => {
         reason_for_selling: formData.reason_for_selling || undefined
       });
       setIsLoading(true);
-      setIsDraft(saveAsDraft);
 
       // If we don't have a carbon calculation yet, calculate it now
       let finalCarbonSaved = carbonCalculation?.totalCarbon;
@@ -440,7 +438,7 @@ const CreateListing = () => {
           ...validatedData,
           seller_id: user.id,
           images: uploadedImages,
-          status: saveAsDraft ? 'draft' : 'active',
+          status: 'active',
           carbon_saved: finalCarbonSaved || 0,
           // Privacy-friendly location storage
           public_location: formData.location,
@@ -451,8 +449,8 @@ const CreateListing = () => {
         } as any).select().single();
         if (error) throw error;
         toast({
-          title: saveAsDraft ? 'Draft saved!' : 'Listing created!',
-          description: saveAsDraft ? 'Your listing has been saved as a draft.' : 'Your item has been listed successfully.'
+          title: 'Listing created!',
+          description: 'Your item has been listed successfully.'
         });
         navigate('/browse');
       }
@@ -499,7 +497,6 @@ const CreateListing = () => {
       }
     } finally {
       setIsLoading(false);
-      setIsDraft(false);
     }
   };
   const structuredData = {
@@ -525,7 +522,7 @@ const CreateListing = () => {
               </p>
             </header>
 
-            <form onSubmit={e => handleSubmit(e, false)} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
               {/* Media Upload */}
               <Card className="p-4 md:p-6">
                 <CardHeader className="px-0 pt-0">
@@ -848,18 +845,9 @@ const CreateListing = () => {
               </Card>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button type="button" variant="outline" onClick={e => handleSubmit(e, true)} disabled={isLoading} className="sm:w-auto">
-                  {isDraft ? <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving draft...
-                    </> : <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save as Draft
-                    </>}
-                </Button>
-                <Button type="submit" className="sm:flex-1" disabled={isLoading}>
-                  {isLoading && !isDraft ? <>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {isEditing ? 'Updating listing...' : 'Creating listing...'}
                     </> : isEditing ? 'Update Listing' : 'Create Listing'}
