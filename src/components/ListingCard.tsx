@@ -93,9 +93,23 @@ const ListingCard = ({
       onClick={handleCardClick}
     >
       {/* Image Carousel */}
-      <div className={`relative bg-muted ${variant === "list" ? "w-64 h-40 flex-shrink-0" : "aspect-[4/3]"}`}>
+      <div 
+        className={`relative bg-muted ${variant === "list" ? "w-64 h-40 flex-shrink-0" : "aspect-[4/3]"}`}
+        onClick={(e) => {
+          // Prevent card click when clicking on carousel area
+          if (images && images.length > 1) {
+            e.stopPropagation();
+          }
+        }}
+      >
         {images && images.length > 0 ? (
-          <Carousel className="w-full h-full">
+          <Carousel 
+            className="w-full h-full"
+            opts={{
+              loop: true,
+              dragFree: true,
+            }}
+          >
             <CarouselContent>
               {images.map((image, index) => (
                 <CarouselItem key={index}>
@@ -113,15 +127,17 @@ const ListingCard = ({
             {images.length > 1 && (
               <>
                 <CarouselPrevious 
-                  className="left-2" 
-                  onClick={(e) => e.stopPropagation()}
+                  className="left-2 z-20" 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 />
                 <CarouselNext 
-                  className="right-2" 
-                  onClick={(e) => e.stopPropagation()}
+                  className="right-2 z-20" 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 />
                 {/* Image Counter Badge */}
-                <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm text-xs font-medium px-2 py-1 rounded-md">
+                <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm text-xs font-medium px-2 py-1 rounded-md z-10">
                   {images.length} photos
                 </div>
               </>
