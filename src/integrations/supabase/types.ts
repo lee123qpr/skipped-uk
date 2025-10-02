@@ -290,6 +290,7 @@ export type Database = {
           location: string
           location_bounds: Json | null
           longitude: number | null
+          manufacturer: string | null
           pickup_available: boolean | null
           price: number
           public_location: string | null
@@ -327,6 +328,7 @@ export type Database = {
           location: string
           location_bounds?: Json | null
           longitude?: number | null
+          manufacturer?: string | null
           pickup_available?: boolean | null
           price: number
           public_location?: string | null
@@ -364,6 +366,7 @@ export type Database = {
           location?: string
           location_bounds?: Json | null
           longitude?: number | null
+          manufacturer?: string | null
           pickup_available?: boolean | null
           price?: number
           public_location?: string | null
