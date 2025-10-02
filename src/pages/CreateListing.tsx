@@ -20,6 +20,7 @@ import MediaUpload from '@/components/MediaUpload';
 import CarbonBadge from '@/components/CarbonBadge';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { useCategories } from '@/hooks/useCategories';
+import { toTitleCase } from '@/lib/utils';
 const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
@@ -402,7 +403,7 @@ const CreateListing = () => {
         throw new Error('Please enter a valid quantity');
       }
       const validatedData = listingSchema.parse({
-        title: formData.title,
+        title: toTitleCase(formData.title),
         description: formData.description,
         price: price,
         condition: formData.condition,

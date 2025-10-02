@@ -52,3 +52,23 @@ export function formatReasonForSelling(reason: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+// Convert text to title case with smart capitalization
+export function toTitleCase(text: string): string {
+  if (!text) return '';
+  
+  const smallWords = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'if', 'in', 'of', 'on', 'or', 'the', 'to', 'with'];
+  
+  return text
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      // Always capitalize first and last word, or if not a small word
+      if (index === 0 || !smallWords.includes(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return word;
+    })
+    .join(' ');
+}
