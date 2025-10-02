@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,16 +56,35 @@ export const TransactionManager = ({
   const [isLoading, setIsLoading] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
+
+  // Prevent accidental page navigation during payment
+  useEffect(() => {
+    if (transaction.status === "pending_payment") {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "Payment verification in progress. Are you sure you want to leave?";
+        return e.returnValue;
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+  }, [transaction.status]);
 
   const handlePayment = async () => {
     setIsLoading(true);
     try {
+      // Store transaction ID and timestamp in session storage
+      sessionStorage.setItem("pending_payment_tx", transaction.id);
+      sessionStorage.setItem("pending_payment_time", Date.now().toString());
+
       const { data, error } = await supabase.functions.invoke("create-payment-intent", {
         body: { 
           transactionId: transaction.id,
           amount: transaction.amount,
-          buyerProtectionFee: transaction.buyer_protection_fee || (transaction.amount * 0.05), // Use saved fee or 5% of item only
+          buyerProtectionFee: transaction.buyer_protection_fee || (transaction.amount * 0.05),
           returnUrl: window.location.origin,
         },
       });
@@ -74,23 +93,65 @@ export const TransactionManager = ({
 
       // Redirect to Stripe Checkout
       if (data?.checkoutUrl) {
-        // Use same-tab navigation to avoid iOS popup blockers
-        window.location.href = data.checkoutUrl as string;
         toast({
           title: "Redirecting to payment",
-          description: "Taking you to Stripe Checkout...",
+          description: "Taking you to Stripe Checkout. Do not close this window.",
         });
+        
+        // Small delay to ensure storage is written
+        setTimeout(() => {
+          window.location.href = data.checkoutUrl as string;
+        }, 500);
       }
 
       onUpdate();
     } catch (error: any) {
+      // Clear session storage on error
+      sessionStorage.removeItem("pending_payment_tx");
+      sessionStorage.removeItem("pending_payment_time");
+      
       toast({
         title: "Payment Failed",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleManualVerification = async () => {
+    setIsVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { 
+          transactionId: transaction.id,
+          forceCheck: true // Flag to check Stripe directly
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Payment Verified!",
+          description: "Your payment has been confirmed.",
+        });
+        onUpdate();
+      } else {
+        toast({
+          title: "Payment Not Found",
+          description: "No completed payment found for this transaction. Please contact support if you've been charged.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Verification Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -243,21 +304,43 @@ export const TransactionManager = ({
         {userRole === "buyer" && (
           <div className="space-y-2">
             {transaction.status === "pending_payment" && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                  ⏳ Verifying Payment
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md space-y-2">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 animate-pulse" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                      ⏳ Verifying Your Payment
+                    </p>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                      We're confirming your payment with Stripe. This usually takes a few seconds.
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      💡 If you just completed payment, please wait 10-15 seconds...
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="flex-1"
+                  >
+                    Refresh Status
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={handleManualVerification}
+                    disabled={isVerifying}
+                    className="flex-1"
+                  >
+                    {isVerifying ? "Checking..." : "Verify Now"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center pt-1">
+                  Still stuck? Contact support with transaction ID
                 </p>
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  If you've completed payment and this hasn't updated, please refresh the page or contact support.
-                </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="mt-2 w-full"
-                >
-                  Refresh Status
-                </Button>
               </div>
             )}
             

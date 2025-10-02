@@ -18,12 +18,13 @@ serve(async (req) => {
   }
 
   try {
-    const { sessionId } = await req.json();
+    const { sessionId, transactionId, forceCheck } = await req.json();
     
-    logStep("Request received", { sessionId });
+    logStep("Request received", { sessionId, transactionId, forceCheck });
 
-    if (!sessionId) {
-      throw new Error("Missing sessionId");
+    // Support both sessionId and transactionId for verification
+    if (!sessionId && !transactionId) {
+      throw new Error("Missing sessionId or transactionId");
     }
 
     const supabaseClient = createClient(
@@ -46,35 +47,84 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    logStep("Session retrieved", { 
-      sessionId: session.id,
-      paymentStatus: session.payment_status,
-      status: session.status
-    });
+    let session;
+    let transactionIdToUpdate;
 
-    if (session.payment_status !== "paid") {
-      return new Response(
-        JSON.stringify({ 
-          success: false,
-          message: "Payment not completed"
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
+    // If transactionId provided, fetch transaction and check Stripe directly
+    if (transactionId) {
+      logStep("Manual verification by transactionId", { transactionId });
+
+      const { data: transaction } = await supabaseClient
+        .from("transactions")
+        .select("stripe_payment_intent_id, listing_id, seller_id, amount")
+        .eq("id", transactionId)
+        .eq("buyer_id", user.id)
+        .single();
+
+      if (!transaction || !transaction.stripe_payment_intent_id) {
+        throw new Error("Transaction not found or no payment intent");
+      }
+
+      // Check payment intent status directly
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        transaction.stripe_payment_intent_id
       );
+
+      logStep("Payment intent status", { 
+        status: paymentIntent.status,
+        paymentIntentId: paymentIntent.id
+      });
+
+      if (paymentIntent.status !== "succeeded") {
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            message: "Payment not completed"
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+
+      transactionIdToUpdate = transactionId;
+      // Create a pseudo-session object for consistent handling below
+      session = {
+        metadata: { transaction_id: transactionId },
+        payment_status: "paid"
+      };
+    } else {
+      // Retrieve the checkout session
+      session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      logStep("Session retrieved", { 
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
+        status: session.status
+      });
+
+      if (session.payment_status !== "paid") {
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            message: "Payment not completed"
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+
+      // Get transaction ID from metadata
+      transactionIdToUpdate = session.metadata?.transaction_id;
+      if (!transactionIdToUpdate) {
+        throw new Error("Transaction ID not found in session metadata");
+      }
     }
 
-    // Get transaction ID from metadata
-    const transactionId = session.metadata?.transaction_id;
-    if (!transactionId) {
-      throw new Error("Transaction ID not found in session metadata");
-    }
-
-    logStep("Transaction ID found", { transactionId });
+    logStep("Transaction ID found", { transactionId: transactionIdToUpdate });
 
     // Update transaction status to paid
     const { error: updateError } = await supabaseClient
@@ -83,7 +133,7 @@ serve(async (req) => {
         status: "paid",
         paid_at: new Date().toISOString(),
       })
-      .eq("id", transactionId)
+      .eq("id", transactionIdToUpdate)
       .eq("buyer_id", user.id);
 
     if (updateError) {
@@ -97,7 +147,7 @@ serve(async (req) => {
     const { data: transaction } = await supabaseClient
       .from("transactions")
       .select("seller_id, listing_id, amount")
-      .eq("id", transactionId)
+      .eq("id", transactionIdToUpdate)
       .single();
 
     if (transaction) {
@@ -119,7 +169,7 @@ serve(async (req) => {
             sender_id: user.id,
             receiver_id: transaction.seller_id,
             listing_id: transaction.listing_id,
-            content: `Payment of £${transaction.amount} received. Please mark as shipped when dispatched.`,
+            content: `💰 Payment of £${transaction.amount} received in escrow. Please mark as dispatched when you send the item.`,
             message_type: "system",
             read: false,
           });

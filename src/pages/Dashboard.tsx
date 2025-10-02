@@ -78,15 +78,61 @@ const Dashboard = () => {
     return "Good evening";
   };
 
+  // Fallback verification on Dashboard load for stuck payments
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      navigate("/sign-in");
-      return;
-    }
+    if (authLoading || !user) return;
 
-    fetchProfile();
-  }, [user, authLoading, navigate]);
+    // Check for stuck pending_payment in session storage
+    const checkStuckPayment = async () => {
+      const pendingTx = sessionStorage.getItem("pending_payment_tx");
+      const pendingTime = sessionStorage.getItem("pending_payment_time");
+      
+      if (pendingTx && pendingTime) {
+        const elapsedMinutes = (Date.now() - parseInt(pendingTime)) / (1000 * 60);
+        
+        // If more than 2 minutes have passed, check transaction status
+        if (elapsedMinutes > 2) {
+          try {
+            const { data: tx } = await supabase
+              .from("transactions")
+              .select("status, stripe_payment_intent_id")
+              .eq("id", pendingTx)
+              .eq("buyer_id", user.id)
+              .single();
+            
+            // If still pending_payment after 2+ minutes, attempt verification
+            if (tx?.status === "pending_payment" && tx.stripe_payment_intent_id) {
+              console.log("[FALLBACK] Attempting payment verification for stuck transaction");
+              
+              const { data, error } = await supabase.functions.invoke("verify-payment", {
+                body: { 
+                  transactionId: pendingTx,
+                  forceCheck: true 
+                },
+              });
+              
+              if (!error && data?.success) {
+                toast({
+                  title: "Payment Recovered!",
+                  description: "We found your completed payment and updated your order.",
+                });
+                sessionStorage.removeItem("pending_payment_tx");
+                sessionStorage.removeItem("pending_payment_time");
+              }
+            } else if (tx?.status !== "pending_payment") {
+              // Payment was processed, clean up storage
+              sessionStorage.removeItem("pending_payment_tx");
+              sessionStorage.removeItem("pending_payment_time");
+            }
+          } catch (error) {
+            console.error("[FALLBACK] Verification check failed:", error);
+          }
+        }
+      }
+    };
+
+    checkStuckPayment();
+  }, [user, authLoading]);
 
   // Handle payment verification
   useEffect(() => {
@@ -115,6 +161,10 @@ const Dashboard = () => {
       if (error) throw error;
 
       if (data?.success) {
+        // Clear session storage on successful verification
+        sessionStorage.removeItem("pending_payment_tx");
+        sessionStorage.removeItem("pending_payment_time");
+        
         toast({
           title: "Payment Successful!",
           description: "Your payment has been confirmed. The seller has been notified.",
