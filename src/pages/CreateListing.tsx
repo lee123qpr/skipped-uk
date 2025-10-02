@@ -767,7 +767,7 @@ const CreateListing = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity *</Label>
+                      <Label htmlFor="quantity" className="flex items-center gap-2">Quantity *</Label>
                       <Input
                         id="quantity"
                         type="number"
