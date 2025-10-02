@@ -29,9 +29,10 @@ export function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
+      // Only select non-sensitive columns (exclude phone and stripe_account_id)
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, user_id, display_name, username, avatar_url, bio, location, company_name, business_logo_url, verified, identity_verified, identity_verified_at, stripe_onboarding_complete, created_at, updated_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
