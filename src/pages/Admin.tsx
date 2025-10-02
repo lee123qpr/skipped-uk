@@ -13,6 +13,8 @@ import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import AdminBannerManager from "@/components/admin/AdminBannerManager";
 import AdminPlatformSettings from "@/components/admin/AdminPlatformSettings";
+import { AdminEnvironmental } from "@/components/admin/AdminEnvironmental";
+import { AdminCertificates } from "@/components/admin/AdminCertificates";
 import { toast } from "sonner";
 
 export default function Admin() {
@@ -180,6 +182,10 @@ export default function Admin() {
         return <AdminFinancials />;
       case 'analytics':
         return <AdminAnalytics />;
+      case 'environmental':
+        return <AdminEnvironmental />;
+      case 'certificates':
+        return <AdminCertificates />;
       case 'health':
         return <AdminSystemHealth />;
       case 'settings':
