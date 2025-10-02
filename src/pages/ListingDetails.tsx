@@ -650,6 +650,15 @@ const ListingDetails = () => {
                       <p className="font-medium">{formatCondition(listing.condition)}</p>
                     </div>
                   </div>
+                  {(listing as any).manufacturer && (
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Manufacturer:</span>
+                        <p className="font-medium">{(listing as any).manufacturer}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-4">

@@ -49,6 +49,7 @@ const listingSchema = z.object({
   delivery_cost: z.number().nonnegative().optional(),
   delivery_notes: z.string().max(500, 'Delivery notes must be less than 500 characters').optional(),
   reason_for_selling: z.string().optional(),
+  manufacturer: z.string().max(100, 'Manufacturer name must be less than 100 characters').optional(),
   environmental_assessment_enabled: z.boolean().optional()
 }).refine(data => data.delivery_available || data.pickup_available, {
   message: 'You must enable at least collection or delivery',
@@ -124,6 +125,7 @@ const CreateListing = () => {
     delivery_cost: '',
     delivery_notes: '',
     reason_for_selling: '',
+    manufacturer: '',
     environmental_assessment_enabled: false,
     // Additional location fields for privacy and mapping
     fullAddress: '',
@@ -223,6 +225,7 @@ const CreateListing = () => {
           delivery_cost: listing.delivery_cost?.toString() || '',
           delivery_notes: (listing as any).delivery_notes || '',
           reason_for_selling: listing.reason_for_selling || '',
+          manufacturer: (listing as any).manufacturer || '',
           environmental_assessment_enabled: (listing as any).environmental_assessment_enabled || false,
           fullAddress: listing.full_address || '',
           latitude: listing.latitude || 0,
@@ -421,6 +424,7 @@ const CreateListing = () => {
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
         delivery_notes: formData.delivery_available && formData.delivery_notes ? formData.delivery_notes : undefined,
         reason_for_selling: formData.reason_for_selling || undefined,
+        manufacturer: formData.manufacturer || undefined,
         environmental_assessment_enabled: formData.environmental_assessment_enabled
       });
       setIsLoading(true);
@@ -636,6 +640,22 @@ const CreateListing = () => {
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="manufacturer">Manufacturer (optional)</Label>
+                    <Input 
+                      id="manufacturer" 
+                      type="text"
+                      value={formData.manufacturer} 
+                      onChange={e => handleInputChange('manufacturer', e.target.value)} 
+                      placeholder="e.g. Hanson, Ensign, DeWalt, Makita..." 
+                      disabled={isLoading}
+                      maxLength={100}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Add the manufacturer/brand name to help buyers find your item
+                    </p>
                   </div>
 
                   <div className="space-y-2">
