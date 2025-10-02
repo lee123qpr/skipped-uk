@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.check-connect-status]
 verify_jwt = true
+
+[functions.generate-environmental-certificate]
+verify_jwt = true

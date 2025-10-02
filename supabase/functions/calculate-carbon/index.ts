@@ -92,6 +92,25 @@ interface CarbonCalculationRequest {
   description: string;
 }
 
+interface CarbonCalculationResponse {
+  totalCarbon: number;
+  carbonPerUnit: number;
+  materialType: string;
+  calculationMethod: 'provided_weight' | 'estimated';
+  weight: number;
+  landfillDiverted: number;
+  carbonFactorSource: string;
+  calculationConfidence: 'high' | 'medium' | 'low';
+  explanation: string;
+  methodology: {
+    carbonFactor: number;
+    materialDensity: number;
+    calculatedWeight: number;
+    source: string;
+    assumptions: string[];
+  };
+}
+
 function getMaterialType(categoryName: string, title: string, description: string, condition: string): string {
   const searchText = `${categoryName} ${title} ${description}`.toLowerCase();
   
@@ -250,13 +269,7 @@ function calculateMaterialWeight(
   return volume * density;
 }
 
-function calculateEmbodiedCarbon(request: CarbonCalculationRequest): {
-  totalCarbon: number;
-  carbonPerUnit: number;
-  materialType: string;
-  calculationMethod: string;
-  weight: number;
-} {
+function calculateEmbodiedCarbon(request: CarbonCalculationRequest): CarbonCalculationResponse {
   const materialType = getMaterialType(
     request.categoryName, 
     request.title, 
@@ -265,17 +278,45 @@ function calculateEmbodiedCarbon(request: CarbonCalculationRequest): {
   );
   
   const carbonFactor = CARBON_FACTORS[materialType] || 0.5; // kg CO2e per kg
+  const density = MATERIAL_DENSITIES[materialType] || 1000; // kg/m³
   const weightPerUnit = calculateMaterialWeight(materialType, request.dimensions, request.weight);
   const totalWeight = weightPerUnit * request.quantity;
   const carbonPerUnit = weightPerUnit * carbonFactor;
   const totalCarbon = totalWeight * carbonFactor;
   
+  // Determine calculation confidence
+  let calculationConfidence: 'high' | 'medium' | 'low';
+  if (request.weight) {
+    calculationConfidence = 'high';
+  } else if (request.dimensions?.length && request.dimensions?.width && request.dimensions?.height) {
+    calculationConfidence = 'medium';
+  } else {
+    calculationConfidence = 'low';
+  }
+  
   return {
     totalCarbon: Math.round(totalCarbon),
     carbonPerUnit: Math.round(carbonPerUnit * 100) / 100,
     materialType,
-    calculationMethod: request.weight ? 'provided_weight' : 'calculated_from_dimensions',
-    weight: totalWeight
+    calculationMethod: request.weight ? 'provided_weight' : 'estimated',
+    weight: totalWeight,
+    landfillDiverted: totalWeight,
+    carbonFactorSource: 'ICE Database v3.0 (University of Bath)',
+    calculationConfidence,
+    explanation: `Calculated using ${materialType} carbon factor (${carbonFactor} kg CO2e/kg) for ${request.quantity} units weighing ${Math.round(totalWeight)} kg total.`,
+    methodology: {
+      carbonFactor,
+      materialDensity: density,
+      calculatedWeight: totalWeight,
+      source: 'Inventory of Carbon & Energy (ICE) Database v3.0, University of Bath, 2019',
+      assumptions: [
+        request.weight ? 'Weight provided by seller' : 'Weight estimated from dimensions',
+        `Material classified as: ${materialType}`,
+        `Carbon factor: ${carbonFactor} kg CO2e per kg`,
+        'Calculations represent avoided emissions from reuse vs. new production',
+        'Values based on industry-standard embodied carbon factors'
+      ]
+    }
   };
 }
 

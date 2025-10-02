@@ -37,6 +37,7 @@ interface Transaction {
   listings?: {
     title: string;
     images: string[];
+    environmental_assessment_enabled?: boolean;
   };
 }
 
@@ -127,9 +128,24 @@ export const TransactionManager = ({
 
       if (error) throw error;
 
+      // Check if listing has environmental assessment enabled
+      if (transaction.listings?.environmental_assessment_enabled) {
+        // Generate certificates
+        const { error: certError } = await supabase.functions.invoke("generate-environmental-certificate", {
+          body: { transactionId: transaction.id },
+        });
+
+        if (certError) {
+          console.error('Certificate generation error:', certError);
+          // Don't fail the delivery confirmation if certificate generation fails
+        }
+      }
+
       toast({
         title: "Delivery Confirmed",
-        description: "Funds have been released to the seller!",
+        description: transaction.listings?.environmental_assessment_enabled 
+          ? "Funds have been released! Your environmental certificate is being generated."
+          : "Funds have been released to the seller!",
       });
 
       onUpdate();

@@ -32,6 +32,7 @@ interface UserProfile {
   phone: string | null;
   location: string | null;
   avatar_url: string | null;
+  business_logo_url: string | null;
   verified: boolean;
   stripe_onboarding_complete: boolean;
   identity_verified: boolean;
@@ -46,6 +47,7 @@ const ProfileEdit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   
   const [formData, setFormData] = useState({
     display_name: '',
@@ -54,6 +56,7 @@ const ProfileEdit = () => {
     company_name: '',
     phone: '',
     location: '',
+    business_logo_url: '',
   });
 
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -82,6 +85,7 @@ const ProfileEdit = () => {
             company_name: data.company_name || '',
             phone: data.phone || '',
             location: data.location || '',
+            business_logo_url: data.business_logo_url || '',
           });
         }
       } catch (error) {
@@ -218,6 +222,82 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+
+    const file = e.target.files[0];
+    
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Image must be less than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/logo.${fileExt}`;
+
+      // Delete old logo if exists
+      if (profile?.business_logo_url) {
+        const oldPath = profile.business_logo_url.split('/').slice(-2).join('/');
+        await supabase.storage.from('business-logos').remove([oldPath]);
+      }
+
+      // Upload new logo
+      const { data, error } = await supabase.storage
+        .from('business-logos')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-logos')
+        .getPublicUrl(data.path);
+
+      // Update profile with new logo URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ business_logo_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile(prev => prev ? { ...prev, business_logo_url: publicUrl } : null);
+      setFormData(prev => ({ ...prev, business_logo_url: publicUrl }));
+      
+      toast({
+        title: 'Business logo updated',
+        description: 'Your business logo has been updated successfully',
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload logo. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -248,6 +328,7 @@ const ProfileEdit = () => {
           company_name: validatedData.company_name || null,
           phone: validatedData.phone || null,
           location: validatedData.location || null,
+          business_logo_url: formData.business_logo_url || null,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
@@ -340,6 +421,45 @@ const ProfileEdit = () => {
                   <label htmlFor="avatar-upload" className="cursor-pointer">
                     <Camera className="h-4 w-4 mr-2" />
                     Change Photo
+                  </label>
+                </Button>
+              </div>
+            </div>
+
+            {/* Business Logo Section */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 pt-6 border-t">
+              <div className="relative">
+                <Avatar className="h-20 w-20 border-2 border-border">
+                  <AvatarImage src={profile?.business_logo_url || undefined} />
+                  <AvatarFallback className="text-lg border-2 border-border">
+                    {formData.company_name?.charAt(0)?.toUpperCase() || 'B'}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {uploadingLogo && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium mb-2">Business Logo (Optional)</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Upload your business logo to appear on environmental certificates only
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                  id="logo-upload"
+                  disabled={uploadingLogo}
+                />
+                <Button asChild variant="outline" size="sm" disabled={uploadingLogo}>
+                  <label htmlFor="logo-upload" className="cursor-pointer">
+                    <Building className="h-4 w-4 mr-2" />
+                    {profile?.business_logo_url ? 'Change Logo' : 'Upload Logo'}
                   </label>
                 </Button>
               </div>

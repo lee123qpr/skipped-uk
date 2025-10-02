@@ -160,6 +160,81 @@ export type Database = {
           },
         ]
       }
+      environmental_certificates: {
+        Row: {
+          buyer_certificate_url: string | null
+          buyer_id: string
+          calculation_method: string
+          carbon_factor_source: string
+          carbon_saved_kg: number
+          certificate_reference: string
+          created_at: string
+          id: string
+          issued_at: string
+          landfill_diverted_kg: number
+          listing_id: string
+          material_type: string
+          material_weight_kg: number
+          methodology_snapshot: Json
+          seller_certificate_url: string | null
+          seller_id: string
+          transaction_id: string
+        }
+        Insert: {
+          buyer_certificate_url?: string | null
+          buyer_id: string
+          calculation_method: string
+          carbon_factor_source: string
+          carbon_saved_kg: number
+          certificate_reference: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          landfill_diverted_kg: number
+          listing_id: string
+          material_type: string
+          material_weight_kg: number
+          methodology_snapshot?: Json
+          seller_certificate_url?: string | null
+          seller_id: string
+          transaction_id: string
+        }
+        Update: {
+          buyer_certificate_url?: string | null
+          buyer_id?: string
+          calculation_method?: string
+          carbon_factor_source?: string
+          carbon_saved_kg?: number
+          certificate_reference?: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          landfill_diverted_kg?: number
+          listing_id?: string
+          material_type?: string
+          material_weight_kg?: number
+          methodology_snapshot?: Json
+          seller_certificate_url?: string | null
+          seller_id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "environmental_certificates_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environmental_certificates_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favourites: {
         Row: {
           created_at: string
@@ -192,8 +267,10 @@ export type Database = {
       listings: {
         Row: {
           available: boolean | null
+          calculation_confidence: string | null
           carbon_saved: number | null
           category_id: string | null
+          certificate_methodology: Json | null
           collection_location: string | null
           collection_notes: string | null
           condition: string | null
@@ -204,6 +281,7 @@ export type Database = {
           delivery_radius: number | null
           description: string | null
           dimensions: Json | null
+          environmental_assessment_enabled: boolean | null
           featured: boolean | null
           full_address: string | null
           id: string
@@ -226,8 +304,10 @@ export type Database = {
         }
         Insert: {
           available?: boolean | null
+          calculation_confidence?: string | null
           carbon_saved?: number | null
           category_id?: string | null
+          certificate_methodology?: Json | null
           collection_location?: string | null
           collection_notes?: string | null
           condition?: string | null
@@ -238,6 +318,7 @@ export type Database = {
           delivery_radius?: number | null
           description?: string | null
           dimensions?: Json | null
+          environmental_assessment_enabled?: boolean | null
           featured?: boolean | null
           full_address?: string | null
           id?: string
@@ -260,8 +341,10 @@ export type Database = {
         }
         Update: {
           available?: boolean | null
+          calculation_confidence?: string | null
           carbon_saved?: number | null
           category_id?: string | null
+          certificate_methodology?: Json | null
           collection_location?: string | null
           collection_notes?: string | null
           condition?: string | null
@@ -272,6 +355,7 @@ export type Database = {
           delivery_radius?: number | null
           description?: string | null
           dimensions?: Json | null
+          environmental_assessment_enabled?: boolean | null
           featured?: boolean | null
           full_address?: string | null
           id?: string
@@ -448,6 +532,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          business_logo_url: string | null
           company_name: string | null
           created_at: string
           display_name: string | null
@@ -466,6 +551,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          business_logo_url?: string | null
           company_name?: string | null
           created_at?: string
           display_name?: string | null
@@ -484,6 +570,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          business_logo_url?: string | null
           company_name?: string | null
           created_at?: string
           display_name?: string | null

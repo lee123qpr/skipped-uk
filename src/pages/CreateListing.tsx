@@ -115,6 +115,7 @@ const CreateListing = () => {
     delivery_cost: '',
     delivery_notes: '',
     reason_for_selling: '',
+    environmental_assessment_enabled: false,
     // Additional location fields for privacy and mapping
     fullAddress: '',
     latitude: 0,
@@ -127,6 +128,8 @@ const CreateListing = () => {
     materialType: string;
     calculationMethod: string;
     explanation: string;
+    landfillDiverted?: number;
+    calculationConfidence?: string;
   } | null>(null);
   const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
 
@@ -212,6 +215,7 @@ const CreateListing = () => {
           delivery_cost: listing.delivery_cost?.toString() || '',
           delivery_notes: (listing as any).delivery_notes || '',
           reason_for_selling: listing.reason_for_selling || '',
+          environmental_assessment_enabled: (listing as any).environmental_assessment_enabled || false,
           fullAddress: listing.full_address || '',
           latitude: listing.latitude || 0,
           longitude: listing.longitude || 0,
@@ -300,7 +304,9 @@ const CreateListing = () => {
           carbonPerUnit: data.carbonPerUnit,
           materialType: data.materialType,
           calculationMethod: data.calculationMethod,
-          explanation: data.explanation
+          explanation: data.explanation,
+          landfillDiverted: data.landfillDiverted || data.weight,
+          calculationConfidence: data.calculationConfidence
         });
         return data.totalCarbon;
       }
@@ -440,6 +446,15 @@ const CreateListing = () => {
           images: uploadedImages,
           status: 'active',
           carbon_saved: finalCarbonSaved || 0,
+          environmental_assessment_enabled: formData.environmental_assessment_enabled,
+          calculation_confidence: carbonCalculation?.calculationConfidence as 'high' | 'medium' | 'low' | undefined,
+          certificate_methodology: formData.environmental_assessment_enabled && carbonCalculation ? {
+            carbonFactor: carbonCalculation.carbonPerUnit,
+            materialType: carbonCalculation.materialType,
+            calculationMethod: carbonCalculation.calculationMethod,
+            weight: carbonCalculation.landfillDiverted,
+            explanation: carbonCalculation.explanation
+          } : undefined,
           // Privacy-friendly location storage
           public_location: formData.location,
           full_address: formData.fullAddress || null,
@@ -695,6 +710,81 @@ const CreateListing = () => {
                         </div>
                       </CardContent>
                     </Card>}
+
+                  {/* Environmental Impact Assessment Opt-In */}
+                  <Card className="border-2 border-primary/20 bg-primary/5">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Leaf className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-lg">Environmental Impact Certificate</CardTitle>
+                        </div>
+                        <Switch 
+                          checked={formData.environmental_assessment_enabled} 
+                          onCheckedChange={(checked) => handleInputChange('environmental_assessment_enabled', checked)} 
+                          disabled={isLoading} 
+                        />
+                      </div>
+                      <CardDescription>
+                        Generate a verified environmental impact certificate after sale (optional)
+                      </CardDescription>
+                    </CardHeader>
+                    {formData.environmental_assessment_enabled && (
+                      <CardContent className="space-y-4">
+                        <div className="rounded-lg bg-background p-4 space-y-3 border">
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                            <p className="text-sm">Receive verified carbon savings certificate after sale</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                            <p className="text-sm">Perfect for businesses tracking sustainability goals</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                            <p className="text-sm">Contributes to BREEAM, ESG reporting, CSR initiatives</p>
+                          </div>
+                          <div className="flex items-start gap-2 pt-2 border-t">
+                            <span className="text-amber-600 dark:text-amber-400 mt-0.5">⚠️</span>
+                            <p className="text-sm font-medium">Accurate weight required for certification</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground pt-2 border-t">
+                            Calculations based on ICE Database (University of Bath)
+                          </p>
+                        </div>
+
+                        {carbonCalculation && (
+                          <div className="rounded-lg bg-background p-4 border space-y-2">
+                            <h4 className="font-semibold text-sm">Estimated Environmental Impact:</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Landfill Diverted</p>
+                                <p className="text-lg font-bold text-green-600">{carbonCalculation.landfillDiverted?.toFixed(1) || 0} kg</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">CO₂ Saved</p>
+                                <p className="text-lg font-bold text-green-600">{carbonCalculation.totalCarbon} kg</p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground pt-2">
+                              Confidence: <span className="font-medium capitalize">{carbonCalculation.calculationConfidence || 'medium'}</span>
+                              {' • '}
+                              {carbonCalculation.calculationMethod === 'provided_weight' ? 'Based on provided weight ✓' : 'Estimated from dimensions ~'}
+                            </p>
+                          </div>
+                        )}
+
+                        {!formData.weight && (
+                          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
+                              <strong>Note:</strong> For high-confidence certification, please provide the weight above. 
+                              Without weight, we'll estimate from dimensions (medium confidence).
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    )}
+                  </Card>
                 </CardContent>
               </Card>
 
