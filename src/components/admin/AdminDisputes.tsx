@@ -66,7 +66,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
         .from("disputes")
         .select(`
           *,
-          transactions (
+          transactions!disputes_transaction_id_fkey (
             amount,
             status
           )
