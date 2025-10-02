@@ -9,6 +9,7 @@ import { useAuth } from "@/components/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { VerificationBadges } from "@/components/VerificationBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ListingCardProps {
   id: string;
@@ -54,6 +55,7 @@ const ListingCard = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const conditionConfig = {
     new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
@@ -179,8 +181,8 @@ const ListingCard = ({
                 });
               }
               
-              // Trigger a refetch of favourites
-              window.location.reload();
+              // Invalidate and refetch favourites without page reload
+              queryClient.invalidateQueries({ queryKey: ['user-favourites'] });
             } catch (error) {
               console.error('Error toggling favourite:', error);
               toast({
