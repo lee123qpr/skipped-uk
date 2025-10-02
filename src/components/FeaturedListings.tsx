@@ -56,7 +56,9 @@ const FeaturedListings = () => {
           pickup_available,
           profiles:seller_id (
             username,
-            verified
+            verified,
+            stripe_onboarding_complete,
+            identity_verified
           )
         `)
         .eq('status', 'active')
@@ -87,6 +89,9 @@ const FeaturedListings = () => {
         quantity: listing.quantity,
         deliveryAvailable: listing.delivery_available,
         pickupAvailable: listing.pickup_available,
+        sellerVerified: listing.profiles?.verified || false,
+        sellerStripeVerified: listing.profiles?.stripe_onboarding_complete || false,
+        sellerIdentityVerified: listing.profiles?.identity_verified || false,
         weight: listing.weight,
         dimensions: listing.dimensions
       })) || [];

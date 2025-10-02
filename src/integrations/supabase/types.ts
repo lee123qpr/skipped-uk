@@ -312,6 +312,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          identity_verified: boolean | null
+          identity_verified_at: string | null
           location: string | null
           phone: string | null
           stripe_account_id: string | null
@@ -328,6 +330,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          identity_verified?: boolean | null
+          identity_verified_at?: string | null
           location?: string | null
           phone?: string | null
           stripe_account_id?: string | null
@@ -344,6 +348,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          identity_verified?: boolean | null
+          identity_verified_at?: string | null
           location?: string | null
           phone?: string | null
           stripe_account_id?: string | null

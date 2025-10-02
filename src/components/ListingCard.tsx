@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/components/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { VerificationBadges } from "@/components/VerificationBadge";
 
 interface ListingCardProps {
   id: string;
@@ -23,6 +24,9 @@ interface ListingCardProps {
   pickupAvailable?: boolean;
   allowOffers?: boolean;
   variant?: "grid" | "list";
+  sellerVerified?: boolean;
+  sellerStripeVerified?: boolean;
+  sellerIdentityVerified?: boolean;
 }
 
 const ListingCard = ({ 
@@ -39,7 +43,10 @@ const ListingCard = ({
   deliveryAvailable,
   pickupAvailable,
   allowOffers,
-  variant = "grid"
+  variant = "grid",
+  sellerVerified = false,
+  sellerStripeVerified = false,
+  sellerIdentityVerified = false
 }: ListingCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -200,6 +207,19 @@ const ListingCard = ({
                   : 'Pickup only'
               }
             </span>
+          </div>
+        )}
+        
+        {/* Seller Verification Badges */}
+        {(sellerVerified || sellerStripeVerified || sellerIdentityVerified) && (
+          <div className="pt-2 border-t">
+            <VerificationBadges
+              emailVerified={sellerVerified}
+              stripeVerified={sellerStripeVerified}
+              identityVerified={sellerIdentityVerified}
+              size="sm"
+              showLabel={false}
+            />
           </div>
         )}
       </div>

@@ -54,6 +54,7 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { StarRating } from '@/components/StarRating';
 import { SellerOtherItems } from '@/components/SellerOtherItems';
 import { ImageModal } from '@/components/ImageModal';
+import { VerificationBadges } from '@/components/VerificationBadge';
 import { 
   Carousel,
   CarouselContent,
@@ -86,6 +87,8 @@ const ListingDetails = () => {
             username,
             avatar_url,
             verified,
+            stripe_onboarding_complete,
+            identity_verified,
             created_at
           ),
           categories (
@@ -756,9 +759,17 @@ const ListingDetails = () => {
                         <h3 className="text-lg font-semibold">
                           {listing.profiles?.username || 'Seller'}
                         </h3>
-                        {listing.profiles?.verified && (
-                          <CheckCircle className="h-5 w-5 text-blue-500" />
-                        )}
+                      </div>
+                      
+                      {/* Verification Badges */}
+                      <div className="mb-3">
+                        <VerificationBadges
+                          emailVerified={listing.profiles?.verified || false}
+                          stripeVerified={listing.profiles?.stripe_onboarding_complete || false}
+                          identityVerified={listing.profiles?.identity_verified || false}
+                          size="sm"
+                          showLabel={true}
+                        />
                       </div>
                       
                       {sellerRating && (
