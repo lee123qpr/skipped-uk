@@ -8,6 +8,8 @@ import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminListings } from "@/components/admin/AdminListings";
 import { AdminTransactions } from "@/components/admin/AdminTransactions";
+import { AdminSystemHealth } from "@/components/admin/AdminSystemHealth";
+import { AdminSettings } from "@/components/admin/AdminSettings";
 import { toast } from "sonner";
 
 export default function Admin() {
@@ -174,23 +176,9 @@ export default function Admin() {
       case 'analytics':
         return <AdminAnalytics />;
       case 'health':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">System Health</h2>
-              <p className="text-muted-foreground mt-1">Coming soon - Monitor system performance and errors</p>
-            </div>
-          </div>
-        );
+        return <AdminSystemHealth />;
       case 'settings':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold">Settings</h2>
-              <p className="text-muted-foreground mt-1">Coming soon - Platform configuration and settings</p>
-            </div>
-          </div>
-        );
+        return <AdminSettings />;
       default:
         return <AdminOverview stats={stats} />;
     }
