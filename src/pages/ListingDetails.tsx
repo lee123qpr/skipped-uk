@@ -32,7 +32,8 @@ import {
   Mail,
   Facebook,
   Twitter,
-  Linkedin
+  Linkedin,
+  Loader2
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -74,6 +75,7 @@ const ListingDetails = () => {
   const [reviewsRefreshTrigger, setReviewsRefreshTrigger] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
@@ -168,7 +170,7 @@ const ListingDetails = () => {
     }
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -179,11 +181,58 @@ const ListingDetails = () => {
       return;
     }
     
-    // TODO: Implement checkout flow
-    toast({
-      title: "Coming Soon",
-      description: "Direct checkout functionality will be available soon.",
-    });
+    try {
+      setIsProcessingPayment(true);
+      
+      // Calculate buyer protection fee (2.5% of price)
+      const buyerProtectionFee = listing.price * 0.025;
+      const totalAmount = listing.price + buyerProtectionFee;
+      
+      // Create transaction record
+      const { data: transaction, error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          listing_id: listing.id,
+          buyer_id: user.id,
+          seller_id: listing.seller_id,
+          amount: listing.price,
+          buyer_protection_fee: buyerProtectionFee,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (txError) throw txError;
+      
+      // Call payment intent edge function
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          transactionId: transaction.id,
+          amount: totalAmount,
+          buyerProtectionFee: buyerProtectionFee,
+          returnUrl: `${window.location.origin}/listing/${listing.id}`
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Redirect to Stripe Checkout
+      if (data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+      
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to initiate checkout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleMakeOffer = () => {
@@ -470,9 +519,19 @@ const ListingDetails = () => {
                     onClick={handleBuyNow}
                     size="lg"
                     className="flex-1 sm:flex-none sm:px-8"
+                    disabled={isProcessingPayment}
                   >
-                    <PoundSterling className="mr-2 h-5 w-5" />
-                    Buy Now
+                    {isProcessingPayment ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <PoundSterling className="mr-2 h-5 w-5" />
+                        Buy Now
+                      </>
+                    )}
                   </Button>
                   
                   <Button 
