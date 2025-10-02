@@ -390,6 +390,12 @@ const CreateListing = () => {
         throw new Error('Weight per item is required for environmental certification');
       }
 
+      // Validate at least one image is uploaded
+      const hasUploadedImages = mediaFiles.some(f => f.uploaded && f.url);
+      if (!hasUploadedImages) {
+        throw new Error('At least one photo is required. Please upload at least one image before posting your listing.');
+      }
+
       // Validate quantity
       const quantity = parseInt(formData.quantity);
       if (isNaN(quantity) || quantity < 1) {
