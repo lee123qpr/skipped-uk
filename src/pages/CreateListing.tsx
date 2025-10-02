@@ -954,36 +954,46 @@ const CreateListing = () => {
               <Card className="p-6">
                 <CardHeader className="px-0 pt-0">
                   <CardTitle>Environmental Impact</CardTitle>
+                  <CardDescription>
+                    Auto-calculated based on your listing details
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-4">
-                  <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 space-y-3">
-                    {carbonCalculation ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Landfill Diverted</p>
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                              {carbonCalculation.landfillDiverted?.toFixed(0) || 0} kg
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">CO₂ Saved</p>
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                              {carbonCalculation.totalCarbon} kg
-                            </p>
-                          </div>
+                  {isCalculatingCarbon ? (
+                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <p className="text-sm">Calculating environmental impact...</p>
+                      </div>
+                    </div>
+                  ) : carbonCalculation ? (
+                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-green-600 dark:text-green-400 mb-1">Landfill Diverted</p>
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {carbonCalculation.landfillDiverted?.toFixed(0) || 0} kg
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground pt-2 border-t">
-                          {carbonCalculation.explanation}
-                        </p>
-                      </>
-                    ) : (
+                        <div>
+                          <p className="text-xs text-green-600 dark:text-green-400 mb-1">CO₂ Saved</p>
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {carbonCalculation.totalCarbon} kg
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-green-600 dark:text-green-400 pt-2 border-t border-green-200 dark:border-green-800">
+                        {carbonCalculation.explanation}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Leaf className="h-5 w-5" />
-                        <p className="text-sm">Environmental impact will be calculated based on your listing details</p>
+                        <p className="text-sm">Fill in title, category, condition and quantity to see environmental impact</p>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
