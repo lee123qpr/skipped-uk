@@ -47,10 +47,19 @@ const listingSchema = z.object({
   delivery_radius: z.number().int().positive().optional(),
   delivery_cost: z.number().nonnegative().optional(),
   delivery_notes: z.string().max(500, 'Delivery notes must be less than 500 characters').optional(),
-  reason_for_selling: z.string().optional()
+  reason_for_selling: z.string().optional(),
+  environmental_assessment_enabled: z.boolean().optional()
 }).refine(data => data.delivery_available || data.pickup_available, {
   message: 'You must enable at least collection or delivery',
   path: ['pickup_available']
+}).refine(data => {
+  if (data.environmental_assessment_enabled && !data.weight) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Weight per item is required for environmental certification',
+  path: ['weight']
 });
 interface MediaFile {
   id: string;
@@ -377,6 +386,11 @@ const CreateListing = () => {
       if (weight !== undefined && isNaN(weight)) {
         throw new Error('Please enter a valid weight');
       }
+      
+      // Check weight requirement for environmental certification
+      if (formData.environmental_assessment_enabled && !weight) {
+        throw new Error('Weight per item is required for environmental certification');
+      }
 
       // Validate quantity
       const quantity = parseInt(formData.quantity);
@@ -401,7 +415,8 @@ const CreateListing = () => {
         delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
         delivery_notes: formData.delivery_available && formData.delivery_notes ? formData.delivery_notes : undefined,
-        reason_for_selling: formData.reason_for_selling || undefined
+        reason_for_selling: formData.reason_for_selling || undefined,
+        environmental_assessment_enabled: formData.environmental_assessment_enabled
       });
       setIsLoading(true);
 
@@ -650,8 +665,28 @@ const CreateListing = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="weight">Weight (kg) (optional)</Label>
-                      <Input id="weight" type="number" step="0.1" min="0" value={formData.weight} onChange={e => handleInputChange('weight', e.target.value)} placeholder="0.0" disabled={isLoading} />
+                      <Label htmlFor="weight">Weight per item (kg) {formData.environmental_assessment_enabled && <span className="text-destructive">*</span>}</Label>
+                      <Input 
+                        id="weight" 
+                        type="number" 
+                        step="0.1" 
+                        min="0" 
+                        value={formData.weight} 
+                        onChange={e => handleInputChange('weight', e.target.value)} 
+                        placeholder="e.g. 25.5" 
+                        disabled={isLoading}
+                        required={formData.environmental_assessment_enabled}
+                      />
+                      {formData.weight && formData.quantity && (
+                        <p className="text-xs text-muted-foreground">
+                          Total weight: <span className="font-medium">{(parseFloat(formData.weight) * parseInt(formData.quantity)).toFixed(1)} kg</span> ({formData.quantity} items × {parseFloat(formData.weight).toFixed(1)} kg each)
+                        </p>
+                      )}
+                      {formData.environmental_assessment_enabled && !formData.weight && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          Required for environmental certification
+                        </p>
+                      )}
                     </div>
                   </div>
 
