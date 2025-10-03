@@ -3,19 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, 
-  Truck, 
-  AlertTriangle, 
   Clock,
-  Package,
   Star
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
 import ErrorBoundary from "./ErrorBoundary";
+import { DisputeDialog } from "./DisputeDialog";
 import { getStatusConfig, canBuyerPay, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
@@ -55,8 +52,7 @@ export const TransactionManager = ({
   onUpdate 
 }: TransactionManagerProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [disputeReason, setDisputeReason] = useState("");
-  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
@@ -231,45 +227,8 @@ export const TransactionManager = ({
     }
   };
 
-  const handleRaiseDispute = async () => {
-    if (!disputeReason.trim()) {
-      toast({
-        title: "Error",
-        description: "Please provide a reason for the dispute",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("raise-dispute", {
-        body: { 
-          transactionId: transaction.id,
-          reason: disputeReason
-        },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Dispute Raised",
-        description: "Your payment has been refunded.",
-      });
-
-      setShowDisputeForm(false);
-      setDisputeReason("");
-      onUpdate();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Get the other user's ID for the dispute dialog
+  const otherUserId = userRole === "buyer" ? transaction.seller_id : transaction.buyer_id;
 
   const statusConfig = getStatusConfig(transaction.status);
   const StatusIcon = statusConfig.icon;
@@ -365,7 +324,7 @@ export const TransactionManager = ({
               </ErrorBoundary>
             )}
 
-            {canBuyerConfirmDelivery(transaction.status) && !showDisputeForm && (
+            {canBuyerConfirmDelivery(transaction.status) && (
               <>
                 <Button 
                   onClick={handleConfirmDelivery}
@@ -375,7 +334,7 @@ export const TransactionManager = ({
                   Confirm Received - No Issues
                 </Button>
                 <Button 
-                  onClick={() => setShowDisputeForm(true)}
+                  onClick={() => setShowDisputeDialog(true)}
                   disabled={isLoading}
                   variant="outline"
                   className="w-full"
@@ -383,37 +342,6 @@ export const TransactionManager = ({
                   Raise Dispute
                 </Button>
               </>
-            )}
-
-            {showDisputeForm && (
-              <div className="space-y-2">
-                <Textarea
-                  placeholder="Describe the issue..."
-                  value={disputeReason}
-                  onChange={(e) => setDisputeReason(e.target.value)}
-                  rows={4}
-                />
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleRaiseDispute}
-                    disabled={isLoading}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    Submit Dispute
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setShowDisputeForm(false);
-                      setDisputeReason("");
-                    }}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
             )}
           </div>
         )}
@@ -497,6 +425,16 @@ export const TransactionManager = ({
           <TransactionTimeline transaction={transaction} userRole={userRole} />
         </div>
       </CardContent>
+
+      {/* Dispute Dialog */}
+      <DisputeDialog
+        open={showDisputeDialog}
+        onOpenChange={setShowDisputeDialog}
+        transactionId={transaction.id}
+        userRole={userRole}
+        otherUserId={otherUserId}
+        onSuccess={onUpdate}
+      />
     </Card>
   );
 };
