@@ -206,7 +206,7 @@ const Dashboard = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -227,6 +227,15 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate("/sign-in");
+      return;
+    }
+    fetchProfile();
+  }, [user, authLoading, navigate]);
 
   if (authLoading || loading) {
     return (
