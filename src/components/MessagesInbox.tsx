@@ -424,12 +424,16 @@ const MessagesInbox = () => {
 
       // Combine data
       const combinedData = messages.map(message => {
+        // Determine the other participant for correct transaction matching
+        const otherUserId = message.sender_id === user.id ? message.receiver_id : message.sender_id;
+        
         // Find ALL matching transactions, then pick the most recent and relevant one
         const matchingTransactions = transactions?.filter(t => 
           t.listing_id === message.listing_id &&
-          ((t.buyer_id === user.id && t.seller_id === message.receiver_id) ||
-           (t.seller_id === user.id && t.buyer_id === message.receiver_id) ||
-           (message.sender_id === user.id && message.receiver_id === user.id))
+          (
+            (t.buyer_id === user.id && t.seller_id === otherUserId) ||
+            (t.seller_id === user.id && t.buyer_id === otherUserId)
+          )
         ) || [];
         
         // Priority order: active transactions (paid, dispatched, etc.) over pending
