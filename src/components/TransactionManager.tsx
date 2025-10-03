@@ -215,7 +215,11 @@ export const TransactionManager = ({
           : "Funds have been released to the seller!",
       });
 
+      // Force immediate UI update by calling onUpdate multiple times with small delays
+      // This ensures the parent component refetches the updated transaction status
       onUpdate();
+      setTimeout(() => onUpdate(), 500);
+      setTimeout(() => onUpdate(), 1500);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -324,7 +328,7 @@ export const TransactionManager = ({
               </ErrorBoundary>
             )}
 
-            {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && (
+            {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && !transaction.delivery_confirmed_at && (
               <>
                 <Button 
                   onClick={handleConfirmDelivery}
