@@ -372,7 +372,7 @@ export const TransactionManager = ({
               </div>
             )}
             
-            {canSellerDispatch(transaction.status) && (
+            {transaction.status === "paid" && !transaction.dispatch_confirmed_at && (
               <Button 
                 onClick={handleConfirmDispatch}
                 disabled={isLoading}
