@@ -474,10 +474,17 @@ const MessagesInbox = () => {
     staleTime: 1000, // Consider data stale after 1 second to allow quick refetches
   });
 
-  // Group messages into conversations
+  // Group messages into conversations by transaction
+  // CRITICAL: Use transaction_id to ensure each transaction has its own conversation thread
+  // This prevents message crossover when the same buyer and seller have multiple transactions for the same item
   const conversations: Record<string, Conversation> = allMessagesData.reduce((acc, message) => {
     const otherUserId = message.sender_id === user?.id ? message.receiver_id : message.sender_id;
-    const key = `${message.listing_id}-${otherUserId}`;
+    
+    // Create unique key: If transaction exists, use transaction_id; otherwise fall back to listing+user (for pre-transaction messages)
+    const transactionId = message.transaction?.id;
+    const key = transactionId 
+      ? `transaction-${transactionId}`
+      : `listing-${message.listing_id}-${otherUserId}`;
     
     if (!acc[key]) {
       acc[key] = {
