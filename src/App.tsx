@@ -33,6 +33,10 @@ import ListingDetails from "./pages/ListingDetails";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
+import BuyerProtection from "./pages/BuyerProtection";
+import DeliveryOptions from "./pages/DeliveryOptions";
+import CarbonCalculator from "./pages/CarbonCalculator";
+import HowItWorks from "./pages/HowItWorks";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 
@@ -62,6 +66,10 @@ const App = () => (
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/buyer-protection" element={<BuyerProtection />} />
+                <Route path="/delivery-options" element={<DeliveryOptions />} />
+                <Route path="/carbon-calculator" element={<CarbonCalculator />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
