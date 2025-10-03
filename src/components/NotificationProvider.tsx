@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { MessageCircle, PoundSterling, Package, AlertCircle } from 'lucide-react';
+import { MessageCircle, PoundSterling, Package, AlertCircle, Check } from 'lucide-react';
 
 export interface Notification {
   id: string;
@@ -179,182 +179,36 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             unreadNotifications: prev.unreadNotifications + 1,
           }));
 
-          // Show toast
-          const icon = 
-            newNotification.type === 'transaction' ? <Package className="h-4 w-4" /> :
-            newNotification.type === 'dispute' ? <AlertCircle className="h-4 w-4" /> :
-            newNotification.type === 'offer' ? <PoundSterling className="h-4 w-4" /> :
-            <MessageCircle className="h-4 w-4" />;
+          // Show toast with enhanced variants and icons
+          const getToastVariant = (type: string, metadata: any) => {
+            if (type === 'dispute') return 'destructive';
+            if (type === 'transaction') {
+              if (metadata?.status === 'completed') return 'success';
+              if (metadata?.status === 'disputed') return 'destructive';
+            }
+            if (type === 'offer' && metadata?.status === 'accepted') return 'success';
+            if (type === 'offer' && metadata?.status === 'declined') return 'destructive';
+            return 'default';
+          };
+
+          const getNotificationIcon = (type: string, metadata: any) => {
+            if (type === 'transaction') {
+              if (metadata?.action === 'payment') return <PoundSterling className="h-4 w-4" />;
+              if (metadata?.action === 'dispatch') return <Package className="h-4 w-4" />;
+              if (metadata?.action === 'delivery') return <Check className="h-4 w-4" />;
+              return <Package className="h-4 w-4" />;
+            }
+            if (type === 'dispute') return <AlertCircle className="h-4 w-4" />;
+            if (type === 'offer') return <PoundSterling className="h-4 w-4" />;
+            return <MessageCircle className="h-4 w-4" />;
+          };
 
           toast({
             title: newNotification.title,
             description: newNotification.description,
-            action: icon,
+            variant: getToastVariant(newNotification.type, newNotification.metadata),
+            action: getNotificationIcon(newNotification.type, newNotification.metadata),
           });
-        }
-      )
-      .subscribe();
-
-    const messageChannel = supabase
-      .channel('messages-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          // Fetch sender details and listing info
-          const { data: senderData } = await supabase
-            .from('profiles')
-            .select('display_name, username')
-            .eq('user_id', payload.new.sender_id)
-            .single();
-
-          const { data: listingData } = await supabase
-            .from('listings')
-            .select('title')
-            .eq('id', payload.new.listing_id)
-            .single();
-
-          const senderName = senderData?.display_name || senderData?.username || 'Someone';
-          const listingTitle = listingData?.title || 'your listing';
-
-          toast({
-            title: 'New message received',
-            description: `${senderName} sent you a message about ${listingTitle}`,
-            action: (
-              <MessageCircle className="h-4 w-4" />
-            ),
-          });
-
-          // Update counts
-          setCounts(prev => ({
-            ...prev,
-            unreadMessages: prev.unreadMessages + 1,
-          }));
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${user.id}`,
-        },
-        (payload) => {
-          // Message was marked as read
-          if (payload.old.read === false && payload.new.read === true) {
-            setCounts(prev => ({
-              ...prev,
-              unreadMessages: Math.max(0, prev.unreadMessages - 1),
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    const offerChannel = supabase
-      .channel('offers-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'offers',
-          filter: `seller_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          // Fetch buyer details and listing info
-          const { data: buyerData } = await supabase
-            .from('profiles')
-            .select('display_name, username')
-            .eq('user_id', payload.new.buyer_id)
-            .single();
-
-          const { data: listingData } = await supabase
-            .from('listings')
-            .select('title')
-            .eq('id', payload.new.listing_id)
-            .single();
-
-          const buyerName = buyerData?.display_name || buyerData?.username || 'Someone';
-          const listingTitle = listingData?.title || 'your listing';
-          const offerAmount = payload.new.amount;
-
-          toast({
-            title: 'New offer received',
-            description: `${buyerName} made an offer of £${offerAmount} on ${listingTitle}`,
-            action: (
-              <PoundSterling className="h-4 w-4" />
-            ),
-          });
-
-          // Update counts
-          setCounts(prev => ({
-            ...prev,
-            pendingOffers: prev.pendingOffers + 1,
-          }));
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'offers',
-          filter: `buyer_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          // Offer status was updated (accepted/declined)
-          if (payload.old.status === 'pending' && payload.new.status !== 'pending') {
-            // Fetch listing info
-            const { data: listingData } = await supabase
-              .from('listings')
-              .select('title')
-              .eq('id', payload.new.listing_id)
-              .single();
-
-            const listingTitle = listingData?.title || 'a listing';
-            const status = payload.new.status;
-            const offerAmount = payload.new.amount;
-
-            toast({
-              title: `Offer ${status}`,
-              description: `Your offer of £${offerAmount} on ${listingTitle} was ${status}`,
-              variant: status === 'accepted' ? 'default' : 'destructive',
-              action: (
-                <Package className="h-4 w-4" />
-              ),
-            });
-
-            // Update counts
-            setCounts(prev => ({
-              ...prev,
-              newOffers: prev.newOffers + 1,
-            }));
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'offers',
-          filter: `seller_id=eq.${user.id}`,
-        },
-        (payload) => {
-          // Offer was processed (no longer pending)
-          if (payload.old.status === 'pending' && payload.new.status !== 'pending') {
-            setCounts(prev => ({
-              ...prev,
-              pendingOffers: Math.max(0, prev.pendingOffers - 1),
-            }));
-          }
         }
       )
       .subscribe();
@@ -362,8 +216,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Cleanup subscriptions
     return () => {
       supabase.removeChannel(notificationChannel);
-      supabase.removeChannel(messageChannel);
-      supabase.removeChannel(offerChannel);
     };
   }, [user, toast]);
 
