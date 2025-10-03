@@ -1,4 +1,4 @@
-import { LayoutDashboard, AlertTriangle, Users, Package, DollarSign, TrendingUp, Settings, Activity, Wallet, LogOut } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Users, Package, DollarSign, TrendingUp, Settings, Activity, Wallet, LogOut, Newspaper } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +69,12 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
       name: "Analytics",
       icon: TrendingUp,
       section: "analytics",
+      badge: null,
+    },
+    {
+      name: "News & Resources",
+      icon: Newspaper,
+      section: "blog",
       badge: null,
     },
     {

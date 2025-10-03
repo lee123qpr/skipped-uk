@@ -39,6 +39,8 @@ import CarbonCalculator from "./pages/CarbonCalculator";
 import HowItWorks from "./pages/HowItWorks";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import NewsResources from "./pages/NewsResources";
+import BlogPost from "./pages/BlogPost";
 
 const App = () => (
   <HelmetProvider>
@@ -70,6 +72,8 @@ const App = () => (
                 <Route path="/delivery-options" element={<DeliveryOptions />} />
                 <Route path="/carbon-calculator" element={<CarbonCalculator />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/news-resources" element={<NewsResources />} />
+                <Route path="/news-resources/:slug" element={<BlogPost />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

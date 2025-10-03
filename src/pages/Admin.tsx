@@ -15,6 +15,7 @@ import AdminBannerManager from "@/components/admin/AdminBannerManager";
 import AdminPlatformSettings from "@/components/admin/AdminPlatformSettings";
 import { AdminEnvironmental } from "@/components/admin/AdminEnvironmental";
 import { AdminCertificates } from "@/components/admin/AdminCertificates";
+import { AdminBlog } from "@/components/admin/AdminBlog";
 import { toast } from "sonner";
 
 export default function Admin() {
@@ -194,6 +195,8 @@ export default function Admin() {
         return <AdminBannerManager />;
       case 'platform-settings':
         return <AdminPlatformSettings />;
+      case 'blog':
+        return <AdminBlog />;
       default:
         return <AdminOverview stats={stats} />;
     }
