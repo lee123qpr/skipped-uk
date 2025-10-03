@@ -468,7 +468,8 @@ const MessagesInbox = () => {
       return combinedData;
     },
     enabled: !!user,
-    refetchInterval: 5000, // Refetch every 5 seconds to catch status updates
+    // Remove polling interval - rely on realtime subscriptions for instant updates
+    staleTime: 1000, // Consider data stale after 1 second to allow quick refetches
   });
 
   // Group messages into conversations
@@ -637,6 +638,8 @@ const MessagesInbox = () => {
   useEffect(() => {
     if (!user) return;
 
+    console.log('[MessagesInbox] Setting up realtime subscriptions for user:', user.id);
+
     const transactionChannel = supabase
       .channel('transaction-updates')
       .on(
@@ -647,8 +650,10 @@ const MessagesInbox = () => {
           table: 'transactions',
           filter: `buyer_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('[MessagesInbox] Transaction UPDATE received (buyer):', payload);
           refetchMessages();
+          refreshCounts(); // Update notification counts
         }
       )
       .on(
@@ -659,8 +664,10 @@ const MessagesInbox = () => {
           table: 'transactions',
           filter: `seller_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('[MessagesInbox] Transaction UPDATE received (seller):', payload);
           refetchMessages();
+          refreshCounts(); // Update notification counts
         }
       )
       .subscribe();
@@ -668,7 +675,7 @@ const MessagesInbox = () => {
     return () => {
       supabase.removeChannel(transactionChannel);
     };
-  }, [user, refetchMessages]);
+  }, [user, refetchMessages, refreshCounts]);
 
   // Realtime subscription for instant message updates
   useEffect(() => {
@@ -685,7 +692,8 @@ const MessagesInbox = () => {
           table: 'messages',
           filter: `sender_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('[MessagesInbox] Message event (sender):', payload.eventType);
           refetchMessages();
         }
       )
@@ -701,8 +709,10 @@ const MessagesInbox = () => {
           table: 'messages',
           filter: `receiver_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('[MessagesInbox] Message event (receiver):', payload.eventType);
           refetchMessages();
+          refreshCounts(); // Update notification badge
         }
       )
       .subscribe();
@@ -711,7 +721,7 @@ const MessagesInbox = () => {
       supabase.removeChannel(senderChannel);
       supabase.removeChannel(receiverChannel);
     };
-  }, [user, refetchMessages]);
+  }, [user, refetchMessages, refreshCounts]);
 
   // Mark all messages in conversation as read
   useEffect(() => {
