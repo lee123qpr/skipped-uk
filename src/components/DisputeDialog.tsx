@@ -39,7 +39,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 
 const disputeSchema = z.object({
   disputeType: z.string().min(1, "Please select a dispute type"),
-  description: z.string().min(20, "Please provide at least 20 characters describing the issue").max(1000),
+  description: z.string().min(40, "Please provide at least 40 characters describing the issue").max(1000),
 });
 
 type DisputeFormValues = z.infer<typeof disputeSchema>;
@@ -359,7 +359,7 @@ export const DisputeDialog = ({
                       />
                     </FormControl>
                     <FormDescription>
-                      Minimum 20 characters. Be specific and factual.
+                      Minimum 40 characters. Be specific and factual.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
