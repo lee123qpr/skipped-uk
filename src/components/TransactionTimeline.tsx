@@ -37,9 +37,15 @@ export function TransactionTimeline({ transaction, userRole }: TransactionTimeli
       {
         label: "Payment in Escrow",
         timestamp: transaction.paid_at || undefined,
-        status: transaction.paid_at ? "complete" : transaction.status === "pending_payment" ? "current" : "upcoming",
-        icon: transaction.paid_at ? CheckCircle2 : Clock,
-        description: transaction.paid_at 
+        status: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
+          ? "complete" 
+          : transaction.status === "pending_payment" 
+            ? "current" 
+            : "upcoming",
+        icon: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
+          ? CheckCircle2 
+          : Clock,
+        description: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
           ? (userRole === "buyer" ? "✓ Payment held securely in escrow" : "✓ Payment received and held in escrow")
           : transaction.status === "pending_payment"
             ? (userRole === "buyer" ? "⏳ Verifying your payment..." : "⏳ Awaiting buyer payment")
