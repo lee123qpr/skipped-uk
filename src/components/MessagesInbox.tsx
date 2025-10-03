@@ -360,6 +360,8 @@ const MessagesInbox = () => {
     queryFn: async () => {
       if (!user) return [];
       
+      console.log('[MessagesInbox] Fetching messages for user:', user.id);
+      
       // Get all messages where user is sender or receiver - FIXED: proper query syntax
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
@@ -400,7 +402,7 @@ const MessagesInbox = () => {
       const listingIds = [...new Set(messages.map(m => m.listing_id))];
       const { data: listings, error: listingsError } = await supabase
         .from('listings')
-        .select('id, title, price, images')
+        .select('id, title, price, images, environmental_assessment_enabled')
         .in('id', listingIds);
       
       if (listingsError) throw listingsError;
@@ -413,22 +415,37 @@ const MessagesInbox = () => {
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
       
       if (transactionsError) console.error('Error fetching transactions:', transactionsError);
+      
+      console.log('[MessagesInbox] Found transactions:', transactions?.map(t => ({ 
+        id: t.id, 
+        status: t.status, 
+        listing_id: t.listing_id 
+      })));
 
       // Combine data
-      return messages.map(message => ({
-        ...message,
-        sender_profile: profiles?.find(p => p.user_id === message.sender_id) || null,
-        receiver_profile: profiles?.find(p => p.user_id === message.receiver_id) || null,
-        listing: listings?.find(l => l.id === message.listing_id) || null,
-        offer: message.offer_id ? offers?.find(o => o.id === message.offer_id) || null : null,
-        transaction: transactions?.find(t => 
+      const combinedData = messages.map(message => {
+        const transaction = transactions?.find(t => 
           t.listing_id === message.listing_id &&
           ((t.buyer_id === user.id && t.seller_id === message.receiver_id) ||
-           (t.seller_id === user.id && t.buyer_id === message.receiver_id))
-        ) || null
-      }));
+           (t.seller_id === user.id && t.buyer_id === message.receiver_id) ||
+           (message.sender_id === user.id && message.receiver_id === user.id))
+        ) || null;
+        
+        return {
+          ...message,
+          sender_profile: profiles?.find(p => p.user_id === message.sender_id) || null,
+          receiver_profile: profiles?.find(p => p.user_id === message.receiver_id) || null,
+          listing: listings?.find(l => l.id === message.listing_id) || null,
+          offer: message.offer_id ? offers?.find(o => o.id === message.offer_id) || null : null,
+          transaction
+        };
+      });
+      
+      console.log('[MessagesInbox] Processed conversations with transactions');
+      return combinedData;
     },
     enabled: !!user,
+    refetchInterval: 5000, // Refetch every 5 seconds to catch status updates
   });
 
   // Group messages into conversations
@@ -942,21 +959,33 @@ const MessagesInbox = () => {
                 </ScrollArea>
 
                 {/* Transaction Management */}
-                {selectedConversation.transaction && (
-                  <div className="border-t p-3 bg-muted/30">
-                    <TransactionManager
-                      transaction={{
-                        ...selectedConversation.transaction,
-                        listings: selectedConversation.listing
-                      }}
-                      userRole={selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'}
-                      onUpdate={() => {
-                        refetchMessages();
-                        refetchOffers();
-                      }}
-                    />
-                  </div>
-                )}
+                {selectedConversation.transaction && (() => {
+                  console.log('[MessagesInbox] Rendering TransactionManager with:', {
+                    transactionId: selectedConversation.transaction.id,
+                    status: selectedConversation.transaction.status,
+                    buyerId: selectedConversation.transaction.buyer_id,
+                    sellerId: selectedConversation.transaction.seller_id,
+                    currentUserId: user?.id,
+                    userRole: selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'
+                  });
+                  
+                  return (
+                    <div className="border-t p-3 bg-muted/30">
+                      <TransactionManager
+                        transaction={{
+                          ...selectedConversation.transaction,
+                          listings: selectedConversation.listing
+                        }}
+                        userRole={selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'}
+                        onUpdate={() => {
+                          console.log('[MessagesInbox] TransactionManager onUpdate called, refetching...');
+                          refetchMessages();
+                          refetchOffers();
+                        }}
+                      />
+                    </div>
+                  );
+                })()}
 
                 {/* Message Input - Always Available */}
                 <div className="border-t-2 bg-background p-3">

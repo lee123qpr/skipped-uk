@@ -60,6 +60,14 @@ export const TransactionManager = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
+  console.log('[TransactionManager] Rendering with:', { 
+    transactionId: transaction.id, 
+    status: transaction.status, 
+    userRole,
+    paidAt: transaction.paid_at,
+    dispatchedAt: transaction.dispatch_confirmed_at 
+  });
+
   // Prevent accidental page navigation during payment
   useEffect(() => {
     if (transaction.status === "pending_payment") {
