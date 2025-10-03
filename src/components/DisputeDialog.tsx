@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -87,6 +88,7 @@ export const DisputeDialog = ({
   const [showForm, setShowForm] = useState(false);
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<DisputeFormValues>({
     resolver: zodResolver(disputeSchema),
@@ -293,8 +295,9 @@ export const DisputeDialog = ({
             <div className="flex gap-3">
               <Button
                 onClick={() => {
-                  // Navigate to messages to contact the other party
-                  window.location.href = "/dashboard?tab=messages";
+                  // Close dialog and navigate to messages with the other user pre-selected
+                  onOpenChange(false);
+                  navigate(`/dashboard?tab=messages&user=${otherUserId}`);
                 }}
                 variant="outline"
                 className="flex-1"

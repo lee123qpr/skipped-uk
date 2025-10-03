@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/components/NotificationProvider';
 import { TransactionManager } from '@/components/TransactionManager';
@@ -140,6 +140,7 @@ const MessagesInbox = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { refreshCounts } = useNotifications();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -633,6 +634,20 @@ const MessagesInbox = () => {
   const receivedOffers = receivedOffersData;
   const madeOffers = madeOffersData;
   const unreadCount = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0);
+
+  // Auto-select conversation from URL parameter
+  useEffect(() => {
+    const userId = searchParams.get('user');
+    if (userId && conversationsList.length > 0 && !selectedConversation) {
+      const conversation = conversationsList.find(conv => conv.otherUserId === userId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        // Clear the parameter after selecting
+        searchParams.delete('user');
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [conversationsList, searchParams, selectedConversation, setSearchParams]);
 
   // Realtime subscription for transaction updates
   useEffect(() => {
