@@ -165,9 +165,9 @@ const MessagesInbox = () => {
     const isBuyer = transaction?.buyer_id === userId || latestOffer?.buyer_id === userId;
     
     // Priority 1: Disputes
-    if (transaction?.status === 'disputed') {
+    if (transaction?.status === 'disputed' || transaction?.status === 'disputed_pending_review') {
       return {
-        label: 'Disputed',
+        label: transaction.status === 'disputed_pending_review' ? 'Dispute - Under Review' : 'Disputed',
         icon: AlertTriangle,
         variant: 'destructive',
         bgColor: 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800',
@@ -445,6 +445,7 @@ const MessagesInbox = () => {
           'paid': 7,
           'pending_payment': 6,
           'disputed': 5,
+          'disputed_pending_review': 5,
           'pending': 1,
         };
         
@@ -511,6 +512,7 @@ const MessagesInbox = () => {
           'paid': 7,
           'pending_payment': 6,
           'disputed': 5,
+          'disputed_pending_review': 5,
           'pending': 1,
         };
         

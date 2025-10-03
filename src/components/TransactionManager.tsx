@@ -324,7 +324,7 @@ export const TransactionManager = ({
               </ErrorBoundary>
             )}
 
-            {canBuyerConfirmDelivery(transaction.status) && (
+            {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && (
               <>
                 <Button 
                   onClick={handleConfirmDelivery}
@@ -342,6 +342,18 @@ export const TransactionManager = ({
                   Raise Dispute
                 </Button>
               </>
+            )}
+
+            {/* Show dispute status message */}
+            {transaction.status.includes('disputed') && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
+                  ⚠️ Dispute Submitted
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-300">
+                  Your dispute is under admin review. Both parties will be notified of the outcome within 24-48 hours. Funds remain in escrow during the review.
+                </p>
+              </div>
             )}
           </div>
         )}
@@ -382,6 +394,18 @@ export const TransactionManager = ({
               <div className="p-3 bg-muted rounded-md">
                 <p className="text-sm text-muted-foreground">
                   ⏳ Waiting for buyer to complete payment...
+                </p>
+              </div>
+            )}
+
+            {/* Show dispute status message for seller */}
+            {transaction.status.includes('disputed') && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
+                  ⚠️ Dispute Raised
+                </p>
+                <p className="text-xs text-red-700 dark:text-red-300">
+                  A dispute has been raised by the buyer. An admin will review the case within 24-48 hours. Funds remain in escrow during the review.
                 </p>
               </div>
             )}

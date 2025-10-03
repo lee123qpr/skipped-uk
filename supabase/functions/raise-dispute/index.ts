@@ -48,6 +48,11 @@ serve(async (req) => {
       throw new Error("Transaction not found or unauthorized");
     }
 
+    // Check if transaction already has a dispute
+    if (transaction.dispute_id || transaction.status.includes('disputed')) {
+      throw new Error("A dispute has already been raised for this transaction");
+    }
+
     // Determine if user is buyer or seller
     const isBuyer = transaction.buyer_id === user.id;
     const isSeller = transaction.seller_id === user.id;

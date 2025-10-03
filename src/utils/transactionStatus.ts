@@ -7,7 +7,8 @@ export type TransactionStatus =
   | "dispatched" 
   | "delivered" 
   | "completed" 
-  | "disputed" 
+  | "disputed"
+  | "disputed_pending_review"
   | "refunded";
 
 export interface StatusConfig {
@@ -68,6 +69,13 @@ export const TRANSACTION_STATUS_CONFIG: Record<TransactionStatus, StatusConfig> 
     icon: AlertTriangle,
     description: "Transaction under dispute"
   },
+  disputed_pending_review: {
+    label: "Dispute - Under Review",
+    variant: "destructive",
+    className: "bg-red-600 hover:bg-red-700 text-white",
+    icon: AlertTriangle,
+    description: "Dispute submitted - awaiting admin review"
+  },
   refunded: {
     label: "Refunded",
     variant: "destructive",
@@ -99,9 +107,9 @@ export const canBuyerConfirmDelivery = (status: string): boolean => {
 };
 
 export const canRaiseDispute = (status: string): boolean => {
-  return status === "dispatched";
+  return status === "dispatched" && !status.includes("disputed");
 };
 
 export const isTransactionActive = (status: string): boolean => {
-  return !["completed", "disputed", "refunded"].includes(status);
+  return !["completed", "disputed", "disputed_pending_review", "refunded"].includes(status);
 };
