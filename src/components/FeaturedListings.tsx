@@ -38,6 +38,7 @@ const FeaturedListings = () => {
 
   const fetchFeaturedListings = async () => {
     try {
+      setLoading(true);
       const { data: listingsData, error } = await supabase
         .from('listings')
         .select(`
@@ -63,13 +64,16 @@ const FeaturedListings = () => {
         `)
         .eq('status', 'active')
         .eq('available', true)
-        .order('carbon_saved', { ascending: false })
+        .order('carbon_saved', { ascending: false, nullsFirst: false })
         .limit(4);
 
       if (error) {
         console.error('Error fetching listings:', error);
+        setListings([]);
         return;
       }
+
+      console.log('Fetched listings data:', listingsData);
 
       const formattedListings: Listing[] = listingsData?.map((listing: any) => ({
         id: listing.id,
@@ -96,9 +100,11 @@ const FeaturedListings = () => {
         dimensions: listing.dimensions
       })) || [];
 
+      console.log('Formatted listings:', formattedListings);
       setListings(formattedListings);
     } catch (error) {
       console.error('Error fetching featured listings:', error);
+      setListings([]);
     } finally {
       setLoading(false);
     }

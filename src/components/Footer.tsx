@@ -1,4 +1,5 @@
 import { Leaf, Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
@@ -25,12 +26,12 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Marketplace</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="/browse" className="hover:text-primary transition-smooth">Browse Materials</a></li>
-              <li><a href="/sell" className="hover:text-primary transition-smooth">Sell Items</a></li>
-              <li><a href="/how-it-works" className="hover:text-primary transition-smooth">How It Works</a></li>
-              <li><a href="/buyer-protection" className="hover:text-primary transition-smooth">Buyer Protection</a></li>
-              <li><a href="/delivery-options" className="hover:text-primary transition-smooth">Delivery/Collection</a></li>
-              <li><a href="/carbon-calculator" className="hover:text-primary transition-smooth">Carbon Calculator</a></li>
+              <li><Link to="/browse" className="hover:text-primary transition-smooth">Browse Materials</Link></li>
+              <li><Link to="/sell" className="hover:text-primary transition-smooth">Sell Items</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">How It Works</Link></li>
+              <li><Link to="/buyer-protection" className="hover:text-primary transition-smooth">Buyer Protection</Link></li>
+              <li><Link to="/delivery-options" className="hover:text-primary transition-smooth">Delivery/Collection</Link></li>
+              <li><Link to="/carbon-calculator" className="hover:text-primary transition-smooth">Carbon Calculator</Link></li>
             </ul>
           </div>
 
@@ -38,11 +39,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Support</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-smooth">Help Centre</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Contact Us</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Dispute Resolution</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Safety Guidelines</a></li>
-              <li><a href="#" className="hover:text-primary transition-smooth">Trust & Safety</a></li>
+              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Help Centre</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Contact Us</Link></li>
+              <li><Link to="/buyer-protection" className="hover:text-primary transition-smooth">Dispute Resolution</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Safety Guidelines</Link></li>
+              <li><Link to="/buyer-protection" className="hover:text-primary transition-smooth">Trust & Safety</Link></li>
             </ul>
           </div>
 
@@ -78,9 +79,9 @@ const Footer = () => {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">© 2026 Skipped. All rights reserved.</p>
           <div className="flex space-x-6 text-sm text-muted-foreground mt-4 md:mt-0">
-            <a href="/privacy-policy" className="hover:text-primary transition-smooth">Privacy Policy</a>
-            <a href="/terms-of-service" className="hover:text-primary transition-smooth">Terms of Service</a>
-            <a href="/cookie-policy" className="hover:text-primary transition-smooth">Cookie Policy</a>
+            <Link to="/privacy-policy" className="hover:text-primary transition-smooth">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-primary transition-smooth">Terms of Service</Link>
+            <Link to="/cookie-policy" className="hover:text-primary transition-smooth">Cookie Policy</Link>
           </div>
         </div>
       </div>
