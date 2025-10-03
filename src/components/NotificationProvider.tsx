@@ -2,22 +2,42 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { MessageCircle, PoundSterling, Package } from 'lucide-react';
+import { MessageCircle, PoundSterling, Package, AlertCircle } from 'lucide-react';
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  description: string;
+  action_url: string | null;
+  related_id: string | null;
+  read: boolean;
+  created_at: string;
+  metadata: any;
+}
 
 interface NotificationCounts {
   unreadMessages: number;
   pendingOffers: number;
   newOffers: number;
+  unreadNotifications: number;
 }
 
 interface NotificationContextType {
   counts: NotificationCounts;
+  notifications: Notification[];
   refreshCounts: () => Promise<void>;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
-  counts: { unreadMessages: 0, pendingOffers: 0, newOffers: 0 },
+  counts: { unreadMessages: 0, pendingOffers: 0, newOffers: 0, unreadNotifications: 0 },
+  notifications: [],
   refreshCounts: async () => {},
+  markAsRead: async () => {},
+  markAllAsRead: async () => {},
 });
 
 export const useNotifications = () => {
@@ -35,11 +55,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     unreadMessages: 0,
     pendingOffers: 0,
     newOffers: 0,
+    unreadNotifications: 0,
   });
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const fetchCounts = async () => {
     if (!user) {
-      setCounts({ unreadMessages: 0, pendingOffers: 0, newOffers: 0 });
+      setCounts({ unreadMessages: 0, pendingOffers: 0, newOffers: 0, unreadNotifications: 0 });
+      setNotifications([]);
       return;
     }
 
@@ -65,13 +88,63 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('buyer_id', user.id)
         .in('status', ['accepted', 'declined']);
 
+      // Fetch unread notifications
+      const { data: notificationsData, count: notificationsCount } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('read', false)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
       setCounts({
         unreadMessages: messagesCount || 0,
         pendingOffers: pendingOffersCount || 0,
         newOffers: newOffersCount || 0,
+        unreadNotifications: notificationsCount || 0,
       });
+
+      setNotifications(notificationsData || []);
     } catch (error) {
       console.error('Error fetching notification counts:', error);
+    }
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setCounts(prev => ({
+        ...prev,
+        unreadNotifications: Math.max(0, prev.unreadNotifications - 1),
+      }));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setCounts(prev => ({ ...prev, unreadNotifications: 0 }));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
@@ -83,7 +156,45 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Initial fetch
     fetchCounts();
 
-    // Set up real-time subscriptions
+    // Set up real-time subscriptions for notifications
+    const notificationChannel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotification = payload.new as Notification;
+          
+          // Add to notifications list
+          setNotifications(prev => [newNotification, ...prev].slice(0, 20));
+          
+          // Update counts
+          setCounts(prev => ({
+            ...prev,
+            unreadNotifications: prev.unreadNotifications + 1,
+          }));
+
+          // Show toast
+          const icon = 
+            newNotification.type === 'transaction' ? <Package className="h-4 w-4" /> :
+            newNotification.type === 'dispute' ? <AlertCircle className="h-4 w-4" /> :
+            newNotification.type === 'offer' ? <PoundSterling className="h-4 w-4" /> :
+            <MessageCircle className="h-4 w-4" />;
+
+          toast({
+            title: newNotification.title,
+            description: newNotification.description,
+            action: icon,
+          });
+        }
+      )
+      .subscribe();
+
     const messageChannel = supabase
       .channel('messages-notifications')
       .on(
@@ -250,13 +361,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Cleanup subscriptions
     return () => {
+      supabase.removeChannel(notificationChannel);
       supabase.removeChannel(messageChannel);
       supabase.removeChannel(offerChannel);
     };
   }, [user, toast]);
 
   return (
-    <NotificationContext.Provider value={{ counts, refreshCounts }}>
+    <NotificationContext.Provider value={{ counts, notifications, refreshCounts, markAsRead, markAllAsRead }}>
       {children}
     </NotificationContext.Provider>
   );

@@ -151,6 +151,15 @@ serve(async (req) => {
       .single();
 
     if (transaction) {
+      // Get listing title
+      const { data: listing } = await supabaseClient
+        .from("listings")
+        .select("title")
+        .eq("id", transaction.listing_id)
+        .single();
+
+      const listingTitle = listing?.title || "item";
+
       // Check if payment confirmation message already exists
       const { data: existingMessage } = await supabaseClient
         .from("messages")
@@ -182,6 +191,30 @@ serve(async (req) => {
               content: `✅ Payment confirmed! Your payment of £${transaction.amount} is held securely in escrow. You'll receive the item once the seller dispatches it.`,
               message_type: "system",
               read: false,
+            }
+          ]);
+
+        // Create notifications for both parties
+        await supabaseClient
+          .from("notifications")
+          .insert([
+            {
+              user_id: transaction.seller_id,
+              type: "transaction",
+              title: "Payment Received in Escrow",
+              description: `Payment of £${transaction.amount} for "${listingTitle}" is secured. Please dispatch the item.`,
+              action_url: `/dashboard?tab=transactions&id=${transactionIdToUpdate}`,
+              related_id: transactionIdToUpdate,
+              metadata: { listing_id: transaction.listing_id, amount: transaction.amount }
+            },
+            {
+              user_id: user.id,
+              type: "transaction",
+              title: "Payment Confirmed",
+              description: `Your £${transaction.amount} payment for "${listingTitle}" is held securely in escrow.`,
+              action_url: `/dashboard?tab=transactions&id=${transactionIdToUpdate}`,
+              related_id: transactionIdToUpdate,
+              metadata: { listing_id: transaction.listing_id, amount: transaction.amount }
             }
           ]);
         

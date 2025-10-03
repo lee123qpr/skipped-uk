@@ -137,6 +137,15 @@ serve(async (req) => {
       })
       .eq("id", transaction.listing_id);
 
+    // Get listing title
+    const { data: listing } = await supabaseClient
+      .from("listings")
+      .select("title")
+      .eq("id", transaction.listing_id)
+      .single();
+
+    const listingTitle = listing?.title || "item";
+
     // Create system messages for both parties with role-specific content
     const hasPayment = !!transaction.stripe_payment_intent_id;
     await supabaseClient
@@ -161,6 +170,36 @@ serve(async (req) => {
           content: `✅ You've confirmed delivery! Transaction complete. Thank you for your purchase. Please leave a review for the seller.`,
           message_type: "system",
           read: false,
+        }
+      ]);
+
+    // Create notifications for both parties
+    await supabaseClient
+      .from("notifications")
+      .insert([
+        {
+          user_id: transaction.seller_id,
+          type: "transaction",
+          title: hasPayment ? "Funds Released to Your Account" : "Transaction Completed",
+          description: hasPayment 
+            ? `Delivery confirmed! £${(itemAmount / 100).toFixed(2)} transferred to your Stripe account for "${listingTitle}".`
+            : `Delivery confirmed! Transaction for "${listingTitle}" is complete. Leave a review!`,
+          action_url: `/dashboard?tab=reviews`,
+          related_id: transactionId,
+          metadata: { 
+            listing_id: transaction.listing_id, 
+            amount: itemAmount / 100,
+            transfer_id: transferId 
+          }
+        },
+        {
+          user_id: transaction.buyer_id,
+          type: "transaction",
+          title: "Delivery Confirmed",
+          description: `Transaction for "${listingTitle}" is complete! Please leave a review for the seller.`,
+          action_url: `/dashboard?tab=reviews`,
+          related_id: transactionId,
+          metadata: { listing_id: transaction.listing_id }
         }
       ]);
 

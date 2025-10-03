@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,10 +18,46 @@ import {
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
-  const { counts } = useNotifications();
+  const { counts, notifications, markAsRead, markAllAsRead } = useNotifications();
   const navigate = useNavigate();
 
-  // Check if user is admin
+  const totalNotifications = counts.unreadNotifications;
+
+  const handleNotificationClick = async (notification: any) => {
+    await markAsRead(notification.id);
+    if (notification.action_url) {
+      navigate(notification.action_url);
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'transaction':
+        return <ShoppingBag className="h-4 w-4" />;
+      case 'dispute':
+        return <Shield className="h-4 w-4" />;
+      case 'offer':
+        return <Plus className="h-4 w-4" />;
+      case 'review_reminder':
+        return <Bell className="h-4 w-4" />;
+      default:
+        return <Bell className="h-4 w-4" />;
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
   const { data: isAdmin } = useQuery({
     queryKey: ['is-admin', user?.id],
     queryFn: async () => {
@@ -49,8 +86,6 @@ const Navbar = () => {
     },
     enabled: !!isAdmin,
   });
-
-  const totalNotifications = counts.unreadMessages + counts.pendingOffers + counts.newOffers;
 
   const handleSignOut = async () => {
     await signOut();
@@ -103,65 +138,59 @@ const Navbar = () => {
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg w-72">
-                      <div className="px-4 py-3 border-b">
-                        <h3 className="font-semibold">Notifications</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {totalNotifications === 0 ? 'No new notifications' : `${totalNotifications} unread`}
-                        </p>
+                    <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg w-80">
+                      <div className="flex items-center justify-between px-4 py-3 border-b">
+                        <div>
+                          <h3 className="font-semibold">Notifications</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {totalNotifications === 0 ? 'No new notifications' : `${totalNotifications} unread`}
+                          </p>
+                        </div>
+                        {totalNotifications > 0 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAllAsRead();
+                            }}
+                            className="text-xs"
+                          >
+                            Mark all read
+                          </Button>
+                        )}
                       </div>
                       {totalNotifications === 0 ? (
                         <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                          All caught up!
+                          All caught up! 🎉
                         </div>
                       ) : (
-                        <>
-                          {counts.unreadMessages > 0 && (
-                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
-                              <div className="flex items-center gap-3 w-full">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                  <Bell className="h-4 w-4 text-primary" />
+                        <ScrollArea className="max-h-[400px]">
+                          <div className="py-2">
+                            {notifications.map((notification) => (
+                              <DropdownMenuItem 
+                                key={notification.id}
+                                onClick={() => handleNotificationClick(notification)}
+                                className="px-4 py-3 cursor-pointer hover:bg-accent"
+                              >
+                                <div className="flex items-start gap-3 w-full">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    {getNotificationIcon(notification.type)}
+                                  </div>
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <p className="text-sm font-medium leading-none">{notification.title}</p>
+                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                      {notification.description}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatTimeAgo(notification.created_at)}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium">New Messages</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {counts.unreadMessages} unread {counts.unreadMessages === 1 ? 'message' : 'messages'}
-                                  </p>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                          )}
-                          {counts.newOffers > 0 && (
-                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
-                              <div className="flex items-center gap-3 w-full">
-                                <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                  <Plus className="h-4 w-4 text-green-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium">New Offers</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {counts.newOffers} new {counts.newOffers === 1 ? 'offer' : 'offers'}
-                                  </p>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                          )}
-                          {counts.pendingOffers > 0 && (
-                            <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
-                              <div className="flex items-center gap-3 w-full">
-                                <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
-                                  <ShoppingBag className="h-4 w-4 text-yellow-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium">Pending Offers</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {counts.pendingOffers} awaiting response
-                                  </p>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                          )}
-                        </>
+                              </DropdownMenuItem>
+                            ))}
+                          </div>
+                        </ScrollArea>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

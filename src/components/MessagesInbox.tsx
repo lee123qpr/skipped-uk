@@ -588,19 +588,53 @@ const MessagesInbox = () => {
   const madeOffers = madeOffersData;
   const unreadCount = conversationsList.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
-  // Auto-select conversation from URL parameter
+  // Auto-select conversation from URL parameters
   useEffect(() => {
+    if (conversationsList.length === 0 || selectedConversation) return;
+
+    // Priority 1: Direct conversation key (transaction-X or listing-X-Y)
+    const conversationKey = searchParams.get('conversation');
+    if (conversationKey) {
+      const decodedKey = decodeURIComponent(conversationKey);
+      const conversation = conversationsList.find((_, index) => {
+        const key = Object.keys(conversations)[index];
+        return key === decodedKey;
+      });
+      if (conversation) {
+        setSelectedConversation(conversation);
+        searchParams.delete('conversation');
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+    }
+
+    // Priority 2: Listing ID + Other User ID
+    const listingId = searchParams.get('listing');
     const userId = searchParams.get('user');
-    if (userId && conversationsList.length > 0 && !selectedConversation) {
+    if (listingId) {
+      const conversation = conversationsList.find(conv => 
+        conv.listingId === listingId && 
+        (!userId || conv.otherUserId === userId)
+      );
+      if (conversation) {
+        setSelectedConversation(conversation);
+        searchParams.delete('listing');
+        searchParams.delete('user');
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+    }
+
+    // Priority 3: Just user ID (old behavior)
+    if (userId) {
       const conversation = conversationsList.find(conv => conv.otherUserId === userId);
       if (conversation) {
         setSelectedConversation(conversation);
-        // Clear the parameter after selecting
         searchParams.delete('user');
         setSearchParams(searchParams, { replace: true });
       }
     }
-  }, [conversationsList, searchParams, selectedConversation, setSearchParams]);
+  }, [conversationsList, selectedConversation, searchParams, setSearchParams, conversations]);
 
   // Realtime subscription for transaction updates
   useEffect(() => {

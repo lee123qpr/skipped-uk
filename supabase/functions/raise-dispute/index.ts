@@ -122,6 +122,15 @@ serve(async (req) => {
       throw new Error("Failed to update transaction");
     }
 
+    // Get listing title
+    const { data: listing } = await supabaseClient
+      .from("listings")
+      .select("title")
+      .eq("id", transaction.listing_id)
+      .single();
+
+    const listingTitle = listing?.title || "item";
+
     // Create system messages for both parties with role-specific content
     await supabaseClient
       .from("messages")
@@ -146,6 +155,37 @@ serve(async (req) => {
           message_type: "system",
           read: false,
         },
+      ]);
+
+    // Create notifications for both parties
+    await supabaseClient
+      .from("notifications")
+      .insert([
+        {
+          user_id: isBuyer ? transaction.seller_id : transaction.buyer_id,
+          type: "dispute",
+          title: "Dispute Raised",
+          description: `A dispute has been raised for "${listingTitle}": ${reason}`,
+          action_url: `/dashboard?tab=transactions&id=${transactionId}`,
+          related_id: dispute.id,
+          metadata: { 
+            transaction_id: transactionId,
+            listing_id: transaction.listing_id,
+            raised_by: isBuyer ? "buyer" : "seller"
+          }
+        },
+        {
+          user_id: user.id,
+          type: "dispute",
+          title: "Dispute Submitted",
+          description: `Your dispute for "${listingTitle}" is under review. We'll respond within 24-48 hours.`,
+          action_url: `/dashboard?tab=transactions&id=${transactionId}`,
+          related_id: dispute.id,
+          metadata: { 
+            transaction_id: transactionId,
+            listing_id: transaction.listing_id
+          }
+        }
       ]);
 
     console.log("[RAISE-DISPUTE] Dispute created successfully, awaiting admin review");
