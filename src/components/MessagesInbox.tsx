@@ -424,12 +424,31 @@ const MessagesInbox = () => {
 
       // Combine data
       const combinedData = messages.map(message => {
-        const transaction = transactions?.find(t => 
+        // Find ALL matching transactions, then pick the most recent and relevant one
+        const matchingTransactions = transactions?.filter(t => 
           t.listing_id === message.listing_id &&
           ((t.buyer_id === user.id && t.seller_id === message.receiver_id) ||
            (t.seller_id === user.id && t.buyer_id === message.receiver_id) ||
            (message.sender_id === user.id && message.receiver_id === user.id))
-        ) || null;
+        ) || [];
+        
+        // Priority order: active transactions (paid, dispatched, etc.) over pending
+        const statusPriority: Record<string, number> = {
+          'completed': 10,
+          'delivered': 9,
+          'dispatched': 8,
+          'paid': 7,
+          'pending_payment': 6,
+          'disputed': 5,
+          'pending': 1,
+        };
+        
+        // Sort by status priority first, then by created_at (most recent)
+        const transaction = matchingTransactions.sort((a, b) => {
+          const priorityDiff = (statusPriority[b.status] || 0) - (statusPriority[a.status] || 0);
+          if (priorityDiff !== 0) return priorityDiff;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        })[0] || null;
         
         return {
           ...message,
@@ -470,9 +489,35 @@ const MessagesInbox = () => {
     
     acc[key].messages.push(message);
     
-    // Update transaction if found in message
-    if (message.transaction && !acc[key].transaction) {
-      acc[key].transaction = message.transaction;
+    // Always update to the most recent/relevant transaction (priority order)
+    if (message.transaction) {
+      const currentTx = acc[key].transaction;
+      const newTx = message.transaction;
+      
+      if (!currentTx) {
+        acc[key].transaction = newTx;
+      } else {
+        // Priority: active transactions > pending
+        const statusPriority: Record<string, number> = {
+          'completed': 10,
+          'delivered': 9,
+          'dispatched': 8,
+          'paid': 7,
+          'pending_payment': 6,
+          'disputed': 5,
+          'pending': 1,
+        };
+        
+        const currentPriority = statusPriority[currentTx.status] || 0;
+        const newPriority = statusPriority[newTx.status] || 0;
+        
+        // Replace if higher priority OR same priority but newer
+        if (newPriority > currentPriority || 
+            (newPriority === currentPriority && 
+             new Date(newTx.created_at).getTime() > new Date(currentTx.created_at).getTime())) {
+          acc[key].transaction = newTx;
+        }
+      }
     }
     
     // Count unread messages received by current user
