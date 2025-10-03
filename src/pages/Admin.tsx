@@ -54,7 +54,7 @@ export default function Admin() {
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
-        .single();
+        .maybeSingle();
 
       if (error || !roles) {
         toast.error("Unauthorized: Admin access required");
