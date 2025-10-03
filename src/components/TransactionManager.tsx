@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, 
   Clock,
-  Star
+  Star,
+  Download
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
@@ -54,6 +55,7 @@ export const TransactionManager = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const { toast } = useToast();
 
   console.log('[TransactionManager] Rendering with:', { 
@@ -63,6 +65,25 @@ export const TransactionManager = ({
     paidAt: transaction.paid_at,
     dispatchedAt: transaction.dispatch_confirmed_at 
   });
+
+  // Fetch certificate if transaction is completed and environmental assessment is enabled
+  useEffect(() => {
+    const fetchCertificate = async () => {
+      if (transaction.status === "completed" && transaction.listings?.environmental_assessment_enabled) {
+        const { data } = await supabase
+          .from("environmental_certificates")
+          .select("buyer_certificate_url, seller_certificate_url")
+          .eq("transaction_id", transaction.id)
+          .maybeSingle();
+        
+        if (data) {
+          setCertificate(data);
+        }
+      }
+    };
+
+    fetchCertificate();
+  }, [transaction.status, transaction.id, transaction.listings?.environmental_assessment_enabled]);
 
   // Prevent accidental page navigation during payment
   useEffect(() => {
@@ -433,6 +454,25 @@ export const TransactionManager = ({
                 </p>
               </div>
             </div>
+            
+            {/* Environmental Certificate Download */}
+            {certificate && (
+              <Button
+                onClick={() => {
+                  const url = userRole === "buyer" ? certificate.buyer_certificate_url : certificate.seller_certificate_url;
+                  if (url) {
+                    window.open(url, '_blank');
+                  }
+                }}
+                variant="outline"
+                className="w-full"
+                size="sm"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Environmental Certificate
+              </Button>
+            )}
+            
             <Button
               onClick={() => {
                 // Navigate to Dashboard profile tab where TransactionReviews is displayed
