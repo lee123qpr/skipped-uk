@@ -24,7 +24,7 @@ interface TransactionTimelineProps {
 
 export function TransactionTimeline({ transaction, userRole }: TransactionTimelineProps) {
   const getSteps = (): TimelineStep[] => {
-    const isDisputed = transaction.status === "disputed";
+    const isDisputed = transaction.status === "disputed" || transaction.status === "disputed_pending_review";
     
     const steps: TimelineStep[] = [
       {
