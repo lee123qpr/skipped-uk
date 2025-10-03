@@ -26,6 +26,16 @@ serve(async (req) => {
       throw new Error("Missing required fields: transactionId and amount");
     }
 
+    // Validate amount
+    if (amount <= 0) {
+      throw new Error("Transaction amount must be greater than zero");
+    }
+
+    const MAX_TRANSACTION = 100000; // £100,000 maximum
+    if (amount > MAX_TRANSACTION) {
+      throw new Error(`Transaction exceeds maximum allowed amount of £${MAX_TRANSACTION.toLocaleString()}`);
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -104,11 +114,12 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Calculate amounts
+    // Calculate amounts with proper decimal handling
     const protectionFee = buyerProtectionFee || (amount * 0.05); // 5% default
-    const platformFee = Math.round(amount * 0.03 * 100); // 3% platform fee in pence
-    const totalAmount = Math.round((parseFloat(amount) + protectionFee) * 100); // Convert to pence
-    const itemAmount = Math.round(parseFloat(amount) * 100); // Item amount in pence
+    const itemAmount = Math.round(Number(amount.toFixed(2)) * 100); // Item amount in pence
+    const protectionFeeAmount = Math.round(Number(protectionFee.toFixed(2)) * 100); // Protection fee in pence
+    const platformFee = Math.round(Number((amount * 0.03).toFixed(2)) * 100); // 3% platform fee in pence
+    const totalAmount = itemAmount + protectionFeeAmount; // Total in pence
 
     logStep("Calculated amounts", {
       itemPrice: amount,
@@ -163,7 +174,7 @@ serve(async (req) => {
               name: "Buyer Protection",
               description: "5% buyer protection fee",
             },
-            unit_amount: Math.round(protectionFee * 100),
+            unit_amount: protectionFeeAmount,
           },
           quantity: 1,
         }

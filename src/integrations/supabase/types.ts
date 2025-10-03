@@ -129,6 +129,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "blog_post_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       blog_post_views: {
@@ -172,6 +179,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -237,6 +251,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -621,6 +642,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       messages: {
@@ -949,10 +977,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "reviews_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -1185,7 +1227,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          business_logo_url: string | null
+          company_name: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          identity_verified: boolean | null
+          location: string | null
+          stripe_onboarding_complete: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          business_logo_url?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          identity_verified?: boolean | null
+          location?: string | null
+          stripe_onboarding_complete?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          business_logo_url?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          identity_verified?: boolean | null
+          location?: string | null
+          stripe_onboarding_complete?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_reading_time: {
@@ -1210,6 +1302,14 @@ export type Database = {
       send_review_reminders: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      validate_refund_amount: {
+        Args: { refund_amount: number; transaction_amount: number }
+        Returns: boolean
+      }
+      validate_transaction_amount: {
+        Args: { amount: number }
+        Returns: boolean
       }
     }
     Enums: {

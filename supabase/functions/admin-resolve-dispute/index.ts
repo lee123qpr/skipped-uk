@@ -115,7 +115,19 @@ serve(async (req) => {
         throw new Error("Invalid partial refund amount");
       }
 
-      const refundAmount = Math.round(approvedAmount * 100); // Convert to cents
+      // Validate refund amount against transaction amount
+      if (approvedAmount > transaction.amount) {
+        throw new Error(`Refund amount £${approvedAmount} cannot exceed transaction amount £${transaction.amount}`);
+      }
+
+      // Validate against maximum threshold
+      const MAX_REFUND = 50000; // £50,000 maximum
+      if (approvedAmount > MAX_REFUND) {
+        throw new Error(`Refund exceeds maximum allowed amount of £${MAX_REFUND.toLocaleString()}`);
+      }
+
+      // Use proper decimal handling for currency
+      const refundAmount = Math.round(Number(approvedAmount.toFixed(2)) * 100); // Convert to pence
 
       const refund = await stripe.refunds.create({
         payment_intent: transaction.stripe_payment_intent_id,

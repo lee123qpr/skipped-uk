@@ -42,10 +42,26 @@ const SignUp = () => {
       });
       return;
     }
-    if (formData.password.length < 6) {
+
+    // Validate password length
+    if (formData.password.length < 12) {
       toast({
         title: "Password too short",
-        description: "Password must be at least 6 characters long.",
+        description: "Password must be at least 12 characters long for security.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate password complexity
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumber = /\d/.test(formData.password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      toast({
+        title: "Password too weak",
+        description: "Password must contain uppercase, lowercase, and numbers.",
         variant: "destructive"
       });
       return;
