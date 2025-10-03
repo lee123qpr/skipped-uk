@@ -9,6 +9,8 @@ import { Search, Clock, Eye } from "lucide-react";
 import { format } from "date-fns";
 import SEOHead from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function NewsResources() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,8 +75,10 @@ export default function NewsResources() {
       />
 
       <div className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <section className="border-b bg-gradient-subtle">
+        <Navbar />
+        <main>
+          {/* Hero Section */}
+          <section className="border-b bg-gradient-subtle">
           <div className="container mx-auto px-4 py-16">
             <div className="max-w-3xl mx-auto text-center space-y-6">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
@@ -216,6 +220,8 @@ export default function NewsResources() {
             </div>
           )}
         </section>
+        </main>
+        <Footer />
       </div>
     </>
   );
