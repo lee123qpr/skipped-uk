@@ -27,9 +27,10 @@ const Footer = () => {
             <ul className="space-y-2 text-muted-foreground">
               <li><a href="/browse" className="hover:text-primary transition-smooth">Browse Materials</a></li>
               <li><a href="/sell" className="hover:text-primary transition-smooth">Sell Items</a></li>
-              <li><a href="/browse" className="hover:text-primary transition-smooth">Buyer Protection</a></li>
-              <li><a href="/browse" className="hover:text-primary transition-smooth">Delivery Options</a></li>
-              <li><a href="/browse" className="hover:text-primary transition-smooth">Carbon Calculator</a></li>
+              <li><a href="/how-it-works" className="hover:text-primary transition-smooth">How It Works</a></li>
+              <li><a href="/buyer-protection" className="hover:text-primary transition-smooth">Buyer Protection</a></li>
+              <li><a href="/delivery-options" className="hover:text-primary transition-smooth">Delivery/Collection</a></li>
+              <li><a href="/carbon-calculator" className="hover:text-primary transition-smooth">Carbon Calculator</a></li>
             </ul>
           </div>
 
