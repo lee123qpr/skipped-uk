@@ -407,6 +407,7 @@ export type Database = {
           read: boolean
           receiver_id: string
           sender_id: string
+          transaction_id: string | null
         }
         Insert: {
           content: string
@@ -418,6 +419,7 @@ export type Database = {
           read?: boolean
           receiver_id: string
           sender_id: string
+          transaction_id?: string | null
         }
         Update: {
           content?: string
@@ -429,6 +431,7 @@ export type Database = {
           read?: boolean
           receiver_id?: string
           sender_id?: string
+          transaction_id?: string | null
         }
         Relationships: [
           {
@@ -443,6 +446,13 @@ export type Database = {
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]

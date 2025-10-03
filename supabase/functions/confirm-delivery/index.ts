@@ -146,6 +146,7 @@ serve(async (req) => {
           sender_id: transaction.buyer_id,
           receiver_id: transaction.seller_id,
           listing_id: transaction.listing_id,
+          transaction_id: transactionId,
           content: hasPayment 
             ? `✅ Delivery confirmed by buyer! Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. You can now leave a review for the buyer.`
             : `✅ Delivery confirmed by buyer! Transaction complete. You can now leave a review for the buyer.`,
@@ -156,6 +157,7 @@ serve(async (req) => {
           sender_id: transaction.buyer_id,
           receiver_id: transaction.buyer_id,
           listing_id: transaction.listing_id,
+          transaction_id: transactionId,
           content: `✅ You've confirmed delivery! Transaction complete. Thank you for your purchase. Please leave a review for the seller.`,
           message_type: "system",
           read: false,
