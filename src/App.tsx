@@ -21,6 +21,7 @@ import { NotificationProvider } from "@/components/NotificationProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PaymentVerifier from "@/components/PaymentVerifier";
+import { OfflineDetector } from "@/components/OfflineDetector";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -54,6 +55,7 @@ const App = () => (
               <BrowserRouter>
                 <ScrollToTop />
                 <PaymentVerifier />
+                <OfflineDetector />
                 <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/sign-in" element={<SignIn />} />

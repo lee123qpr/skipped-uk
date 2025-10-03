@@ -1,0 +1,41 @@
+{
+  "name": "Skipped - Construction Materials Marketplace",
+  "short_name": "Skipped",
+  "description": "Buy and sell surplus construction materials. Sustainable marketplace for quality building supplies.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/placeholder.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "business", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Listings",
+      "short_name": "Browse",
+      "description": "Browse construction materials",
+      "url": "/browse",
+      "icons": []
+    },
+    {
+      "name": "Sell Materials",
+      "short_name": "Sell",
+      "description": "List items for sale",
+      "url": "/sell",
+      "icons": []
+    }
+  ]
+}

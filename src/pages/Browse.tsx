@@ -50,6 +50,9 @@ const Browse = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mapSectionRef = useRef<HTMLElement>(null);
   const [mapsDebug, setMapsDebug] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const ITEMS_PER_PAGE = 20;
 
   // Search debouncing
   useEffect(() => {
@@ -80,9 +83,9 @@ const Browse = () => {
     enabled: !!user
   });
 
-  // Fetch listings with filters
-  const { data: listings = [], isLoading, error } = useQuery({
-    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, minCarbonSaved],
+  // Fetch listings with filters and pagination
+  const { data: listingsData, isLoading, error, refetch } = useQuery({
+    queryKey: ['listings', debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, minCarbonSaved, page],
     queryFn: async () => {
       let query = supabase
         .from('listings')
@@ -189,16 +192,35 @@ const Browse = () => {
           query = query.order('carbon_saved', { ascending: false });
           break;
         default:
-          query = query.order('created_at', { ascending: false });
+      query = query.order('created_at', { ascending: false });
       }
 
-      query = query.limit(50);
+      // Apply pagination
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      
+      // Check if there are more results by trying to fetch one more
+      const hasMore = data ? data.length === ITEMS_PER_PAGE : false;
+      
+      return { 
+        listings: data || [],
+        hasMore: hasMore
+      };
     },
   });
+
+  // Extract listings and metadata
+  const listings = listingsData?.listings || [];
+  const hasMoreListings = listingsData?.hasMore || false;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, selectedCategory, selectedCondition, selectedLocation, priceRange, sortBy, deliveryAvailable, pickupAvailable, minCarbonSaved]);
 
   useEffect(() => {
     if (error) {
@@ -209,6 +231,10 @@ const Browse = () => {
       });
     }
   }, [error, toast]);
+
+  const handleLoadMore = () => {
+    setPage(prev => prev + 1);
+  };
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -610,12 +636,26 @@ const Browse = () => {
             </section>
           )}
 
-          {/* Load More */}
-          <div className="text-center">
-            <Button variant="outline" size="lg">
-              Load More Results
-            </Button>
-          </div>
+          {/* Load More Button */}
+          {viewMode !== "map" && !isLoading && listings.length > 0 && hasMoreListings && (
+            <div className="text-center mt-8">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={handleLoadMore}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More Results'
+                )}
+              </Button>
+            </div>
+          )}
         </main>
 
         <BackToTop />
