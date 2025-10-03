@@ -363,10 +363,10 @@ const MessagesInbox = () => {
       
       console.log('[MessagesInbox] Fetching messages for user:', user.id);
       
-      // Get all messages where user is sender or receiver - FIXED: proper query syntax
+      // Get all messages where user is sender or receiver - including transaction_id
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
-        .select('*, offer_id')
+        .select('*, offer_id, transaction_id')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: true });
       
@@ -408,14 +408,18 @@ const MessagesInbox = () => {
       
       if (listingsError) throw listingsError;
 
-      // Get transactions for these listings and involving the current user
-      const { data: transactions, error: transactionsError } = await supabase
-        .from('transactions')
-        .select('*')
-        .in('listing_id', listingIds)
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-      
-      if (transactionsError) console.error('Error fetching transactions:', transactionsError);
+      // Get transactions for these messages directly using transaction_id
+      const transactionIds = [...new Set(messages.filter(m => m.transaction_id).map(m => m.transaction_id))];
+      let transactions: any[] = [];
+      if (transactionIds.length > 0) {
+        const { data: transactionsData, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('*')
+          .in('id', transactionIds);
+        
+        if (transactionsError) console.error('Error fetching transactions:', transactionsError);
+        transactions = transactionsData || [];
+      }
       
       console.log('[MessagesInbox] Found transactions:', transactions?.map(t => ({ 
         id: t.id, 
@@ -423,38 +427,11 @@ const MessagesInbox = () => {
         listing_id: t.listing_id 
       })));
 
-      // Combine data
+      // Combine data - transaction is directly linked via transaction_id
       const combinedData = messages.map(message => {
-        // Determine the other participant for correct transaction matching
-        const otherUserId = message.sender_id === user.id ? message.receiver_id : message.sender_id;
-        
-        // Find ALL matching transactions, then pick the most recent and relevant one
-        const matchingTransactions = transactions?.filter(t => 
-          t.listing_id === message.listing_id &&
-          (
-            (t.buyer_id === user.id && t.seller_id === otherUserId) ||
-            (t.seller_id === user.id && t.buyer_id === otherUserId)
-          )
-        ) || [];
-        
-        // Priority order: active transactions (paid, dispatched, etc.) over pending
-        const statusPriority: Record<string, number> = {
-          'completed': 10,
-          'delivered': 9,
-          'dispatched': 8,
-          'paid': 7,
-          'pending_payment': 6,
-          'disputed': 5,
-          'disputed_pending_review': 5,
-          'pending': 1,
-        };
-        
-        // Sort by status priority first, then by created_at (most recent)
-        const transaction = matchingTransactions.sort((a, b) => {
-          const priorityDiff = (statusPriority[b.status] || 0) - (statusPriority[a.status] || 0);
-          if (priorityDiff !== 0) return priorityDiff;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        })[0] || null;
+        const transaction = message.transaction_id 
+          ? transactions?.find(t => t.id === message.transaction_id) || null
+          : null;
         
         return {
           ...message,
@@ -474,16 +451,15 @@ const MessagesInbox = () => {
     staleTime: 1000, // Consider data stale after 1 second to allow quick refetches
   });
 
-  // Group messages into conversations by transaction
-  // CRITICAL: Use transaction_id to ensure each transaction has its own conversation thread
+  // Group messages into conversations by transaction_id
+  // CRITICAL: Direct use of transaction_id ensures each transaction has its own conversation thread
   // This prevents message crossover when the same buyer and seller have multiple transactions for the same item
   const conversations: Record<string, Conversation> = allMessagesData.reduce((acc, message) => {
     const otherUserId = message.sender_id === user?.id ? message.receiver_id : message.sender_id;
     
-    // Create unique key: If transaction exists, use transaction_id; otherwise fall back to listing+user (for pre-transaction messages)
-    const transactionId = message.transaction?.id;
-    const key = transactionId 
-      ? `transaction-${transactionId}`
+    // Create unique key: Use transaction_id if exists, otherwise fall back to listing+user for pre-transaction messages
+    const key = message.transaction_id 
+      ? `transaction-${message.transaction_id}`
       : `listing-${message.listing_id}-${otherUserId}`;
     
     if (!acc[key]) {
@@ -502,38 +478,6 @@ const MessagesInbox = () => {
     }
     
     acc[key].messages.push(message);
-    
-    // Always update to the most recent/relevant transaction (priority order)
-    if (message.transaction) {
-      const currentTx = acc[key].transaction;
-      const newTx = message.transaction;
-      
-      if (!currentTx) {
-        acc[key].transaction = newTx;
-      } else {
-        // Priority: active transactions > pending
-        const statusPriority: Record<string, number> = {
-          'completed': 10,
-          'delivered': 9,
-          'dispatched': 8,
-          'paid': 7,
-          'pending_payment': 6,
-          'disputed': 5,
-          'disputed_pending_review': 5,
-          'pending': 1,
-        };
-        
-        const currentPriority = statusPriority[currentTx.status] || 0;
-        const newPriority = statusPriority[newTx.status] || 0;
-        
-        // Replace if higher priority OR same priority but newer
-        if (newPriority > currentPriority || 
-            (newPriority === currentPriority && 
-             new Date(newTx.created_at).getTime() > new Date(currentTx.created_at).getTime())) {
-          acc[key].transaction = newTx;
-        }
-      }
-    }
     
     // Count unread messages received by current user
     if (message.receiver_id === user?.id && !message.read) {
@@ -779,6 +723,7 @@ const MessagesInbox = () => {
           sender_id: user.id,
           receiver_id: selectedConversation.otherUserId,
           listing_id: selectedConversation.listingId,
+          transaction_id: selectedConversation.transaction?.id || null,
           content: replyContent.trim(),
           read: false
         });

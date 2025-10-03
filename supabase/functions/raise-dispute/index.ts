@@ -130,6 +130,7 @@ serve(async (req) => {
           sender_id: user.id,
           receiver_id: isBuyer ? transaction.seller_id : transaction.buyer_id,
           listing_id: transaction.listing_id,
+          transaction_id: transactionId,
           content: isBuyer 
             ? `⚠️ Dispute raised by buyer: ${reason}. An admin will review your case within 24-48 hours.`
             : `⚠️ Dispute raised by seller: ${reason}. An admin will review your case within 24-48 hours.`,
@@ -140,6 +141,7 @@ serve(async (req) => {
           sender_id: user.id,
           receiver_id: user.id,
           listing_id: transaction.listing_id,
+          transaction_id: transactionId,
           content: `⚠️ You've raised a dispute: ${reason}. An admin will review your case within 24-48 hours. Funds remain in escrow during review.`,
           message_type: "system",
           read: false,
