@@ -163,18 +163,29 @@ serve(async (req) => {
         .single();
 
       if (!existingMessage) {
+        // Send specific messages to both buyer and seller
         await supabaseClient
           .from("messages")
-          .insert({
-            sender_id: user.id,
-            receiver_id: transaction.seller_id,
-            listing_id: transaction.listing_id,
-            content: `💰 Payment of £${transaction.amount} received in escrow. Please mark as dispatched when you send the item.`,
-            message_type: "system",
-            read: false,
-          });
+          .insert([
+            {
+              sender_id: user.id,
+              receiver_id: transaction.seller_id,
+              listing_id: transaction.listing_id,
+              content: `💰 Payment of £${transaction.amount} received in escrow. Please mark as dispatched when you send the item.`,
+              message_type: "system",
+              read: false,
+            },
+            {
+              sender_id: user.id,
+              receiver_id: user.id,
+              listing_id: transaction.listing_id,
+              content: `✅ Payment confirmed! Your payment of £${transaction.amount} is held securely in escrow. You'll receive the item once the seller dispatches it.`,
+              message_type: "system",
+              read: false,
+            }
+          ]);
         
-        logStep("Notification sent to seller");
+        logStep("Notifications sent to both parties");
       } else {
         logStep("Payment notification already exists, skipping");
       }

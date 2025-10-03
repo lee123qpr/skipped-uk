@@ -70,17 +70,27 @@ serve(async (req) => {
       throw new Error("Failed to update transaction");
     }
 
-    // Create system message for buyer
+    // Create system messages for both buyer and seller
     await supabaseClient
       .from("messages")
-      .insert({
-        sender_id: transaction.seller_id,
-        receiver_id: transaction.buyer_id,
-        listing_id: transaction.listing_id,
-        content: "📦 Item dispatched! Your order has been sent. Please confirm receipt when it arrives.",
-        message_type: "system",
-        read: false,
-      });
+      .insert([
+        {
+          sender_id: transaction.seller_id,
+          receiver_id: transaction.buyer_id,
+          listing_id: transaction.listing_id,
+          content: "📦 Item dispatched! Your order has been sent and is on its way. Please confirm receipt when it arrives.",
+          message_type: "system",
+          read: false,
+        },
+        {
+          sender_id: transaction.seller_id,
+          receiver_id: transaction.seller_id,
+          listing_id: transaction.listing_id,
+          content: "✅ You've marked the item as dispatched. The buyer will be notified to confirm receipt. Funds will be released once they confirm delivery.",
+          message_type: "system",
+          read: false,
+        }
+      ]);
 
     console.log("[CONFIRM-DISPATCH] Dispatch confirmed successfully");
 

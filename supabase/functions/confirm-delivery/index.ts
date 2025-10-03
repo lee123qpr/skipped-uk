@@ -131,7 +131,7 @@ serve(async (req) => {
       })
       .eq("id", transaction.listing_id);
 
-    // Create system messages for both parties
+    // Create system messages for both parties with role-specific content
     await supabaseClient
       .from("messages")
       .insert([
@@ -139,15 +139,15 @@ serve(async (req) => {
           sender_id: transaction.buyer_id,
           receiver_id: transaction.seller_id,
           listing_id: transaction.listing_id,
-          content: `✅ Delivery confirmed! The buyer has confirmed receipt. Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. You can now leave a review for the buyer in your Dashboard.`,
+          content: `✅ Delivery confirmed by buyer! Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. You can now leave a review for the buyer.`,
           message_type: "system",
           read: false,
         },
         {
-          sender_id: transaction.seller_id,
+          sender_id: transaction.buyer_id,
           receiver_id: transaction.buyer_id,
           listing_id: transaction.listing_id,
-          content: `✅ Transaction complete! Thank you for confirming delivery. Please leave a review for the seller to help other buyers.`,
+          content: `✅ You've confirmed delivery! Transaction complete. Thank you for your purchase. Please leave a review for the seller.`,
           message_type: "system",
           read: false,
         }
