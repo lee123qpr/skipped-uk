@@ -48,10 +48,12 @@ interface Message {
   sender_profile?: {
     username: string;
     avatar_url: string;
+    display_name: string;
   };
   receiver_profile?: {
     username: string;
     avatar_url: string;
+    display_name: string;
   };
   listing?: {
     title: string;
@@ -73,6 +75,7 @@ interface Conversation {
   otherUserProfile: {
     username: string;
     avatar_url: string;
+    display_name: string;
   };
   listingId: string;
   listing: {
@@ -393,8 +396,8 @@ const MessagesInbox = () => {
       ])];
 
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, username, avatar_url')
+        .from('public_profiles')
+        .select('user_id, username, avatar_url, display_name')
         .in('user_id', userIds);
       
       if (profilesError) throw profilesError;
@@ -559,8 +562,8 @@ const MessagesInbox = () => {
       // Get seller profiles
       const sellerIds = [...new Set(offers.map(o => o.seller_id))];
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, username, avatar_url')
+        .from('public_profiles')
+        .select('user_id, username, avatar_url, display_name')
         .in('user_id', sellerIds);
       
       if (profilesError) throw profilesError;
@@ -864,15 +867,15 @@ const MessagesInbox = () => {
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
-                  <Avatar className="w-10 h-10 border-2 border-border">
+                    <Avatar className="w-10 h-10 border-2 border-border">
                     <AvatarImage src={selectedConversation.otherUserProfile?.avatar_url} />
                     <AvatarFallback>
-                      {selectedConversation.otherUserProfile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                      {(selectedConversation.otherUserProfile?.username || selectedConversation.otherUserProfile?.display_name || 'U').charAt(0)?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold">
-                      @{selectedConversation.otherUserProfile?.username || 'Anonymous'}
+                      @{selectedConversation.otherUserProfile?.username || selectedConversation.otherUserProfile?.display_name || 'Anonymous'}
                     </p>
                     <button
                       onClick={() => navigate(`/listing/${selectedConversation.listingId}`)}
@@ -891,7 +894,7 @@ const MessagesInbox = () => {
                       const displayProfile = isCurrentUser 
                         ? message.sender_profile 
                         : message.sender_profile;
-                      const displayUsername = displayProfile?.username || 'Anonymous';
+                      const displayUsername = displayProfile?.username || displayProfile?.display_name || 'Anonymous';
                       const isOfferMessage = message.message_type === 'offer';
                       const isSystemMessage = message.message_type === 'system';
                       
@@ -1098,14 +1101,14 @@ const MessagesInbox = () => {
                     <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-border">
                       <AvatarImage src={conversation.otherUserProfile?.avatar_url} />
                       <AvatarFallback>
-                        {conversation.otherUserProfile?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        {(conversation.otherUserProfile?.username || conversation.otherUserProfile?.display_name || 'U').charAt(0)?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">
-                            @{conversation.otherUserProfile?.username || 'Anonymous'}
+                            @{conversation.otherUserProfile?.username || conversation.otherUserProfile?.display_name || 'Anonymous'}
                           </p>
                           <p className="text-sm text-muted-foreground truncate">
                             {conversation.listing?.title}
