@@ -20,9 +20,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon, User, Package, Calendar } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 interface DisputeEvidence {
   id: string;
@@ -31,6 +33,34 @@ interface DisputeEvidence {
   file_url: string;
   description: string;
   uploaded_by_id: string;
+  created_at: string;
+}
+
+interface Profile {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  verified: boolean;
+  company_name: string | null;
+}
+
+interface Listing {
+  id: string;
+  title: string;
+  price: number;
+  images: string[];
+  description: string;
+}
+
+interface Transaction {
+  id: string;
+  amount: number;
+  status: string;
+  paid_at: string | null;
+  dispatch_confirmed_at: string | null;
+  delivery_confirmed_at: string | null;
   created_at: string;
 }
 
@@ -46,11 +76,11 @@ interface Dispute {
   description: string;
   requested_amount: number;
   created_at: string;
-  transactions: {
-    amount: number;
-    status: string;
-  };
+  transactions: Transaction;
   dispute_evidence?: DisputeEvidence[];
+  listings: Listing;
+  raised_by_profile: Profile;
+  against_profile: Profile;
 }
 
 interface AdminDisputesProps {
@@ -78,8 +108,13 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
         .select(`
           *,
           transactions!disputes_transaction_id_fkey (
+            id,
             amount,
-            status
+            status,
+            paid_at,
+            dispatch_confirmed_at,
+            delivery_confirmed_at,
+            created_at
           ),
           dispute_evidence (
             id,
@@ -88,12 +123,56 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
             description,
             uploaded_by_id,
             created_at
+          ),
+          listings!disputes_listing_id_fkey (
+            id,
+            title,
+            price,
+            images,
+            description
           )
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setDisputes(data || []);
+
+      // Fetch profiles separately for raised_by and against users
+      if (data && data.length > 0) {
+        const userIds = [...new Set([...data.map(d => d.raised_by_id), ...data.map(d => d.against_id)])];
+        
+        const { data: profilesData } = await supabase
+          .from("public_profiles")
+          .select("*")
+          .in("user_id", userIds);
+
+        const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+        const disputesWithProfiles = data.map(dispute => ({
+          ...dispute,
+          raised_by_profile: profilesMap.get(dispute.raised_by_id) || {
+            id: "",
+            user_id: dispute.raised_by_id,
+            display_name: null,
+            username: null,
+            avatar_url: null,
+            verified: false,
+            company_name: null
+          },
+          against_profile: profilesMap.get(dispute.against_id) || {
+            id: "",
+            user_id: dispute.against_id,
+            display_name: null,
+            username: null,
+            avatar_url: null,
+            verified: false,
+            company_name: null
+          }
+        }));
+
+        setDisputes(disputesWithProfiles);
+      } else {
+        setDisputes([]);
+      }
     } catch (error) {
       console.error("Failed to fetch disputes:", error);
       toast.error("Failed to load disputes");
@@ -184,13 +263,13 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
           {disputes.map((dispute) => (
             <Card key={dispute.id} className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-lg font-semibold">Dispute #{dispute.id.slice(0, 8)}</h3>
                     {getStatusBadge(dispute.status)}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(dispute.created_at), "PPp")}
+                    {format(new Date(dispute.created_at), "PPp")} ({formatDistanceToNow(new Date(dispute.created_at), { addSuffix: true })})
                   </p>
                 </div>
                 {dispute.status === "pending" && (
@@ -200,13 +279,102 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Buyer & Seller Info */}
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={dispute.raised_by_profile.avatar_url || undefined} />
+                    <AvatarFallback>
+                      {dispute.raised_by_profile.display_name?.[0] || dispute.raised_by_profile.username?.[0] || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="destructive" className="text-xs">Raised By</Badge>
+                      {dispute.raised_by_profile.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
+                    </div>
+                    <p className="font-medium truncate">
+                      {dispute.raised_by_profile.display_name || dispute.raised_by_profile.username || "Anonymous"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={dispute.against_profile.avatar_url || undefined} />
+                    <AvatarFallback>
+                      {dispute.against_profile.display_name?.[0] || dispute.against_profile.username?.[0] || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">Against</Badge>
+                      {dispute.against_profile.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
+                    </div>
+                    <p className="font-medium truncate">
+                      {dispute.against_profile.display_name || dispute.against_profile.username || "Anonymous"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Listing Info */}
+              <div className="flex gap-3 mb-4 p-3 bg-muted rounded-lg">
+                {dispute.listings.images[0] && (
+                  <img
+                    src={dispute.listings.images[0]}
+                    alt={dispute.listings.title}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-xs text-muted-foreground">Listing</Label>
+                  </div>
+                  <p className="font-medium truncate">{dispute.listings.title}</p>
+                  <p className="text-sm text-muted-foreground">£{dispute.transactions.amount}</p>
+                </div>
+              </div>
+
+              {/* Transaction Timeline */}
+              {dispute.transactions.paid_at && (
+                <div className="mb-4 p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-xs text-muted-foreground">Transaction Timeline</Label>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Paid:</span>
+                      <span className="text-muted-foreground">{format(new Date(dispute.transactions.paid_at), "PPp")}</span>
+                    </div>
+                    {dispute.transactions.dispatch_confirmed_at && (
+                      <div className="flex justify-between">
+                        <span>Dispatched:</span>
+                        <span className="text-muted-foreground">{format(new Date(dispute.transactions.dispatch_confirmed_at), "PPp")}</span>
+                      </div>
+                    )}
+                    {dispute.transactions.delivery_confirmed_at && (
+                      <div className="flex justify-between">
+                        <span>Delivered:</span>
+                        <span className="text-muted-foreground">{format(new Date(dispute.transactions.delivery_confirmed_at), "PPp")}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-medium">
+                      <span>Days since payment:</span>
+                      <span>{Math.floor((Date.now() - new Date(dispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <Label className="text-sm text-muted-foreground">Type</Label>
                   <p className="font-medium">{dispute.dispute_type.replace(/_/g, " ")}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">Amount</Label>
+                  <Label className="text-sm text-muted-foreground">Requested Amount</Label>
                   <p className="font-medium">£{dispute.requested_amount}</p>
                 </div>
               </div>
@@ -219,7 +387,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 {dispute.description && (
                   <div>
                     <Label className="text-sm text-muted-foreground">User Explanation</Label>
-                    <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">{dispute.description}</p>
+                    <p className="text-sm whitespace-pre-wrap bg-background p-3 rounded-md border">{dispute.description}</p>
                   </div>
                 )}
                 {dispute.dispute_evidence && dispute.dispute_evidence.length > 0 && (
@@ -228,7 +396,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                       <ImageIcon className="h-4 w-4" />
                       Evidence Photos ({dispute.dispute_evidence.length})
                     </Label>
-                    <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                       {dispute.dispute_evidence.map((evidence) => (
                         <div key={evidence.id} className="relative group">
                           <img
@@ -248,128 +416,267 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                   </div>
                 )}
               </div>
-
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`/listing/${dispute.listing_id}`, "_blank")}
-                >
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  View Listing
-                </Button>
-              </div>
             </Card>
           ))}
         </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Resolve Dispute</DialogTitle>
+            <DialogTitle>Resolve Dispute #{selectedDispute?.id.slice(0, 8)}</DialogTitle>
             <DialogDescription>
-              Review the dispute details and select an appropriate resolution
+              Review all details and select an appropriate resolution
             </DialogDescription>
           </DialogHeader>
 
           {selectedDispute && (
-            <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Dispute Type</Label>
-                    <p className="font-medium">{selectedDispute.dispute_type.replace(/_/g, " ")}</p>
+            <div className="space-y-6">
+              {/* Buyer & Seller Profiles Side by Side */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={selectedDispute.raised_by_profile.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {selectedDispute.raised_by_profile.display_name?.[0] || selectedDispute.raised_by_profile.username?.[0] || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Badge variant="destructive" className="mb-1">Raised By</Badge>
+                      <p className="font-semibold">
+                        {selectedDispute.raised_by_profile.display_name || selectedDispute.raised_by_profile.username || "Anonymous"}
+                      </p>
+                      {selectedDispute.raised_by_profile.company_name && (
+                        <p className="text-sm text-muted-foreground">{selectedDispute.raised_by_profile.company_name}</p>
+                      )}
+                    </div>
+                    {selectedDispute.raised_by_profile.verified && (
+                      <Badge variant="secondary">Verified</Badge>
+                    )}
                   </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Requested Amount</Label>
-                    <p className="font-medium">£{selectedDispute.requested_amount}</p>
+                </Card>
+
+                <Card className="p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={selectedDispute.against_profile.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {selectedDispute.against_profile.display_name?.[0] || selectedDispute.against_profile.username?.[0] || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Badge variant="outline" className="mb-1">Against</Badge>
+                      <p className="font-semibold">
+                        {selectedDispute.against_profile.display_name || selectedDispute.against_profile.username || "Anonymous"}
+                      </p>
+                      {selectedDispute.against_profile.company_name && (
+                        <p className="text-sm text-muted-foreground">{selectedDispute.against_profile.company_name}</p>
+                      )}
+                    </div>
+                    {selectedDispute.against_profile.verified && (
+                      <Badge variant="secondary">Verified</Badge>
+                    )}
                   </div>
-                </div>
-                <div>
-                  <Label className="text-sm text-muted-foreground">Reason</Label>
-                  <p>{selectedDispute.reason}</p>
-                </div>
-                {selectedDispute.description && (
-                  <div>
-                    <Label className="text-sm text-muted-foreground">User Explanation</Label>
-                    <p className="text-sm whitespace-pre-wrap bg-background p-3 rounded border">{selectedDispute.description}</p>
-                  </div>
-                )}
-                {selectedDispute.dispute_evidence && selectedDispute.dispute_evidence.length > 0 && (
-                  <div>
-                    <Label className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-                      <ImageIcon className="h-4 w-4" />
-                      Evidence Photos ({selectedDispute.dispute_evidence.length})
-                    </Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {selectedDispute.dispute_evidence.map((evidence) => (
-                        <div key={evidence.id} className="space-y-1">
-                          <img
-                            src={evidence.file_url}
-                            alt="Evidence"
-                            className="w-full h-32 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
-                            onClick={() => window.open(evidence.file_url, "_blank")}
-                          />
-                          {evidence.description && (
-                            <p className="text-xs text-muted-foreground px-1">
-                              {evidence.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                </Card>
+              </div>
+
+              <Separator />
+
+              {/* Listing Details */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Listing Details
+                </h4>
+                <Card className="p-4">
+                  <div className="flex gap-4">
+                    {selectedDispute.listings.images[0] && (
+                      <img
+                        src={selectedDispute.listings.images[0]}
+                        alt={selectedDispute.listings.title}
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h5 className="font-medium mb-1">{selectedDispute.listings.title}</h5>
+                      <p className="text-lg font-bold text-primary mb-2">£{selectedDispute.listings.price}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{selectedDispute.listings.description}</p>
                     </div>
                   </div>
-                )}
+                  {selectedDispute.listings.images.length > 1 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <Label className="text-xs text-muted-foreground mb-2 block">Original Listing Photos</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {selectedDispute.listings.images.slice(0, 4).map((img, idx) => (
+                          <img
+                            key={idx}
+                            src={img}
+                            alt={`Listing ${idx + 1}`}
+                            className="w-full h-20 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                            onClick={() => window.open(img, "_blank")}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </Card>
               </div>
 
-              <div className="space-y-2">
-                <Label>Resolution Type *</Label>
-                <Select value={resolutionType} onValueChange={setResolutionType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select resolution type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="full_refund">Full Refund</SelectItem>
-                    <SelectItem value="partial_refund">Partial Refund</SelectItem>
-                    <SelectItem value="return_required">Return Required</SelectItem>
-                    <SelectItem value="no_refund">No Refund</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {resolutionType === "partial_refund" && (
-                <div className="space-y-2">
-                  <Label>Approved Refund Amount *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    value={approvedAmount}
-                    onChange={(e) => setApprovedAmount(e.target.value)}
-                    step="0.01"
-                    min="0"
-                    max={selectedDispute.requested_amount}
-                  />
+              {/* Transaction Timeline */}
+              {selectedDispute.transactions.paid_at && (
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Transaction Timeline
+                  </h4>
+                  <Card className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Transaction Amount:</span>
+                        <span className="font-medium">£{selectedDispute.transactions.amount}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge variant="outline">{selectedDispute.transactions.status}</Badge>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Payment Date:</span>
+                        <span>{format(new Date(selectedDispute.transactions.paid_at), "PPp")}</span>
+                      </div>
+                      {selectedDispute.transactions.dispatch_confirmed_at && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Dispatch Date:</span>
+                          <span>{format(new Date(selectedDispute.transactions.dispatch_confirmed_at), "PPp")}</span>
+                        </div>
+                      )}
+                      {selectedDispute.transactions.delivery_confirmed_at && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Delivery Date:</span>
+                          <span>{format(new Date(selectedDispute.transactions.delivery_confirmed_at), "PPp")}</span>
+                        </div>
+                      )}
+                      <Separator />
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Days Since Payment:</span>
+                        <span className="text-primary">{Math.floor((Date.now() - new Date(selectedDispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days</span>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label>Admin Notes</Label>
-                <Textarea
-                  placeholder="Add notes about your decision..."
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  rows={4}
-                />
+              <Separator />
+
+              {/* Dispute Details */}
+              <div>
+                <h4 className="font-semibold mb-3">Dispute Information</h4>
+                <div className="bg-muted p-4 rounded-lg space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Dispute Type</Label>
+                      <p className="font-medium">{selectedDispute.dispute_type.replace(/_/g, " ")}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Requested Amount</Label>
+                      <p className="font-medium text-destructive">£{selectedDispute.requested_amount}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Reason</Label>
+                    <p className="text-sm">{selectedDispute.reason}</p>
+                  </div>
+                  {selectedDispute.description && (
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Detailed Explanation</Label>
+                      <p className="text-sm whitespace-pre-wrap bg-background p-3 rounded border">{selectedDispute.description}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={resolving}>
-                  Cancel
-                </Button>
-                <Button onClick={handleResolveDispute} disabled={resolving}>
-                  {resolving ? "Resolving..." : "Resolve Dispute"}
-                </Button>
+              {/* Evidence Comparison */}
+              {selectedDispute.dispute_evidence && selectedDispute.dispute_evidence.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Evidence Photos ({selectedDispute.dispute_evidence.length})
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {selectedDispute.dispute_evidence.map((evidence) => (
+                      <Card key={evidence.id} className="p-2">
+                        <img
+                          src={evidence.file_url}
+                          alt="Evidence"
+                          className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
+                          onClick={() => window.open(evidence.file_url, "_blank")}
+                        />
+                        {evidence.description && (
+                          <p className="text-xs text-muted-foreground mt-2 px-1">
+                            {evidence.description}
+                          </p>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Resolution Options */}
+              <div className="space-y-4">
+                <h4 className="font-semibold">Resolution Decision</h4>
+                
+                <div className="space-y-2">
+                  <Label>Resolution Type *</Label>
+                  <Select value={resolutionType} onValueChange={setResolutionType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select resolution type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_refund">Full Refund</SelectItem>
+                      <SelectItem value="partial_refund">Partial Refund</SelectItem>
+                      <SelectItem value="return_required">Return Required</SelectItem>
+                      <SelectItem value="no_refund">No Refund</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {resolutionType === "partial_refund" && (
+                  <div className="space-y-2">
+                    <Label>Approved Refund Amount *</Label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={approvedAmount}
+                      onChange={(e) => setApprovedAmount(e.target.value)}
+                      step="0.01"
+                      min="0"
+                      max={selectedDispute.requested_amount}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Admin Notes</Label>
+                  <Textarea
+                    placeholder="Add notes about your decision..."
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={resolving}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleResolveDispute} disabled={resolving}>
+                    {resolving ? "Resolving..." : "Resolve Dispute"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
