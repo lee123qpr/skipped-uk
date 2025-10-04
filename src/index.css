@@ -73,7 +73,17 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-
+  
+  /* Sidebar tokens for shadcn/ui sidebar */
+  :root {
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--card-foreground);
+    --sidebar-ring: var(--ring);
+    --sidebar-border: var(--border);
+    --sidebar-accent: var(--secondary);
+    --sidebar-accent-foreground: var(--secondary-foreground);
+  }
+  
   .dark {
     /* Dark mode - focused on construction theme */
     --background: 25 15% 8%;
@@ -112,6 +122,14 @@
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-medium: 0 4px 20px -4px hsl(0 0% 0% / 0.4);
     --shadow-strong: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
+
+    /* Sidebar tokens in dark */
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--card-foreground);
+    --sidebar-ring: var(--ring);
+    --sidebar-border: var(--border);
+    --sidebar-accent: var(--secondary);
+    --sidebar-accent-foreground: var(--secondary-foreground);
   }
 }
 

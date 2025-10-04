@@ -61,6 +61,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Sidebar tokens used by shadcn/ui sidebar
+        "sidebar": "hsl(var(--sidebar))",
+        "sidebar-foreground": "hsl(var(--sidebar-foreground))",
+        "sidebar-ring": "hsl(var(--sidebar-ring))",
+        "sidebar-border": "hsl(var(--sidebar-border))",
+        "sidebar-accent": "hsl(var(--sidebar-accent))",
+        "sidebar-accent-foreground": "hsl(var(--sidebar-accent-foreground))",
       },
       borderRadius: {
         lg: "var(--radius)",
