@@ -114,7 +114,7 @@ const StripeConnectOnboarding = () => {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
               Payment Setup
@@ -129,6 +129,22 @@ const StripeConnectOnboarding = () => {
               Active
             </Badge>
           )}
+        </div>
+        
+        {/* Stripe branding and explanation */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-16 h-16 bg-[#635BFF] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">Stripe</span>
+            </div>
+            <div className="flex-1 space-y-2">
+              <h4 className="font-semibold text-sm">Powered by Stripe</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Once you complete a sale, funds are held in escrow until the buyer confirms receipt. 
+                After the transaction is completed, you can withdraw your earnings directly to your bank account through your Stripe dashboard.
+              </p>
+            </div>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
