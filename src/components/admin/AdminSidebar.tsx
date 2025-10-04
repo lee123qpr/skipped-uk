@@ -28,7 +28,7 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { open } = useSidebar();
+  const { open, setOpenMobile } = useSidebar();
   const currentSection = new URLSearchParams(location.search).get('section') || 'overview';
 
   const handleSignOut = async () => {
@@ -39,6 +39,11 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
       toast.success("Signed out successfully");
       navigate("/");
     }
+  };
+
+  const handleNavClick = () => {
+    // Close mobile sidebar when navigation item is clicked
+    setOpenMobile(false);
   };
 
   const navigation = [
@@ -142,7 +147,7 @@ export function AdminSidebar({ pendingDisputesCount }: AdminSidebarProps) {
                       isActive={isActive}
                       tooltip={item.name}
                     >
-                      <Link to={`/admin?section=${item.section}`}>
+                      <Link to={`/admin?section=${item.section}`} onClick={handleNavClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.name}</span>
                         {item.badge !== null && (
