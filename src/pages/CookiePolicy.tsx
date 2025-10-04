@@ -1,9 +1,70 @@
+import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useCookieConsent } from "@/hooks/useCookieConsent";
+import { useToast } from "@/hooks/use-toast";
+import { Cookie, CheckCircle2 } from "lucide-react";
 
 const CookiePolicy = () => {
+  const { preferences, acceptAll, rejectAll, updatePreferences } = useCookieConsent();
+  const { toast } = useToast();
+  
+  const [functionality, setFunctionality] = useState(false);
+  const [analytics, setAnalytics] = useState(false);
+  const [marketing, setMarketing] = useState(false);
+
+  // Initialize toggles with current preferences
+  useEffect(() => {
+    if (preferences) {
+      setFunctionality(preferences.functionality);
+      setAnalytics(preferences.analytics);
+      setMarketing(preferences.marketing);
+    }
+  }, [preferences]);
+
+  const handleSavePreferences = () => {
+    updatePreferences({
+      functionality,
+      analytics,
+      marketing,
+    });
+    toast({
+      title: "Preferences Saved",
+      description: "Your cookie preferences have been updated successfully.",
+      duration: 3000,
+    });
+  };
+
+  const handleAcceptAll = () => {
+    acceptAll();
+    setFunctionality(true);
+    setAnalytics(true);
+    setMarketing(true);
+    toast({
+      title: "All Cookies Accepted",
+      description: "You've accepted all cookie categories.",
+      duration: 3000,
+    });
+  };
+
+  const handleRejectAll = () => {
+    rejectAll();
+    setFunctionality(false);
+    setAnalytics(false);
+    setMarketing(false);
+    toast({
+      title: "Optional Cookies Rejected",
+      description: "Only essential cookies will be used.",
+      duration: 3000,
+    });
+  };
+
   return (
     <>
       <SEOHead
@@ -130,7 +191,7 @@ const CookiePolicy = () => {
                   <div>
                     <h3 className="text-lg font-medium text-foreground mb-2">Cookie Consent Tools</h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      When you first visit our website, you'll see a cookie banner allowing you to accept or reject non-essential cookies. You can change your preferences at any time through our cookie settings.
+                      When you first visit our website, you'll see a cookie banner allowing you to accept or reject non-essential cookies. You can change your preferences at any time using the tool below.
                     </p>
                   </div>
 
@@ -145,6 +206,125 @@ const CookiePolicy = () => {
                 <p className="text-muted-foreground leading-relaxed mt-3">
                   <strong>Please note:</strong> Blocking or deleting cookies may impact your user experience and limit certain features of our website.
                 </p>
+
+                <Separator className="my-6" />
+
+                {/* Interactive Cookie Preferences Manager */}
+                <div className="mt-6 p-6 bg-muted/30 rounded-lg border border-border">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Cookie className="h-6 w-6 text-primary" />
+                    <div>
+                      <h3 className="text-xl font-semibold text-foreground">Your Cookie Preferences</h3>
+                      <p className="text-sm text-muted-foreground">Customise your cookie settings below</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Essential Cookies */}
+                    <div className="flex items-start justify-between gap-4 pb-4 border-b border-border">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-base font-semibold">Essential Cookies</Label>
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Required for the website to function properly. These cannot be disabled.
+                        </p>
+                      </div>
+                      <Switch checked disabled aria-label="Essential cookies (always enabled)" />
+                    </div>
+
+                    {/* Functionality Cookies */}
+                    <div className="flex items-start justify-between gap-4 pb-4 border-b border-border">
+                      <div className="space-y-1 flex-1">
+                        <Label htmlFor="functionality-setting" className="text-base font-semibold cursor-pointer">
+                          Functionality Cookies
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Enable enhanced functionality and personalisation, such as remembering your preferences.
+                        </p>
+                      </div>
+                      <Switch
+                        id="functionality-setting"
+                        checked={functionality}
+                        onCheckedChange={setFunctionality}
+                        aria-label="Functionality cookies"
+                      />
+                    </div>
+
+                    {/* Analytics Cookies */}
+                    <div className="flex items-start justify-between gap-4 pb-4 border-b border-border">
+                      <div className="space-y-1 flex-1">
+                        <Label htmlFor="analytics-setting" className="text-base font-semibold cursor-pointer">
+                          Analytics Cookies
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Help us understand how visitors interact with our website by collecting and reporting information anonymously.
+                        </p>
+                      </div>
+                      <Switch
+                        id="analytics-setting"
+                        checked={analytics}
+                        onCheckedChange={setAnalytics}
+                        aria-label="Analytics cookies"
+                      />
+                    </div>
+
+                    {/* Marketing Cookies */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1 flex-1">
+                        <Label htmlFor="marketing-setting" className="text-base font-semibold cursor-pointer">
+                          Marketing Cookies
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Used to track visitors across websites to display relevant advertisements and marketing campaigns.
+                        </p>
+                      </div>
+                      <Switch
+                        id="marketing-setting"
+                        checked={marketing}
+                        onCheckedChange={setMarketing}
+                        aria-label="Marketing cookies"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-border">
+                    <Button
+                      variant="outline"
+                      onClick={handleRejectAll}
+                      className="w-full sm:w-auto"
+                    >
+                      Reject All Optional
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={handleAcceptAll}
+                      className="w-full sm:w-auto"
+                    >
+                      Accept All
+                    </Button>
+                    <Button
+                      onClick={handleSavePreferences}
+                      className="w-full sm:w-auto sm:ml-auto"
+                    >
+                      Save Preferences
+                    </Button>
+                  </div>
+
+                  {preferences && (
+                    <p className="text-xs text-muted-foreground mt-4 text-center">
+                      Last updated: {new Date(preferences.timestamp).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  )}
+                </div>
               </section>
 
               <section>

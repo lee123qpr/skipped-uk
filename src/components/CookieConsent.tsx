@@ -77,11 +77,11 @@ const CookieConsent = () => {
           </CardHeader>
           <CardContent className="pb-3">
             <p className="text-sm text-muted-foreground">
-              Essential cookies are always enabled. You can customise other preferences or read our{' '}
+              Essential cookies are always enabled. You can customise preferences here or visit our{' '}
               <Link to="/cookie-policy" className="text-primary hover:underline font-medium">
-                Cookie Policy
+                Cookie Policy page
               </Link>{' '}
-              for more information.
+              to manage your settings anytime.
             </p>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2 pt-3">
@@ -223,9 +223,3 @@ const CookieConsent = () => {
 };
 
 export default CookieConsent;
-
-// Export function to open settings from anywhere
-export const openCookieSettings = () => {
-  const event = new CustomEvent('open-cookie-settings');
-  window.dispatchEvent(event);
-};
