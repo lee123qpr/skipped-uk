@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon, User, Package, Calendar } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon, User, Package, Calendar, Camera, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -96,6 +96,12 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
   const [approvedAmount, setApprovedAmount] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [resolving, setResolving] = useState(false);
+  
+  // Phase 2: Filters & Search
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchDisputes();
@@ -246,6 +252,45 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
     }
   };
 
+  // Phase 2: Filter and search logic
+  const filteredDisputes = disputes.filter(dispute => {
+    // Status filter
+    if (statusFilter && dispute.status !== statusFilter) return false;
+    
+    // Type filter
+    if (typeFilter && dispute.dispute_type !== typeFilter) return false;
+    
+    // Date filter
+    if (dateFilter) {
+      const disputeDate = new Date(dispute.created_at);
+      const now = new Date();
+      
+      if (dateFilter === 'today') {
+        if (disputeDate.toDateString() !== now.toDateString()) return false;
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        if (disputeDate < weekAgo) return false;
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        if (disputeDate < monthAgo) return false;
+      }
+    }
+    
+    // Search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesId = dispute.id.toLowerCase().includes(query);
+      const matchesRaisedBy = (dispute.raised_by_profile.display_name?.toLowerCase().includes(query) || 
+                               dispute.raised_by_profile.username?.toLowerCase().includes(query));
+      const matchesAgainst = (dispute.against_profile.display_name?.toLowerCase().includes(query) || 
+                              dispute.against_profile.username?.toLowerCase().includes(query));
+      
+      if (!matchesId && !matchesRaisedBy && !matchesAgainst) return false;
+    }
+    
+    return true;
+  });
+
   if (loading) {
     return <div>Loading disputes...</div>;
   }
@@ -253,14 +298,101 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Dispute Management</h2>
+      
+      {/* Phase 2: Filters & Search */}
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="h-4 w-4" />
+          <h3 className="font-medium">Filters & Search</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="under_review">Under Review</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Dispute Type</Label>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="not_as_described">Not As Described</SelectItem>
+                <SelectItem value="not_received">Not Received</SelectItem>
+                <SelectItem value="damaged">Damaged</SelectItem>
+                <SelectItem value="wrong_item">Wrong Item</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Date Range</Label>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Search</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="ID or username..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+        </div>
+        {(statusFilter || typeFilter || dateFilter || searchQuery) && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredDisputes.length} of {disputes.length} disputes
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setStatusFilter("");
+                setTypeFilter("");
+                setDateFilter("");
+                setSearchQuery("");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+      </Card>
 
-      {disputes.length === 0 ? (
+      {filteredDisputes.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">No disputes found</p>
+          <p className="text-muted-foreground">
+            {disputes.length === 0 ? "No disputes found" : "No disputes match your filters"}
+          </p>
         </Card>
       ) : (
         <div className="space-y-4">
-          {disputes.map((dispute) => (
+          {filteredDisputes.map((dispute) => (
             <Card key={dispute.id} className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -596,27 +728,63 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 </div>
               </div>
 
-              {/* Evidence Comparison */}
+              {/* Evidence Comparison - Phase 2: Better Display */}
               {selectedDispute.dispute_evidence && selectedDispute.dispute_evidence.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4" />
+                    <Camera className="h-4 w-4" />
                     Evidence Photos ({selectedDispute.dispute_evidence.length})
                   </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {selectedDispute.dispute_evidence.map((evidence) => (
-                      <Card key={evidence.id} className="p-2">
-                        <img
-                          src={evidence.file_url}
-                          alt="Evidence"
-                          className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
-                          onClick={() => window.open(evidence.file_url, "_blank")}
-                        />
-                        {evidence.description && (
-                          <p className="text-xs text-muted-foreground mt-2 px-1">
-                            {evidence.description}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {selectedDispute.dispute_evidence.map((evidence, idx) => (
+                      <Card key={evidence.id} className="p-3 space-y-2">
+                        <div className="relative group">
+                          <img
+                            src={evidence.file_url}
+                            alt={evidence.description || `Evidence ${idx + 1}`}
+                            className="w-full h-40 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(evidence.file_url, "_blank")}
+                          />
+                          <div className="absolute top-2 right-2 bg-destructive/90 text-destructive-foreground text-xs px-2 py-1 rounded font-medium">
+                            Evidence {idx + 1}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium">
+                            {evidence.description || 'No description provided'}
                           </p>
-                        )}
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(evidence.created_at), 'dd MMM yyyy HH:mm')}
+                          </p>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Original Listing Photos - Phase 2: Comparison View */}
+              {selectedDispute.listings?.images && selectedDispute.listings.images.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Original Listing Photos ({selectedDispute.listings.images.length})
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {selectedDispute.listings.images.map((image, idx) => (
+                      <Card key={idx} className="p-3">
+                        <div className="relative group">
+                          <img
+                            src={image}
+                            alt={`Listing ${idx + 1}`}
+                            className="w-full h-40 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => window.open(image, "_blank")}
+                          />
+                          <div className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded font-medium">
+                            Original {idx + 1}
+                          </div>
+                        </div>
                       </Card>
                     ))}
                   </div>
