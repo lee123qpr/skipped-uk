@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,9 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon, User, Package, Calendar, Camera, Search, Filter } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon, User, Package, Calendar, Camera, Search, Filter, ShoppingCart, Truck } from "lucide-react";
 import { toast } from "sonner";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, differenceInHours, differenceInMinutes } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
@@ -58,10 +59,14 @@ interface Transaction {
   id: string;
   amount: number;
   status: string;
+  buyer_id: string;
+  seller_id: string;
   paid_at: string | null;
   dispatch_confirmed_at: string | null;
   delivery_confirmed_at: string | null;
+  completed_at: string | null;
   created_at: string;
+  buyer_protection_fee: number | null;
 }
 
 interface Dispute {
@@ -117,10 +122,14 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
             id,
             amount,
             status,
+            buyer_id,
+            seller_id,
             paid_at,
             dispatch_confirmed_at,
             delivery_confirmed_at,
-            created_at
+            completed_at,
+            created_at,
+            buyer_protection_fee
           ),
           dispute_evidence (
             id,
@@ -413,92 +422,279 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
 
               {/* Buyer & Seller Info */}
               <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={dispute.raised_by_profile.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {dispute.raised_by_profile.display_name?.[0] || dispute.raised_by_profile.username?.[0] || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="destructive" className="text-xs">Raised By</Badge>
-                      {dispute.raised_by_profile.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
-                    </div>
-                    <p className="font-medium truncate">
-                      {dispute.raised_by_profile.display_name || dispute.raised_by_profile.username || "Anonymous"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={dispute.against_profile.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {dispute.against_profile.display_name?.[0] || dispute.against_profile.username?.[0] || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">Against</Badge>
-                      {dispute.against_profile.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
-                    </div>
-                    <p className="font-medium truncate">
-                      {dispute.against_profile.display_name || dispute.against_profile.username || "Anonymous"}
-                    </p>
-                  </div>
-                </div>
+                {/* Determine roles */}
+                {(() => {
+                  const isBuyerRaised = dispute.raised_by_id === dispute.transactions.buyer_id;
+                  const buyerProfile = isBuyerRaised ? dispute.raised_by_profile : dispute.against_profile;
+                  const sellerProfile = isBuyerRaised ? dispute.against_profile : dispute.raised_by_profile;
+                  
+                  return (
+                    <>
+                      {/* Buyer Card */}
+                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={buyerProfile.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {buyerProfile.display_name?.[0] || buyerProfile.username?.[0] || "B"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              <ShoppingCart className="h-3 w-3 mr-1" />
+                              BUYER
+                            </Badge>
+                            {isBuyerRaised && <Badge variant="destructive" className="text-xs">Raised Dispute</Badge>}
+                            {buyerProfile.verified && <Badge variant="outline" className="text-xs">✓</Badge>}
+                          </div>
+                          <Link 
+                            to={`/dashboard?userId=${buyerProfile.user_id}`}
+                            className="font-medium hover:underline flex items-center gap-1 group"
+                          >
+                            {buyerProfile.display_name || "Anonymous"}
+                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                          {buyerProfile.username && (
+                            <p className="text-sm text-muted-foreground">@{buyerProfile.username}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Seller Card */}
+                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={sellerProfile.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {sellerProfile.display_name?.[0] || sellerProfile.username?.[0] || "S"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              <Package className="h-3 w-3 mr-1" />
+                              SELLER
+                            </Badge>
+                            {!isBuyerRaised && <Badge variant="destructive" className="text-xs">Raised Dispute</Badge>}
+                            {sellerProfile.verified && <Badge variant="outline" className="text-xs">✓</Badge>}
+                          </div>
+                          <Link 
+                            to={`/dashboard?userId=${sellerProfile.user_id}`}
+                            className="font-medium hover:underline flex items-center gap-1 group"
+                          >
+                            {sellerProfile.display_name || "Anonymous"}
+                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                          {sellerProfile.username && (
+                            <p className="text-sm text-muted-foreground">@{sellerProfile.username}</p>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
-              {/* Listing Info */}
-              <div className="flex gap-3 mb-4 p-3 bg-muted rounded-lg">
-                {dispute.listings.images[0] && (
-                  <img
-                    src={dispute.listings.images[0]}
-                    alt={dispute.listings.title}
-                    className="w-20 h-20 object-cover rounded"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-xs text-muted-foreground">Listing</Label>
+              {/* Listing Info with Link */}
+              <Link to={`/listing/${dispute.listing_id}`} className="block mb-4">
+                <div className="flex gap-3 p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors group">
+                  {dispute.listings.images[0] && (
+                    <img
+                      src={dispute.listings.images[0]}
+                      alt={dispute.listings.title}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <Label className="text-xs text-muted-foreground">Listing</Label>
+                      <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <p className="font-medium truncate group-hover:underline">{dispute.listings.title}</p>
+                    <p className="text-sm text-muted-foreground">£{dispute.listings.price}</p>
                   </div>
-                  <p className="font-medium truncate">{dispute.listings.title}</p>
-                  <p className="text-sm text-muted-foreground">£{dispute.transactions.amount}</p>
                 </div>
+              </Link>
+
+              {/* Enhanced Transaction Timeline */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-sm font-medium">Transaction Timeline</Label>
+                </div>
+                <Card className="p-4">
+                  <div className="space-y-4">
+                    {/* Created */}
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        <CheckCircle className="h-5 w-5 text-success" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Order Created</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(dispute.transactions.created_at), "PPp")}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Payment */}
+                    {dispute.transactions.paid_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Payment Received</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(dispute.transactions.paid_at), "PPp")}
+                            <span className="ml-2 text-xs">
+                              (+{differenceInHours(new Date(dispute.transactions.paid_at), new Date(dispute.transactions.created_at))}h)
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Clock className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-muted-foreground">Payment Pending</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dispatch */}
+                    {dispute.transactions.dispatch_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Dispatched</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(dispute.transactions.dispatch_confirmed_at), "PPp")}
+                            {dispute.transactions.paid_at && (
+                              <span className="ml-2 text-xs">
+                                (+{differenceInHours(new Date(dispute.transactions.dispatch_confirmed_at), new Date(dispute.transactions.paid_at))}h after payment)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : dispute.transactions.paid_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Clock className="h-5 w-5 text-warning" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-warning">Awaiting Dispatch</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.floor((Date.now() - new Date(dispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days since payment
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Delivery */}
+                    {dispute.transactions.delivery_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Delivered</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(dispute.transactions.delivery_confirmed_at), "PPp")}
+                            {dispute.transactions.dispatch_confirmed_at && (
+                              <span className="ml-2 text-xs">
+                                (+{Math.floor((new Date(dispute.transactions.delivery_confirmed_at).getTime() - new Date(dispute.transactions.dispatch_confirmed_at).getTime()) / (1000 * 60 * 60 * 24))} days in transit)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : dispute.transactions.dispatch_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Truck className="h-5 w-5 text-warning" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-warning">In Transit</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.floor((Date.now() - new Date(dispute.transactions.dispatch_confirmed_at).getTime()) / (1000 * 60 * 60 * 24))} days in transit
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Completed */}
+                    {dispute.transactions.completed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Completed</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(dispute.transactions.completed_at), "PPp")}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Disputed */}
+                    <div className="flex items-start gap-3 p-3 bg-destructive/10 rounded-lg border-l-4 border-destructive">
+                      <div className="mt-1">
+                        <AlertCircle className="h-5 w-5 text-destructive" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-destructive">Dispute Raised</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(dispute.created_at), "PPp")}
+                          {dispute.transactions.paid_at && (
+                            <span className="ml-2 text-xs">
+                              ({Math.floor((new Date(dispute.created_at).getTime() - new Date(dispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days after payment)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               </div>
 
-              {/* Transaction Timeline */}
-              {dispute.transactions.paid_at && (
-                <div className="mb-4 p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-xs text-muted-foreground">Transaction Timeline</Label>
-                  </div>
-                  <div className="space-y-1 text-sm">
+              {/* Cost Breakdown */}
+              <div className="mb-4">
+                <Label className="text-sm font-medium mb-3 block">Cost Breakdown</Label>
+                <Card className="p-4">
+                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span>Paid:</span>
-                      <span className="text-muted-foreground">{format(new Date(dispute.transactions.paid_at), "PPp")}</span>
+                      <span className="text-muted-foreground">Listing Price:</span>
+                      <span className="font-medium">£{dispute.listings.price.toFixed(2)}</span>
                     </div>
-                    {dispute.transactions.dispatch_confirmed_at && (
+                    {dispute.transactions.buyer_protection_fee && (
                       <div className="flex justify-between">
-                        <span>Dispatched:</span>
-                        <span className="text-muted-foreground">{format(new Date(dispute.transactions.dispatch_confirmed_at), "PPp")}</span>
+                        <span className="text-muted-foreground">Buyer Protection Fee:</span>
+                        <span className="font-medium">£{dispute.transactions.buyer_protection_fee.toFixed(2)}</span>
                       </div>
                     )}
-                    {dispute.transactions.delivery_confirmed_at && (
+                    {dispute.transactions.amount - dispute.listings.price - (dispute.transactions.buyer_protection_fee || 0) > 0 && (
                       <div className="flex justify-between">
-                        <span>Delivered:</span>
-                        <span className="text-muted-foreground">{format(new Date(dispute.transactions.delivery_confirmed_at), "PPp")}</span>
+                        <span className="text-muted-foreground">Delivery Charge:</span>
+                        <span className="font-medium">
+                          £{(dispute.transactions.amount - dispute.listings.price - (dispute.transactions.buyer_protection_fee || 0)).toFixed(2)}
+                        </span>
                       </div>
                     )}
-                    <div className="flex justify-between font-medium">
-                      <span>Days since payment:</span>
-                      <span>{Math.floor((Date.now() - new Date(dispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))}</span>
+                    <Separator />
+                    <div className="flex justify-between font-bold text-base pt-2">
+                      <span>Total Paid:</span>
+                      <span className="text-primary">£{dispute.transactions.amount.toFixed(2)}</span>
                     </div>
                   </div>
-                </div>
-              )}
+                </Card>
+              </div>
 
               <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -566,76 +762,118 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
             <div className="space-y-6">
               {/* Buyer & Seller Profiles Side by Side */}
               <div className="grid md:grid-cols-2 gap-4">
-                <Card className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={selectedDispute.raised_by_profile.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {selectedDispute.raised_by_profile.display_name?.[0] || selectedDispute.raised_by_profile.username?.[0] || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <Badge variant="destructive" className="mb-1">Raised By</Badge>
-                      <p className="font-semibold">
-                        {selectedDispute.raised_by_profile.display_name || selectedDispute.raised_by_profile.username || "Anonymous"}
-                      </p>
-                      {selectedDispute.raised_by_profile.company_name && (
-                        <p className="text-sm text-muted-foreground">{selectedDispute.raised_by_profile.company_name}</p>
-                      )}
-                    </div>
-                    {selectedDispute.raised_by_profile.verified && (
-                      <Badge variant="secondary">Verified</Badge>
-                    )}
-                  </div>
-                </Card>
+                {(() => {
+                  const isBuyerRaised = selectedDispute.raised_by_id === selectedDispute.transactions.buyer_id;
+                  const buyerProfile = isBuyerRaised ? selectedDispute.raised_by_profile : selectedDispute.against_profile;
+                  const sellerProfile = isBuyerRaised ? selectedDispute.against_profile : selectedDispute.raised_by_profile;
+                  
+                  return (
+                    <>
+                      {/* Buyer Card */}
+                      <Card className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={buyerProfile.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {buyerProfile.display_name?.[0] || buyerProfile.username?.[0] || "B"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="secondary">
+                                <ShoppingCart className="h-3 w-3 mr-1" />
+                                BUYER
+                              </Badge>
+                              {isBuyerRaised && <Badge variant="destructive" className="text-xs">Raised Dispute</Badge>}
+                            </div>
+                            <Link 
+                              to={`/dashboard?userId=${buyerProfile.user_id}`}
+                              className="font-semibold hover:underline flex items-center gap-1 group"
+                            >
+                              {buyerProfile.display_name || "Anonymous"}
+                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                            {buyerProfile.username && (
+                              <p className="text-sm text-muted-foreground">@{buyerProfile.username}</p>
+                            )}
+                            {buyerProfile.company_name && (
+                              <p className="text-xs text-muted-foreground mt-1">{buyerProfile.company_name}</p>
+                            )}
+                          </div>
+                          {buyerProfile.verified && (
+                            <Badge variant="outline" className="text-xs">✓</Badge>
+                          )}
+                        </div>
+                      </Card>
 
-                <Card className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={selectedDispute.against_profile.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {selectedDispute.against_profile.display_name?.[0] || selectedDispute.against_profile.username?.[0] || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <Badge variant="outline" className="mb-1">Against</Badge>
-                      <p className="font-semibold">
-                        {selectedDispute.against_profile.display_name || selectedDispute.against_profile.username || "Anonymous"}
-                      </p>
-                      {selectedDispute.against_profile.company_name && (
-                        <p className="text-sm text-muted-foreground">{selectedDispute.against_profile.company_name}</p>
-                      )}
-                    </div>
-                    {selectedDispute.against_profile.verified && (
-                      <Badge variant="secondary">Verified</Badge>
-                    )}
-                  </div>
-                </Card>
+                      {/* Seller Card */}
+                      <Card className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={sellerProfile.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {sellerProfile.display_name?.[0] || sellerProfile.username?.[0] || "S"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="secondary">
+                                <Package className="h-3 w-3 mr-1" />
+                                SELLER
+                              </Badge>
+                              {!isBuyerRaised && <Badge variant="destructive" className="text-xs">Raised Dispute</Badge>}
+                            </div>
+                            <Link 
+                              to={`/dashboard?userId=${sellerProfile.user_id}`}
+                              className="font-semibold hover:underline flex items-center gap-1 group"
+                            >
+                              {sellerProfile.display_name || "Anonymous"}
+                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                            {sellerProfile.username && (
+                              <p className="text-sm text-muted-foreground">@{sellerProfile.username}</p>
+                            )}
+                            {sellerProfile.company_name && (
+                              <p className="text-xs text-muted-foreground mt-1">{sellerProfile.company_name}</p>
+                            )}
+                          </div>
+                          {sellerProfile.verified && (
+                            <Badge variant="outline" className="text-xs">✓</Badge>
+                          )}
+                        </div>
+                      </Card>
+                    </>
+                  );
+                })()}
               </div>
 
               <Separator />
 
-              {/* Listing Details */}
+              {/* Listing Details with Link */}
               <div>
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   Listing Details
                 </h4>
-                <Card className="p-4">
-                  <div className="flex gap-4">
-                    {selectedDispute.listings.images[0] && (
-                      <img
-                        src={selectedDispute.listings.images[0]}
-                        alt={selectedDispute.listings.title}
-                        className="w-24 h-24 object-cover rounded border"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h5 className="font-medium mb-1">{selectedDispute.listings.title}</h5>
-                      <p className="text-lg font-bold text-primary mb-2">£{selectedDispute.listings.price}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{selectedDispute.listings.description}</p>
+                <Link to={`/listing/${selectedDispute.listing_id}`}>
+                  <Card className="p-4 hover:bg-muted/50 transition-colors group cursor-pointer">
+                    <div className="flex gap-4">
+                      {selectedDispute.listings.images[0] && (
+                        <img
+                          src={selectedDispute.listings.images[0]}
+                          alt={selectedDispute.listings.title}
+                          className="w-24 h-24 object-cover rounded border"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h5 className="font-medium group-hover:underline">{selectedDispute.listings.title}</h5>
+                          <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <p className="text-lg font-bold text-primary mb-2">£{selectedDispute.listings.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{selectedDispute.listings.description}</p>
+                      </div>
                     </div>
-                  </div>
                   {selectedDispute.listings.images.length > 1 && (
                     <div className="mt-3 pt-3 border-t">
                       <Label className="text-xs text-muted-foreground mb-2 block">Original Listing Photos</Label>
@@ -653,51 +891,188 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                     </div>
                   )}
                 </Card>
+                </Link>
               </div>
 
-              {/* Transaction Timeline */}
-              {selectedDispute.transactions.paid_at && (
-                <div>
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Transaction Timeline
-                  </h4>
-                  <Card className="p-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Transaction Amount:</span>
-                        <span className="font-medium">£{selectedDispute.transactions.amount}</span>
+              {/* Enhanced Transaction Timeline */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Transaction Timeline
+                </h4>
+                <Card className="p-4">
+                  <div className="space-y-4">
+                    {/* Created */}
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        <CheckCircle className="h-5 w-5 text-success" />
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Status:</span>
-                        <Badge variant="outline">{selectedDispute.transactions.status}</Badge>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Payment Date:</span>
-                        <span>{format(new Date(selectedDispute.transactions.paid_at), "PPp")}</span>
-                      </div>
-                      {selectedDispute.transactions.dispatch_confirmed_at && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Dispatch Date:</span>
-                          <span>{format(new Date(selectedDispute.transactions.dispatch_confirmed_at), "PPp")}</span>
-                        </div>
-                      )}
-                      {selectedDispute.transactions.delivery_confirmed_at && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Delivery Date:</span>
-                          <span>{format(new Date(selectedDispute.transactions.delivery_confirmed_at), "PPp")}</span>
-                        </div>
-                      )}
-                      <Separator />
-                      <div className="flex justify-between text-sm font-medium">
-                        <span>Days Since Payment:</span>
-                        <span className="text-primary">{Math.floor((Date.now() - new Date(selectedDispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days</span>
+                      <div className="flex-1">
+                        <p className="font-medium">Order Created</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(selectedDispute.transactions.created_at), "PPp")}
+                        </p>
                       </div>
                     </div>
-                  </Card>
-                </div>
-              )}
+
+                    {/* Payment */}
+                    {selectedDispute.transactions.paid_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Payment Received</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(selectedDispute.transactions.paid_at), "PPp")}
+                            <span className="ml-2 text-xs">
+                              (+{differenceInHours(new Date(selectedDispute.transactions.paid_at), new Date(selectedDispute.transactions.created_at))}h)
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Clock className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-muted-foreground">Payment Pending</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dispatch */}
+                    {selectedDispute.transactions.dispatch_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Dispatched</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(selectedDispute.transactions.dispatch_confirmed_at), "PPp")}
+                            {selectedDispute.transactions.paid_at && (
+                              <span className="ml-2 text-xs">
+                                (+{differenceInHours(new Date(selectedDispute.transactions.dispatch_confirmed_at), new Date(selectedDispute.transactions.paid_at))}h after payment)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : selectedDispute.transactions.paid_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Clock className="h-5 w-5 text-warning" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-warning">Awaiting Dispatch</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.floor((Date.now() - new Date(selectedDispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days since payment
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Delivery */}
+                    {selectedDispute.transactions.delivery_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Delivered</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(selectedDispute.transactions.delivery_confirmed_at), "PPp")}
+                            {selectedDispute.transactions.dispatch_confirmed_at && (
+                              <span className="ml-2 text-xs">
+                                (+{Math.floor((new Date(selectedDispute.transactions.delivery_confirmed_at).getTime() - new Date(selectedDispute.transactions.dispatch_confirmed_at).getTime()) / (1000 * 60 * 60 * 24))} days in transit)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : selectedDispute.transactions.dispatch_confirmed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Truck className="h-5 w-5 text-warning" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-warning">In Transit</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.floor((Date.now() - new Date(selectedDispute.transactions.dispatch_confirmed_at).getTime()) / (1000 * 60 * 60 * 24))} days in transit
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Completed */}
+                    {selectedDispute.transactions.completed_at ? (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Completed</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(selectedDispute.transactions.completed_at), "PPp")}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Disputed */}
+                    <div className="flex items-start gap-3 p-3 bg-destructive/10 rounded-lg border-l-4 border-destructive">
+                      <div className="mt-1">
+                        <AlertCircle className="h-5 w-5 text-destructive" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-destructive">Dispute Raised</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(selectedDispute.created_at), "PPp")}
+                          {selectedDispute.transactions.paid_at && (
+                            <span className="ml-2 text-xs">
+                              ({Math.floor((new Date(selectedDispute.created_at).getTime() - new Date(selectedDispute.transactions.paid_at).getTime()) / (1000 * 60 * 60 * 24))} days after payment)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Cost Breakdown */}
+              <div>
+                <h4 className="font-semibold mb-3">Cost Breakdown</h4>
+                <Card className="p-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Listing Price:</span>
+                      <span className="font-medium">£{selectedDispute.listings.price.toFixed(2)}</span>
+                    </div>
+                    {selectedDispute.transactions.buyer_protection_fee && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Buyer Protection Fee:</span>
+                        <span className="font-medium">£{selectedDispute.transactions.buyer_protection_fee.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {selectedDispute.transactions.amount - selectedDispute.listings.price - (selectedDispute.transactions.buyer_protection_fee || 0) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Delivery Charge:</span>
+                        <span className="font-medium">
+                          £{(selectedDispute.transactions.amount - selectedDispute.listings.price - (selectedDispute.transactions.buyer_protection_fee || 0)).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between font-bold text-base pt-2">
+                      <span>Total Paid:</span>
+                      <span className="text-primary">£{selectedDispute.transactions.amount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
 
               <Separator />
 
