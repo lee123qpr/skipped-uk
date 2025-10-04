@@ -22,6 +22,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PaymentVerifier from "@/components/PaymentVerifier";
 import { OfflineDetector } from "@/components/OfflineDetector";
+import CookieConsent from "@/components/CookieConsent";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -56,6 +57,7 @@ const App = () => (
                 <ScrollToTop />
                 <PaymentVerifier />
                 <OfflineDetector />
+                <CookieConsent />
                 <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/sign-in" element={<SignIn />} />
