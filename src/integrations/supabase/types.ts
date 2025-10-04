@@ -534,6 +534,7 @@ export type Database = {
           full_address: string | null
           id: string
           images: string[] | null
+          last_viewed_at: string | null
           latitude: number | null
           location: string
           location_bounds: Json | null
@@ -549,6 +550,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string
+          view_count: number | null
           weight: number | null
         }
         Insert: {
@@ -572,6 +574,7 @@ export type Database = {
           full_address?: string | null
           id?: string
           images?: string[] | null
+          last_viewed_at?: string | null
           latitude?: number | null
           location: string
           location_bounds?: Json | null
@@ -587,6 +590,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string
+          view_count?: number | null
           weight?: number | null
         }
         Update: {
@@ -610,6 +614,7 @@ export type Database = {
           full_address?: string | null
           id?: string
           images?: string[] | null
+          last_viewed_at?: string | null
           latitude?: number | null
           location?: string
           location_bounds?: Json | null
@@ -625,6 +630,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string
+          view_count?: number | null
           weight?: number | null
         }
         Relationships: [
@@ -1298,6 +1304,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_listing_view_count: {
+        Args: { listing_id: string }
+        Returns: undefined
       }
       send_review_reminders: {
         Args: Record<PropertyKey, never>
