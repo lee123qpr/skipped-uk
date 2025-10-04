@@ -34,32 +34,43 @@ const SignIn = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        // Check if user is admin before redirecting
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Check for admin role
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", user.id)
-            .eq("role", "admin")
-            .maybeSingle();
+        return;
+      }
+
+      toast({
+        title: "Welcome back!",
+        description: "You have been signed in successfully.",
+      });
+
+      // Wait a moment for auth state to propagate, then check role
+      setTimeout(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
           
-          toast({
-            title: "Welcome back!",
-            description: "You have been signed in successfully.",
-          });
-          
-          // Redirect based on role
-          if (roles) {
-            navigate("/admin");
+          if (user) {
+            // Check for admin role
+            const { data: roles } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", user.id)
+              .eq("role", "admin")
+              .maybeSingle();
+            
+            // Redirect based on role
+            if (roles) {
+              navigate("/admin");
+            } else {
+              navigate("/dashboard");
+            }
           } else {
             navigate("/dashboard");
           }
+        } catch (roleError) {
+          console.error("Role check error:", roleError);
+          navigate("/dashboard");
         }
-      }
+      }, 100);
+
     } catch (error) {
       console.error("Sign in error:", error);
       toast({

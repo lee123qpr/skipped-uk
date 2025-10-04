@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminDisputes } from "@/components/admin/AdminDisputes";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
@@ -203,16 +204,22 @@ export default function Admin() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background w-full">
-      {/* Sidebar */}
-      <AdminSidebar pendingDisputesCount={stats.pendingDisputes} />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-background w-full">
+        <AdminSidebar pendingDisputesCount={stats.pendingDisputes} />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 md:px-6 py-8">
-          {renderSection()}
-        </div>
-      </main>
-    </div>
+        <main className="flex-1 overflow-y-auto">
+          {/* Mobile header with trigger */}
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background px-4 py-3 lg:hidden">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold">Admin Panel</h1>
+          </div>
+          
+          <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
+            {renderSection()}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
