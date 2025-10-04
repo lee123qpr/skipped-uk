@@ -50,6 +50,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDistanceToNow } from "date-fns";
+import { formatConditionBadge } from "@/lib/utils";
+import { RefreshCw } from "lucide-react";
 
 interface Listing {
   id: string;
@@ -65,16 +67,13 @@ interface Listing {
   favourite_count?: number;
   message_count?: number;
   unread_message_count?: number;
-  active_transactions?: Array<{
+  transactions?: Array<{
     id: string;
     status: string;
     buyer_id: string;
     created_at: string;
+    completed_at?: string;
   }>;
-  completed_transaction?: {
-    id: string;
-    completed_at: string;
-  };
 }
 
 interface ListingSection {
@@ -131,12 +130,6 @@ const MyListings = () => {
         const transactions = transactionsData?.filter(t => t.listing_id === listing.id) || [];
         const messages = messagesData?.filter(m => m.listing_id === listing.id) || [];
         const favourites = favouritesData?.filter(f => f.listing_id === listing.id) || [];
-        
-        const activeTransactions = transactions.filter(t => 
-          ['pending_payment', 'paid', 'dispatched', 'delivered'].includes(t.status)
-        );
-        
-        const completedTransaction = transactions.find(t => t.status === 'completed');
 
         return {
           ...listing,
@@ -144,8 +137,7 @@ const MyListings = () => {
           favourite_count: favourites.length,
           message_count: messages.length,
           unread_message_count: messages.filter(m => !m.read).length,
-          active_transactions: activeTransactions,
-          completed_transaction: completedTransaction,
+          transactions: transactions,
         };
       });
     },
@@ -187,30 +179,10 @@ const MyListings = () => {
 
       if (error) throw error;
 
-      if (newStatus === 'sold') {
-        const { error: transactionError } = await supabase
-          .from('transactions')
-          .update({ 
-            status: 'completed',
-            completed_at: new Date().toISOString()
-          })
-          .eq('listing_id', listingId)
-          .eq('status', 'pending');
-
-        if (transactionError) {
-          console.error('Error completing transactions:', transactionError);
-        }
-
-        toast({
-          title: 'Listing sold!',
-          description: 'Transaction completed. Both parties can now leave reviews.',
-        });
-      } else {
-        toast({
-          title: 'Status updated',
-          description: `Listing marked as ${newStatus}.`,
-        });
-      }
+      toast({
+        title: 'Status updated',
+        description: `Listing marked as ${newStatus}.`,
+      });
 
       refetch();
     } catch (error) {
@@ -228,67 +200,81 @@ const MyListings = () => {
     }
   };
 
-  // Categorise listings into sections
+  // Categorise listings into sections based on transaction status
   const categorizeListings = (listings: Listing[]): ListingSection[] => {
-    const activeListings = listings.filter(l => 
-      l.status === 'active' && 
-      (!l.active_transactions || l.active_transactions.length === 0) &&
-      !l.completed_transaction
-    );
+    const sections: Record<string, Listing[]> = {
+      disputed: [],
+      completed: [],
+      refunded: [],
+      inProgress: [],
+      paused: [],
+      active: [],
+    };
 
-    const inProgressListings = listings.filter(l => 
-      l.active_transactions && l.active_transactions.length > 0
-    );
+    listings.forEach(listing => {
+      const transactions = listing.transactions || [];
+      
+      // Priority order: disputed > completed > refunded > in progress > paused > active
+      const hasDispute = transactions.some(t => 
+        t.status === 'disputed' || t.status === 'disputed_pending_review'
+      );
+      const hasCompleted = transactions.some(t => t.status === 'completed');
+      const hasRefunded = transactions.some(t => t.status === 'refunded');
+      const hasActiveTransaction = transactions.some(t => 
+        ['paid', 'dispatched', 'delivered'].includes(t.status)
+      );
 
-    const disputedListings = listings.filter(l => 
-      l.active_transactions?.some(t => 
-        t.status.includes('disputed')
-      )
-    );
-
-    const completedListings = listings.filter(l => 
-      l.completed_transaction && l.status !== 'sold'
-    );
-
-    const pausedListings = listings.filter(l => l.status === 'paused');
-    const soldListings = listings.filter(l => l.status === 'sold');
+      if (hasDispute) {
+        sections.disputed.push(listing);
+      } else if (hasCompleted) {
+        sections.completed.push(listing);
+      } else if (hasRefunded) {
+        sections.refunded.push(listing);
+      } else if (hasActiveTransaction) {
+        sections.inProgress.push(listing);
+      } else if (listing.status === 'paused') {
+        sections.paused.push(listing);
+      } else {
+        sections.active.push(listing);
+      }
+    });
 
     return [
       {
         title: 'Active Listings',
         icon: <Package className="h-4 w-4" />,
-        listings: activeListings,
+        listings: sections.active,
         variant: 'default' as const,
       },
       {
         title: 'In Progress',
         icon: <Clock className="h-4 w-4" />,
-        listings: inProgressListings,
+        listings: sections.inProgress,
         variant: 'secondary' as const,
       },
       {
         title: 'In Dispute',
         icon: <AlertTriangle className="h-4 w-4" />,
-        listings: disputedListings,
+        listings: sections.disputed,
         variant: 'destructive' as const,
       },
       {
         title: 'Completed Sales',
         icon: <CheckCircle className="h-4 w-4" />,
-        listings: completedListings,
+        listings: sections.completed,
         variant: 'default' as const,
       },
       {
         title: 'Paused',
         icon: <PauseCircle className="h-4 w-4" />,
-        listings: pausedListings,
+        listings: sections.paused,
         variant: 'outline' as const,
       },
       {
-        title: 'Sold',
-        icon: <CheckCircle className="h-4 w-4" />,
-        listings: soldListings,
-        variant: 'secondary' as const,
+        title: 'Refunded',
+        icon: <RefreshCw className="h-4 w-4" />,
+        listings: sections.refunded,
+        variant: 'destructive' as const,
       },
     ].filter(section => section.listings.length > 0);
   };
@@ -303,8 +289,9 @@ const MyListings = () => {
 
   const getEngagementBadge = (listing: Listing) => {
     const daysListed = getDaysListed(listing.created_at);
+    const hasCompleted = listing.transactions?.some(t => t.status === 'completed');
 
-    if (listing.completed_transaction && getDaysListed(listing.created_at) <= 7) {
+    if (hasCompleted && daysListed <= 7) {
       return <Badge variant="default" className="bg-green-600">Quick Sale</Badge>;
     }
     if (listing.view_count >= 50 || (listing.favourite_count || 0) >= 10) {
@@ -317,17 +304,20 @@ const MyListings = () => {
   };
 
   const getTransactionStatusBadge = (listing: Listing) => {
-    if (!listing.active_transactions || listing.active_transactions.length === 0) return null;
+    const transactions = listing.transactions || [];
+    const activeTransaction = transactions.find(t => 
+      ['paid', 'dispatched', 'delivered'].includes(t.status)
+    );
+    
+    if (!activeTransaction) return null;
 
-    const transaction = listing.active_transactions[0];
     const statusMap: Record<string, { label: string; variant: any }> = {
-      pending_payment: { label: 'Awaiting Payment', variant: 'outline' },
       paid: { label: 'Awaiting Dispatch', variant: 'default' },
       dispatched: { label: 'In Transit', variant: 'default' },
-      delivered: { label: 'Delivered', variant: 'default' },
+      delivered: { label: 'Awaiting Confirmation', variant: 'default' },
     };
 
-    const status = statusMap[transaction.status];
+    const status = statusMap[activeTransaction.status];
     if (!status) return null;
 
     return <Badge variant={status.variant}>{status.label}</Badge>;
@@ -432,16 +422,10 @@ const MyListings = () => {
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {listing.status === 'active' && (
-                                      <>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'paused')}>
-                                          <PauseCircle className="mr-2 h-4 w-4" />
-                                          Pause Listing
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'sold')}>
-                                          <CheckCircle className="mr-2 h-4 w-4" />
-                                          Mark as Sold
-                                        </DropdownMenuItem>
-                                      </>
+                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'paused')}>
+                                        <PauseCircle className="mr-2 h-4 w-4" />
+                                        Pause Listing
+                                      </DropdownMenuItem>
                                     )}
                                     {listing.status === 'paused' && (
                                       <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'active')}>
@@ -463,7 +447,7 @@ const MyListings = () => {
 
                               <div className="flex flex-wrap gap-2">
                                 <Badge variant="outline">{listing.location}</Badge>
-                                <Badge variant="outline">{listing.condition}</Badge>
+                                <Badge variant="outline">{formatConditionBadge(listing.condition)}</Badge>
                                 {getEngagementBadge(listing)}
                                 {getTransactionStatusBadge(listing)}
                               </div>
@@ -501,24 +485,64 @@ const MyListings = () => {
                                 )}
                               </div>
 
-                              {listing.active_transactions && listing.active_transactions.length > 0 && (
-                                <div className="pt-2 border-t">
-                                  <p className="text-sm font-medium mb-1">
-                                    Active Transaction: {listing.active_transactions[0].status.replace(/_/g, ' ')}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Started {formatDistanceToNow(new Date(listing.active_transactions[0].created_at), { addSuffix: true })}
-                                  </p>
-                                </div>
-                              )}
+                              {/* Transaction Info */}
+                              {(() => {
+                                const transactions = listing.transactions || [];
+                                const activeTransaction = transactions.find(t => 
+                                  ['paid', 'dispatched', 'delivered'].includes(t.status)
+                                );
+                                const completedTransaction = transactions.find(t => t.status === 'completed');
+                                const disputedTransaction = transactions.find(t => 
+                                  t.status === 'disputed' || t.status === 'disputed_pending_review'
+                                );
+                                const refundedTransaction = transactions.find(t => t.status === 'refunded');
 
-                              {listing.completed_transaction && (
-                                <div className="pt-2 border-t">
-                                  <p className="text-sm text-green-600 font-medium">
-                                    Sold {formatDistanceToNow(new Date(listing.completed_transaction.completed_at), { addSuffix: true })}
-                                  </p>
-                                </div>
-                              )}
+                                if (disputedTransaction) {
+                                  return (
+                                    <div className="pt-2 mt-2 border-t text-sm">
+                                      <p className="text-destructive font-medium">
+                                        In Dispute • Raised {formatDistanceToNow(new Date(disputedTransaction.created_at), { addSuffix: true })}
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                if (completedTransaction && completedTransaction.completed_at) {
+                                  const daysToSell = getDaysListed(listing.created_at);
+                                  return (
+                                    <div className="pt-2 mt-2 border-t text-sm">
+                                      <p className="text-muted-foreground">
+                                        Sold {formatDistanceToNow(new Date(completedTransaction.completed_at), { addSuffix: true })} • {daysToSell} {daysToSell === 1 ? 'day' : 'days'} to sell
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                if (refundedTransaction) {
+                                  return (
+                                    <div className="pt-2 mt-2 border-t text-sm">
+                                      <p className="text-muted-foreground">
+                                        Refunded {formatDistanceToNow(new Date(refundedTransaction.created_at), { addSuffix: true })}
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                if (activeTransaction) {
+                                  const daysSinceStart = Math.floor(
+                                    (Date.now() - new Date(activeTransaction.created_at).getTime()) / (1000 * 60 * 60 * 24)
+                                  );
+                                  return (
+                                    <div className="pt-2 mt-2 border-t text-sm">
+                                      <p className="text-muted-foreground">
+                                        Transaction in progress • {daysSinceStart} {daysSinceStart === 1 ? 'day' : 'days'} ago
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </div>

@@ -72,3 +72,13 @@ export function toTitleCase(text: string): string {
     })
     .join(' ');
 }
+
+// Simple condition formatter for badges (just capitalize and space)
+export function formatConditionBadge(condition: string): string {
+  if (!condition) return '';
+  
+  return condition
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
