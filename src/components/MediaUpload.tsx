@@ -17,6 +17,8 @@ interface MediaFile {
   order: number; // For drag & drop ordering
 }
 
+export type { MediaFile };
+
 interface MediaUploadProps {
   onFilesChange: (files: MediaFile[]) => void;
   maxImages?: number;

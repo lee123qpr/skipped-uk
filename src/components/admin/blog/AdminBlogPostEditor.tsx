@@ -16,8 +16,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import { Save, Eye, X } from "lucide-react";
+import { Save } from "lucide-react";
 import { toast } from "sonner";
+import { RichTextEditor } from "./RichTextEditor";
+import MediaUpload, { type MediaFile } from "@/components/MediaUpload";
 
 interface AdminBlogPostEditorProps {
   postId: string | null;
@@ -32,7 +34,7 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
     slug: "",
     excerpt: "",
     content: "",
-    featured_image_url: "",
+    images: [] as string[],
     status: "draft" as "draft" | "published" | "archived",
     meta_description: "",
     meta_keywords: "",
@@ -76,11 +78,11 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
         slug: existingPost.slug,
         excerpt: existingPost.excerpt || "",
         content: existingPost.content,
-        featured_image_url: existingPost.featured_image_url || "",
+        images: existingPost.featured_image_url ? [existingPost.featured_image_url] : [],
         status: existingPost.status,
         meta_description: existingPost.meta_description || "",
         meta_keywords: existingPost.meta_keywords || "",
-        selectedCategories: existingPost.blog_post_categories.map((pc: any) => pc.category_id),
+        selectedCategories: existingPost.blog_post_categories?.map((pc: any) => pc.category_id) || [],
       });
     }
   }, [existingPost]);
@@ -92,7 +94,7 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
         slug: data.slug || undefined,
         excerpt: data.excerpt || null,
         content: data.content,
-        featured_image_url: data.featured_image_url || null,
+        featured_image_url: data.images[0] || null,
         status: data.status,
         meta_description: data.meta_description || null,
         meta_keywords: data.meta_keywords || null,
@@ -170,6 +172,13 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
     }));
   };
 
+  const handleMediaChange = (files: MediaFile[]) => {
+    const imageUrls = files
+      .filter(f => f.uploaded && f.url)
+      .map(f => f.url!);
+    setFormData(prev => ({ ...prev, images: imageUrls }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex justify-between items-center">
@@ -233,14 +242,9 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
 
               <div className="space-y-2">
                 <Label htmlFor="content">Content *</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Write your content here (Markdown supported)"
-                  rows={15}
-                  required
-                  className="font-mono"
+                <RichTextEditor
+                  content={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
                 />
               </div>
             </CardContent>
@@ -306,24 +310,16 @@ export function AdminBlogPostEditor({ postId, onSaveComplete }: AdminBlogPostEdi
 
           <Card>
             <CardHeader>
-              <CardTitle>Featured Image</CardTitle>
+              <CardTitle>Images</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Input
-                type="url"
-                value={formData.featured_image_url}
-                onChange={(e) => setFormData({ ...formData, featured_image_url: e.target.value })}
-                placeholder="https://example.com/image.jpg"
+            <CardContent>
+              <MediaUpload
+                onFilesChange={handleMediaChange}
+                maxImages={5}
+                maxVideos={0}
               />
-              {formData.featured_image_url && (
-                <img
-                  src={formData.featured_image_url}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              )}
-              <p className="text-xs text-muted-foreground">
-                Enter the URL of your featured image
+              <p className="text-xs text-muted-foreground mt-2">
+                Upload up to 5 images. First image will be the featured image.
               </p>
             </CardContent>
           </Card>
