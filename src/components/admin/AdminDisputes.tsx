@@ -20,9 +20,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle, Clock, ExternalLink } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, ExternalLink, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+interface DisputeEvidence {
+  id: string;
+  dispute_id?: string;
+  evidence_type: string;
+  file_url: string;
+  description: string;
+  uploaded_by_id: string;
+  created_at: string;
+}
 
 interface Dispute {
   id: string;
@@ -40,6 +50,7 @@ interface Dispute {
     amount: number;
     status: string;
   };
+  dispute_evidence?: DisputeEvidence[];
 }
 
 interface AdminDisputesProps {
@@ -69,6 +80,14 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
           transactions!disputes_transaction_id_fkey (
             amount,
             status
+          ),
+          dispute_evidence (
+            id,
+            evidence_type,
+            file_url,
+            description,
+            uploaded_by_id,
+            created_at
           )
         `)
         .order("created_at", { ascending: false });
@@ -192,15 +211,40 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
                   <Label className="text-sm text-muted-foreground">Reason</Label>
                   <p>{dispute.reason}</p>
                 </div>
                 {dispute.description && (
                   <div>
-                    <Label className="text-sm text-muted-foreground">Description</Label>
-                    <p className="text-sm">{dispute.description}</p>
+                    <Label className="text-sm text-muted-foreground">User Explanation</Label>
+                    <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">{dispute.description}</p>
+                  </div>
+                )}
+                {dispute.dispute_evidence && dispute.dispute_evidence.length > 0 && (
+                  <div>
+                    <Label className="text-sm text-muted-foreground flex items-center gap-1">
+                      <ImageIcon className="h-4 w-4" />
+                      Evidence Photos ({dispute.dispute_evidence.length})
+                    </Label>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {dispute.dispute_evidence.map((evidence) => (
+                        <div key={evidence.id} className="relative group">
+                          <img
+                            src={evidence.file_url}
+                            alt="Evidence"
+                            className="w-full h-24 object-cover rounded-md border cursor-pointer hover:opacity-75 transition-opacity"
+                            onClick={() => window.open(evidence.file_url, "_blank")}
+                          />
+                          {evidence.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {evidence.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -231,7 +275,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
 
           {selectedDispute && (
             <div className="space-y-4">
-              <div className="bg-muted p-4 rounded-lg space-y-2">
+              <div className="bg-muted p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-muted-foreground">Dispute Type</Label>
@@ -246,6 +290,37 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                   <Label className="text-sm text-muted-foreground">Reason</Label>
                   <p>{selectedDispute.reason}</p>
                 </div>
+                {selectedDispute.description && (
+                  <div>
+                    <Label className="text-sm text-muted-foreground">User Explanation</Label>
+                    <p className="text-sm whitespace-pre-wrap bg-background p-3 rounded border">{selectedDispute.description}</p>
+                  </div>
+                )}
+                {selectedDispute.dispute_evidence && selectedDispute.dispute_evidence.length > 0 && (
+                  <div>
+                    <Label className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                      <ImageIcon className="h-4 w-4" />
+                      Evidence Photos ({selectedDispute.dispute_evidence.length})
+                    </Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedDispute.dispute_evidence.map((evidence) => (
+                        <div key={evidence.id} className="space-y-1">
+                          <img
+                            src={evidence.file_url}
+                            alt="Evidence"
+                            className="w-full h-32 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                            onClick={() => window.open(evidence.file_url, "_blank")}
+                          />
+                          {evidence.description && (
+                            <p className="text-xs text-muted-foreground px-1">
+                              {evidence.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
