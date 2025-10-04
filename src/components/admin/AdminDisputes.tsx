@@ -98,9 +98,9 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
   const [resolving, setResolving] = useState(false);
   
   // Phase 2: Filters & Search
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -255,13 +255,13 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
   // Phase 2: Filter and search logic
   const filteredDisputes = disputes.filter(dispute => {
     // Status filter
-    if (statusFilter && dispute.status !== statusFilter) return false;
+    if (statusFilter && statusFilter !== "all" && dispute.status !== statusFilter) return false;
     
     // Type filter
-    if (typeFilter && dispute.dispute_type !== typeFilter) return false;
+    if (typeFilter && typeFilter !== "all" && dispute.dispute_type !== typeFilter) return false;
     
     // Date filter
-    if (dateFilter) {
+    if (dateFilter && dateFilter !== "all") {
       const disputeDate = new Date(dispute.created_at);
       const now = new Date();
       
@@ -313,7 +313,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="under_review">Under Review</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
@@ -327,7 +327,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="not_as_described">Not As Described</SelectItem>
                 <SelectItem value="not_received">Not Received</SelectItem>
                 <SelectItem value="damaged">Damaged</SelectItem>
@@ -343,7 +343,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
                 <SelectValue placeholder="All Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Time</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="week">This Week</SelectItem>
                 <SelectItem value="month">This Month</SelectItem>
