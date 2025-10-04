@@ -43,6 +43,10 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import NewsResources from "./pages/NewsResources";
 import BlogPost from "./pages/BlogPost";
+import FAQ from "./pages/FAQ";
+import ContactUs from "./pages/ContactUs";
+import DisputeResolution from "./pages/DisputeResolution";
+import SafetyGuidelines from "./pages/SafetyGuidelines";
 
 const App = () => (
   <HelmetProvider>
@@ -78,6 +82,10 @@ const App = () => (
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/news-resources" element={<NewsResources />} />
                 <Route path="/news-resources/:slug" element={<BlogPost />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/dispute-resolution" element={<DisputeResolution />} />
+                <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

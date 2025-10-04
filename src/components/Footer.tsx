@@ -41,11 +41,10 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Support</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Help Centre</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Contact Us</Link></li>
-              <li><Link to="/buyer-protection" className="hover:text-primary transition-smooth">Dispute Resolution</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-primary transition-smooth">Safety Guidelines</Link></li>
-              <li><Link to="/buyer-protection" className="hover:text-primary transition-smooth">Trust & Safety</Link></li>
+              <li><Link to="/faq" className="hover:text-primary transition-smooth">FAQ</Link></li>
+              <li><Link to="/contact-us" className="hover:text-primary transition-smooth">Contact Us</Link></li>
+              <li><Link to="/dispute-resolution" className="hover:text-primary transition-smooth">Dispute Resolution</Link></li>
+              <li><Link to="/safety-guidelines" className="hover:text-primary transition-smooth">Safety Guidelines</Link></li>
               <li><Link to="/news-resources" className="hover:text-primary transition-smooth">News & Resources</Link></li>
             </ul>
           </div>

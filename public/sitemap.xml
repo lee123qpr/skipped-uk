@@ -49,6 +49,30 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://skipped.co.uk/faq</loc>
+    <lastmod>2025-10-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skipped.co.uk/contact-us</loc>
+    <lastmod>2025-10-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skipped.co.uk/dispute-resolution</loc>
+    <lastmod>2025-10-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skipped.co.uk/safety-guidelines</loc>
+    <lastmod>2025-10-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://skipped.co.uk/terms-of-service</loc>
     <lastmod>2025-10-03</lastmod>
     <changefreq>monthly</changefreq>
