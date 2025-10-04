@@ -9,6 +9,7 @@ import SEOHead from "@/components/SEOHead";
 import InfoBox from "@/components/InfoBox";
 import { useAuth } from "@/components/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const SignIn = () => {
@@ -34,11 +35,30 @@ const SignIn = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Welcome back!",
-          description: "You have been signed in successfully.",
-        });
-        navigate("/");
+        // Check if user is admin before redirecting
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Check for admin role
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+          
+          toast({
+            title: "Welcome back!",
+            description: "You have been signed in successfully.",
+          });
+          
+          // Redirect based on role
+          if (roles) {
+            navigate("/admin");
+          } else {
+            navigate("/dashboard");
+          }
+        }
       }
     } catch (error) {
       console.error("Sign in error:", error);
