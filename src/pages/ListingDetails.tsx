@@ -194,29 +194,29 @@ const ListingDetails = () => {
       // Calculate costs - buyer protection fee only applies to item price, not delivery
       const deliveryCost = deliveryMethod === 'delivery' && listing.delivery_cost ? listing.delivery_cost : 0;
       const buyerProtectionFee = listing.price * 0.05; // 5% of item price only
-      const totalAmount = listing.price + deliveryCost + buyerProtectionFee;
       
-      // Create transaction record
-      const { data: transaction, error: txError } = await supabase
+      // Check if listing already has active transaction
+      const { data: activeTransactions } = await supabase
         .from('transactions')
-        .insert({
-          listing_id: listing.id,
-          buyer_id: user.id,
-          seller_id: listing.seller_id,
-          amount: listing.price,
-          buyer_protection_fee: buyerProtectionFee,
-          status: 'pending'
-        })
-        .select()
-        .single();
+        .select('id, status')
+        .eq('listing_id', listing.id)
+        .in('status', ['paid', 'dispatched', 'delivered', 'completed']);
       
-      if (txError) throw txError;
+      if (activeTransactions && activeTransactions.length > 0) {
+        toast({
+          title: "Listing Unavailable",
+          description: "This listing has already been purchased by another buyer.",
+          variant: "destructive",
+        });
+        navigate('/browse');
+        return;
+      }
       
-      // Call payment intent edge function
+      // Call payment intent edge function directly - transaction will be created after payment
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
-          transactionId: transaction.id,
-          amount: totalAmount,
+          listingId: listing.id,
+          amount: listing.price,
           buyerProtectionFee: buyerProtectionFee,
           deliveryCost: deliveryCost,
           deliveryMethod: deliveryMethod,
@@ -227,8 +227,8 @@ const ListingDetails = () => {
       if (error) throw error;
       
       // Redirect to Stripe Checkout
-      if (data?.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (data?.sessionUrl) {
+        window.location.href = data.sessionUrl;
       } else {
         throw new Error('No checkout URL returned');
       }

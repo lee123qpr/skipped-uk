@@ -1,247 +1,256 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[VERIFY-PAYMENT] ${step}${detailsStr}`);
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${step}`, details ? JSON.stringify(details) : '');
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { sessionId, transactionId, forceCheck } = await req.json();
-    
-    logStep("Request received", { sessionId, transactionId, forceCheck });
+    logStep("Starting verify-payment");
 
-    // Support both sessionId and transactionId for verification
-    if (!sessionId && !transactionId) {
-      throw new Error("Missing sessionId or transactionId");
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
     }
 
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Authenticate user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
-    
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    if (authError || !user) throw new Error("Authentication failed");
-
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
     logStep("User authenticated", { userId: user.id });
 
+    const { sessionId } = await req.json();
+    if (!sessionId) {
+      throw new Error('Missing sessionId');
+    }
+    logStep("Session ID received", { sessionId });
+
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
     });
 
-    let session;
-    let transactionIdToUpdate;
+    // Retrieve the checkout session
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    logStep("Session retrieved", { 
+      sessionId: session.id, 
+      paymentStatus: session.payment_status,
+      paymentIntentId: session.payment_intent 
+    });
 
-    // If transactionId provided, fetch transaction and check Stripe directly
-    if (transactionId) {
-      logStep("Manual verification by transactionId", { transactionId });
-
-      const { data: transaction } = await supabaseClient
-        .from("transactions")
-        .select("stripe_payment_intent_id, listing_id, seller_id, amount")
-        .eq("id", transactionId)
-        .eq("buyer_id", user.id)
-        .single();
-
-      if (!transaction || !transaction.stripe_payment_intent_id) {
-        throw new Error("Transaction not found or no payment intent");
-      }
-
-      // Check payment intent status directly
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        transaction.stripe_payment_intent_id
+    if (session.payment_status !== 'paid') {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Payment not completed' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
       );
-
-      logStep("Payment intent status", { 
-        status: paymentIntent.status,
-        paymentIntentId: paymentIntent.id
-      });
-
-      if (paymentIntent.status !== "succeeded") {
-        return new Response(
-          JSON.stringify({ 
-            success: false,
-            message: "Payment not completed"
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
-      }
-
-      transactionIdToUpdate = transactionId;
-      // Create a pseudo-session object for consistent handling below
-      session = {
-        metadata: { transaction_id: transactionId },
-        payment_status: "paid"
-      };
-    } else {
-      // Retrieve the checkout session
-      session = await stripe.checkout.sessions.retrieve(sessionId);
-      
-      logStep("Session retrieved", { 
-        sessionId: session.id,
-        paymentStatus: session.payment_status,
-        status: session.status
-      });
-
-      if (session.payment_status !== "paid") {
-        return new Response(
-          JSON.stringify({ 
-            success: false,
-            message: "Payment not completed"
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
-      }
-
-      // Get transaction ID from metadata
-      transactionIdToUpdate = session.metadata?.transaction_id;
-      if (!transactionIdToUpdate) {
-        throw new Error("Transaction ID not found in session metadata");
-      }
     }
 
-    logStep("Transaction ID found", { transactionId: transactionIdToUpdate });
+    // Retrieve payment intent to get metadata
+    const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+    logStep("Payment intent retrieved", { paymentIntentId: paymentIntent.id });
 
-    // Update transaction status to paid
-    const { error: updateError } = await supabaseClient
-      .from("transactions")
-      .update({
-        status: "paid",
-        paid_at: new Date().toISOString(),
-      })
-      .eq("id", transactionIdToUpdate)
-      .eq("buyer_id", user.id);
+    const metadata = paymentIntent.metadata;
+    const { listing_id, buyer_id, seller_id, item_amount, buyer_protection_fee, delivery_cost, delivery_method, offer_id } = metadata;
 
-    if (updateError) {
-      logStep("Failed to update transaction", updateError);
-      throw new Error("Failed to update transaction status");
+    if (!listing_id || !buyer_id || !seller_id) {
+      throw new Error('Missing required metadata');
     }
 
-    logStep("Transaction updated to paid");
-
-    // Send notification message to seller
-    const { data: transaction } = await supabaseClient
-      .from("transactions")
-      .select("seller_id, listing_id, amount")
-      .eq("id", transactionIdToUpdate)
+    // Check if transaction already exists for this payment intent
+    const { data: existingTransaction } = await supabaseClient
+      .from('transactions')
+      .select('id')
+      .eq('stripe_payment_intent_id', paymentIntent.id)
       .single();
 
-    if (transaction) {
-      // Get listing title
-      const { data: listing } = await supabaseClient
-        .from("listings")
-        .select("title")
-        .eq("id", transaction.listing_id)
-        .single();
-
-      const listingTitle = listing?.title || "item";
-
-      // Check if payment confirmation message already exists
-      const { data: existingMessage } = await supabaseClient
-        .from("messages")
-        .select("id")
-        .eq("listing_id", transaction.listing_id)
-        .eq("sender_id", user.id)
-        .eq("receiver_id", transaction.seller_id)
-        .eq("message_type", "system")
-        .ilike("content", `Payment of £${transaction.amount} received%`)
-        .single();
-
-      if (!existingMessage) {
-        // Send specific messages to both buyer and seller
-        await supabaseClient
-          .from("messages")
-          .insert([
-            {
-              sender_id: user.id,
-              receiver_id: transaction.seller_id,
-              listing_id: transaction.listing_id,
-              content: `💰 Payment of £${transaction.amount} received in escrow. Please mark as dispatched when you send the item.`,
-              message_type: "system",
-              read: false,
-            },
-            {
-              sender_id: user.id,
-              receiver_id: user.id,
-              listing_id: transaction.listing_id,
-              content: `✅ Payment confirmed! Your payment of £${transaction.amount} is held securely in escrow. You'll receive the item once the seller dispatches it.`,
-              message_type: "system",
-              read: false,
-            }
-          ]);
-
-        // Create notifications for both parties
-        await supabaseClient
-          .from("notifications")
-          .insert([
-            {
-              user_id: transaction.seller_id,
-              type: "transaction",
-              title: "Payment Received in Escrow",
-              description: `Payment of £${transaction.amount} for "${listingTitle}" is secured. Please dispatch the item.`,
-              action_url: `/dashboard?tab=transactions&id=${transactionIdToUpdate}`,
-              related_id: transactionIdToUpdate,
-              metadata: { listing_id: transaction.listing_id, amount: transaction.amount }
-            },
-            {
-              user_id: user.id,
-              type: "transaction",
-              title: "Payment Confirmed",
-              description: `Your £${transaction.amount} payment for "${listingTitle}" is held securely in escrow.`,
-              action_url: `/dashboard?tab=transactions&id=${transactionIdToUpdate}`,
-              related_id: transactionIdToUpdate,
-              metadata: { listing_id: transaction.listing_id, amount: transaction.amount }
-            }
-          ]);
-        
-        logStep("Notifications sent to both parties");
-      } else {
-        logStep("Payment notification already exists, skipping");
-      }
+    if (existingTransaction) {
+      logStep("Transaction already exists", { transactionId: existingTransaction.id });
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Transaction already processed',
+          transactionId: existingTransaction.id
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Payment verified and transaction updated"
-      }),
+    // Calculate total amount
+    const itemAmountPounds = parseFloat(item_amount) / 100;
+    const buyerProtectionFeePounds = buyer_protection_fee ? parseFloat(buyer_protection_fee) / 100 : 0;
+    const deliveryCostPounds = delivery_cost ? parseFloat(delivery_cost) / 100 : 0;
+    const totalAmount = itemAmountPounds + buyerProtectionFeePounds + deliveryCostPounds;
+
+    logStep("Creating new transaction", {
+      listing_id,
+      buyer_id,
+      seller_id,
+      amount: totalAmount,
+      paymentIntentId: paymentIntent.id
+    });
+
+    // Create new transaction with status 'paid'
+    const { data: newTransaction, error: transactionError } = await supabaseClient
+      .from('transactions')
+      .insert({
+        listing_id,
+        buyer_id,
+        seller_id,
+        offer_id: offer_id || null,
+        amount: totalAmount,
+        buyer_protection_fee: buyerProtectionFeePounds,
+        status: 'paid',
+        stripe_payment_intent_id: paymentIntent.id,
+        paid_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (transactionError) {
+      logStep("ERROR creating transaction", { error: transactionError });
+      throw new Error(`Failed to create transaction: ${transactionError.message}`);
+    }
+    logStep("Transaction created", { transactionId: newTransaction.id });
+
+    // Update listing availability
+    const { error: listingUpdateError } = await supabaseClient
+      .from('listings')
+      .update({ available: false })
+      .eq('id', listing_id);
+
+    if (listingUpdateError) {
+      logStep("WARNING: Failed to update listing availability", { error: listingUpdateError });
+    } else {
+      logStep("Listing marked as unavailable");
+    }
+
+    // Fetch listing and user details for notifications
+    const { data: listing } = await supabaseClient
+      .from('listings')
+      .select('title')
+      .eq('id', listing_id)
+      .single();
+
+    const { data: buyerProfile } = await supabaseClient
+      .from('profiles')
+      .select('display_name')
+      .eq('user_id', buyer_id)
+      .single();
+
+    // Send system messages to both parties
+    const messages = [
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+        sender_id: seller_id,
+        receiver_id: buyer_id,
+        listing_id,
+        transaction_id: newTransaction.id,
+        content: `Payment received! Your payment of £${totalAmount.toFixed(2)} is securely held in escrow. The seller will now dispatch your item.`,
+        message_type: 'system',
+        read: false
+      },
+      {
+        sender_id: buyer_id,
+        receiver_id: seller_id,
+        listing_id,
+        transaction_id: newTransaction.id,
+        content: `New order! ${buyerProfile?.display_name || 'A buyer'} has paid £${totalAmount.toFixed(2)} for "${listing?.title || 'your item'}". Please dispatch the item as soon as possible.`,
+        message_type: 'system',
+        read: false
+      }
+    ];
+
+    const { error: messagesError } = await supabaseClient
+      .from('messages')
+      .insert(messages);
+
+    if (messagesError) {
+      logStep("WARNING: Failed to create messages", { error: messagesError });
+    } else {
+      logStep("System messages created");
+    }
+
+    // Create notifications
+    const notifications = [
+      {
+        user_id: buyer_id,
+        type: 'transaction',
+        title: 'Payment Successful',
+        description: `Your payment of £${totalAmount.toFixed(2)} has been confirmed and is held securely.`,
+        action_url: `/dashboard?tab=messages`,
+        related_id: newTransaction.id,
+        metadata: { listing_id, transaction_id: newTransaction.id }
+      },
+      {
+        user_id: seller_id,
+        type: 'transaction',
+        title: 'New Order Received',
+        description: `You received a new order for "${listing?.title || 'your item'}" worth £${totalAmount.toFixed(2)}.`,
+        action_url: `/dashboard?tab=messages`,
+        related_id: newTransaction.id,
+        metadata: { listing_id, transaction_id: newTransaction.id }
+      }
+    ];
+
+    const { error: notificationsError } = await supabaseClient
+      .from('notifications')
+      .insert(notifications);
+
+    if (notificationsError) {
+      logStep("WARNING: Failed to create notifications", { error: notificationsError });
+    } else {
+      logStep("Notifications created");
+    }
+
+    logStep("Payment verification completed successfully");
+
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        message: 'Payment verified and transaction created',
+        transactionId: newTransaction.id
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
       }
     );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+  } catch (error: any) {
+    logStep("ERROR", { message: error.message, stack: error.stack });
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+      JSON.stringify({ 
+        success: false,
+        error: error.message 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400 
       }
     );
   }

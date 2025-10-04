@@ -14,7 +14,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
 import ErrorBoundary from "./ErrorBoundary";
 import { DisputeDialog } from "./DisputeDialog";
-import { getStatusConfig, canBuyerPay, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
+import { getStatusConfig, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -54,7 +54,6 @@ export const TransactionManager = ({
 }: TransactionManagerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const { toast } = useToast();
 
@@ -84,102 +83,6 @@ export const TransactionManager = ({
 
     fetchCertificate();
   }, [transaction.status, transaction.id, transaction.listings?.environmental_assessment_enabled]);
-
-  // Prevent accidental page navigation during payment
-  useEffect(() => {
-    if (transaction.status === "pending_payment") {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue = "Payment verification in progress. Are you sure you want to leave?";
-        return e.returnValue;
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    }
-  }, [transaction.status]);
-
-  const handlePayment = async () => {
-    setIsLoading(true);
-    try {
-      // Store transaction ID and timestamp in session storage
-      sessionStorage.setItem("pending_payment_tx", transaction.id);
-      sessionStorage.setItem("pending_payment_time", Date.now().toString());
-
-      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
-        body: { 
-          transactionId: transaction.id,
-          amount: transaction.amount,
-          buyerProtectionFee: transaction.buyer_protection_fee || (transaction.amount * 0.05),
-          returnUrl: window.location.origin,
-        },
-      });
-
-      if (error) throw error;
-
-      // Redirect to Stripe Checkout
-      if (data?.checkoutUrl) {
-        toast({
-          title: "Redirecting to payment",
-          description: "Taking you to Stripe Checkout. Do not close this window.",
-        });
-        
-        // Small delay to ensure storage is written
-        setTimeout(() => {
-          window.location.href = data.checkoutUrl as string;
-        }, 500);
-      }
-
-      onUpdate();
-    } catch (error: any) {
-      // Clear session storage on error
-      sessionStorage.removeItem("pending_payment_tx");
-      sessionStorage.removeItem("pending_payment_time");
-      
-      toast({
-        title: "Payment Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const handleManualVerification = async () => {
-    setIsVerifying(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("verify-payment", {
-        body: { 
-          transactionId: transaction.id,
-          forceCheck: true // Flag to check Stripe directly
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "Payment Verified!",
-          description: "Your payment has been confirmed.",
-        });
-        onUpdate();
-      } else {
-        toast({
-          title: "Payment Not Found",
-          description: "No completed payment found for this transaction. Please contact support if you've been charged.",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Verification Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsVerifying(false);
-    }
-  };
 
   const handleConfirmDispatch = async () => {
     setIsLoading(true);
@@ -296,59 +199,6 @@ export const TransactionManager = ({
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {transaction.status === "pending_payment" && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md space-y-2">
-                <div className="flex items-start gap-2">
-                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 animate-pulse" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                      ⏳ Verifying Your Payment
-                    </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
-                      We're confirming your payment with Stripe. This usually takes a few seconds.
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      💡 If you just completed payment, please wait 10-15 seconds...
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => window.location.reload()}
-                    className="flex-1"
-                  >
-                    Refresh Status
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    onClick={handleManualVerification}
-                    disabled={isVerifying}
-                    className="flex-1"
-                  >
-                    {isVerifying ? "Checking..." : "Verify Now"}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground text-center pt-1">
-                  Still stuck? Contact support with transaction ID
-                </p>
-              </div>
-            )}
-            
-            {transaction.status === "pending" && (
-              <ErrorBoundary fallback={<div className="text-destructive text-sm">Payment unavailable. Please refresh.</div>}>
-                <Button 
-                  onClick={handlePayment}
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? "Redirecting..." : "Buy Now - Complete Payment"}
-                </Button>
-              </ErrorBoundary>
-            )}
-
             {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && !transaction.delivery_confirmed_at && (
               <>
                 <Button 
@@ -411,14 +261,6 @@ export const TransactionManager = ({
               <div className="p-3 bg-muted rounded-md">
                 <p className="text-sm text-muted-foreground">
                   ⏳ Awaiting buyer confirmation. Funds will be released to you when buyer confirms receipt.
-                </p>
-              </div>
-            )}
-            
-            {transaction.status === "pending_payment" && (
-              <div className="p-3 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">
-                  ⏳ Waiting for buyer to complete payment...
                 </p>
               </div>
             )}

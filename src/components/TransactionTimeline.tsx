@@ -28,28 +28,17 @@ export function TransactionTimeline({ transaction, userRole }: TransactionTimeli
     
     const steps: TimelineStep[] = [
       {
-        label: "Order Created",
-        timestamp: transaction.created_at,
-        status: "complete",
-        icon: CheckCircle2,
-        description: userRole === "buyer" ? "✓ You placed your order" : "✓ Buyer placed order",
-      },
-      {
         label: "Payment in Escrow",
         timestamp: transaction.paid_at || undefined,
         status: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
           ? "complete" 
-          : transaction.status === "pending_payment" 
-            ? "current" 
-            : "upcoming",
+          : "upcoming",
         icon: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
           ? CheckCircle2 
           : Clock,
         description: transaction.paid_at || transaction.dispatch_confirmed_at || ["paid", "dispatched", "delivered", "completed", "disputed", "disputed_pending_review"].includes(transaction.status)
           ? (userRole === "buyer" ? "✓ Payment held securely in escrow" : "✓ Payment received and held in escrow")
-          : transaction.status === "pending_payment"
-            ? (userRole === "buyer" ? "⏳ Verifying your payment..." : "⏳ Awaiting buyer payment")
-            : (userRole === "buyer" ? "Complete payment to continue" : "Waiting for buyer payment"),
+          : (userRole === "buyer" ? "Complete payment to continue" : "Waiting for buyer payment"),
       },
       {
         label: userRole === "seller" ? "Mark Item as Dispatched" : "Seller Dispatches Item",

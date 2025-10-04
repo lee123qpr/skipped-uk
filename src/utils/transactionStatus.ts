@@ -1,8 +1,6 @@
 import { CheckCircle2, Truck, AlertTriangle, Clock, Package, CreditCard } from "lucide-react";
 
 export type TransactionStatus = 
-  | "pending" 
-  | "pending_payment"
   | "paid" 
   | "dispatched" 
   | "delivered" 
@@ -20,20 +18,6 @@ export interface StatusConfig {
 }
 
 export const TRANSACTION_STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
-  pending: {
-    label: "Order Created",
-    variant: "outline",
-    className: "border-amber-500 text-amber-700 dark:text-amber-400",
-    icon: Clock,
-    description: "Order created - awaiting payment"
-  },
-  pending_payment: {
-    label: "Processing Payment",
-    variant: "outline",
-    className: "border-blue-500 text-blue-700 dark:text-blue-400",
-    icon: CreditCard,
-    description: "Payment in progress - please wait"
-  },
   paid: {
     label: "Payment in Escrow",
     variant: "default",
@@ -94,10 +78,6 @@ export const getStatusConfig = (status: string): StatusConfig => {
   };
 };
 
-export const canBuyerPay = (status: string): boolean => {
-  return status === "pending" || status === "pending_payment";
-};
-
 export const canSellerDispatch = (status: string): boolean => {
   return status === "paid";
 };
@@ -111,5 +91,5 @@ export const canRaiseDispute = (status: string): boolean => {
 };
 
 export const isTransactionActive = (status: string): boolean => {
-  return !["completed", "disputed", "disputed_pending_review", "refunded"].includes(status);
+  return ["paid", "dispatched", "delivered"].includes(status);
 };
