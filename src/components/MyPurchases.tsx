@@ -48,6 +48,7 @@ interface Purchase {
   completed_at: string | null;
   disputed_at: string | null;
   refunded_at: string | null;
+  seller_id: string;
   listing: {
     id: string;
     title: string;
