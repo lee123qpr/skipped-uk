@@ -8,13 +8,26 @@ import {
   CheckCircle2, 
   Clock,
   Star,
-  Download
+  Download,
+  AlertTriangle
 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
 import ErrorBoundary from "./ErrorBoundary";
 import { DisputeDialog } from "./DisputeDialog";
 import { getStatusConfig, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -54,6 +67,8 @@ export const TransactionManager = ({
 }: TransactionManagerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
+  const [showConfirmDeliveryDialog, setShowConfirmDeliveryDialog] = useState(false);
+  const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const { toast } = useToast();
 
@@ -111,7 +126,19 @@ export const TransactionManager = ({
   };
 
   const handleConfirmDelivery = async () => {
+    if (!confirmationChecked) {
+      toast({
+        title: "Confirmation Required",
+        description: "Please confirm that you have received the item with no issues.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    setShowConfirmDeliveryDialog(false);
+    setConfirmationChecked(false);
+
     try {
       const { error } = await supabase.functions.invoke("confirm-delivery", {
         body: { transactionId: transaction.id },
@@ -202,7 +229,7 @@ export const TransactionManager = ({
             {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && !transaction.delivery_confirmed_at && (
               <>
                 <Button 
-                  onClick={handleConfirmDelivery}
+                  onClick={() => setShowConfirmDeliveryDialog(true)}
                   disabled={isLoading}
                   className="w-full"
                 >
@@ -335,6 +362,66 @@ export const TransactionManager = ({
           <TransactionTimeline transaction={transaction} userRole={userRole} />
         </div>
       </CardContent>
+
+      {/* Confirm Delivery Dialog */}
+      <AlertDialog open={showConfirmDeliveryDialog} onOpenChange={setShowConfirmDeliveryDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Item Received
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  ⚠️ This action will release £{transaction.amount.toFixed(2)} to the seller
+                </p>
+              </div>
+              
+              <p className="text-sm">
+                By confirming delivery, you're stating that:
+              </p>
+              <ul className="text-sm space-y-1 list-disc list-inside ml-2">
+                <li>You have received the item</li>
+                <li>The item matches the description</li>
+                <li>You have no issues or disputes</li>
+              </ul>
+
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">
+                  💡 <strong>Auto-confirmation:</strong> You have 2 days to confirm delivery. If you don't take action within this time, the delivery will be automatically confirmed and funds will be released to the seller.
+                </p>
+              </div>
+
+              <div className="flex items-start space-x-2 pt-2">
+                <Checkbox 
+                  id="confirm-checkbox" 
+                  checked={confirmationChecked}
+                  onCheckedChange={(checked) => setConfirmationChecked(checked as boolean)}
+                />
+                <Label 
+                  htmlFor="confirm-checkbox" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  I confirm I have received the item with no issues
+                </Label>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmationChecked(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelivery}
+              disabled={!confirmationChecked || isLoading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isLoading ? "Confirming..." : "Confirm & Release Funds"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Dispute Dialog */}
       <DisputeDialog

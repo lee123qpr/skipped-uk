@@ -208,6 +208,7 @@ const ListingDetails = () => {
         .in('status', ['paid', 'dispatched', 'delivered', 'completed']);
       
       if (activeTransactions && activeTransactions.length > 0) {
+        setIsProcessingPayment(false);
         toast({
           title: "Listing Unavailable",
           description: "This listing has already been purchased by another buyer.",
@@ -233,6 +234,7 @@ const ListingDetails = () => {
       
       // Redirect to Stripe Checkout
       if (data?.sessionUrl) {
+        // Keep loading state active during redirect
         window.location.href = data.sessionUrl;
       } else {
         throw new Error('No checkout URL returned');
@@ -240,13 +242,12 @@ const ListingDetails = () => {
       
     } catch (error) {
       console.error('Error creating payment:', error);
+      setIsProcessingPayment(false);
       toast({
         title: "Payment Error",
         description: error.message || "Failed to initiate checkout. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessingPayment(false);
     }
   };
 
@@ -937,6 +938,25 @@ const ListingDetails = () => {
           onClose={() => setShowImageModal(false)}
           initialIndex={selectedImageIndex}
         />
+
+        {/* Payment Processing Overlay */}
+        {isProcessingPayment && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="w-full max-w-md mx-4">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <div>
+                    <h3 className="text-lg font-semibold">Redirecting to Checkout</h3>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Please wait whilst we securely redirect you to Stripe Checkout...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </>
   );
