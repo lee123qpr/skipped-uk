@@ -1,6 +1,7 @@
 import { CheckCircle2, Truck, AlertTriangle, Clock, Package, CreditCard } from "lucide-react";
 
 export type TransactionStatus = 
+  | "pending_payment"
   | "paid" 
   | "dispatched" 
   | "delivered" 
@@ -18,6 +19,13 @@ export interface StatusConfig {
 }
 
 export const TRANSACTION_STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
+  pending_payment: {
+    label: "Awaiting Payment",
+    variant: "secondary",
+    className: "",
+    icon: CreditCard,
+    description: "Checkout created - awaiting buyer payment"
+  },
   paid: {
     label: "Payment in Escrow",
     variant: "default",
@@ -70,8 +78,9 @@ export const TRANSACTION_STATUS_CONFIG: Record<TransactionStatus, StatusConfig> 
 };
 
 export const getStatusConfig = (status: string): StatusConfig => {
-  return TRANSACTION_STATUS_CONFIG[status as TransactionStatus] || {
-    label: status,
+  const normalised = status === "pending" ? "pending_payment" : status;
+  return TRANSACTION_STATUS_CONFIG[normalised as TransactionStatus] || {
+    label: normalised,
     variant: "outline",
     icon: Clock,
     description: "Unknown status"

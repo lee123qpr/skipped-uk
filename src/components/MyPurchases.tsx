@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronRight,
   Leaf,
+  CreditCard,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MyListingSkeleton } from "./LoadingSkeletons";
@@ -53,7 +54,7 @@ interface Purchase {
     images: string[];
     location: string;
     seller_id: string;
-  };
+  } | null;
   seller: {
     display_name: string;
     username: string;
@@ -110,7 +111,7 @@ const MyPurchases = () => {
             certificate_reference,
             carbon_saved_kg
           ),
-          review:reviews!reviews_transaction_id_fkey(
+          review:reviews(
             id,
             rating,
             comment
@@ -173,6 +174,7 @@ const MyPurchases = () => {
 
   const categorizePurchases = (purchases: Purchase[]): PurchaseSection[] => {
     const sections: Record<string, Purchase[]> = {
+      pending_payment: [],
       paid: [],
       dispatched: [],
       delivered: [],
@@ -194,10 +196,19 @@ const MyPurchases = () => {
         sections.dispatched.push(purchase);
       } else if (purchase.status === 'paid') {
         sections.paid.push(purchase);
+      } else if (purchase.status === 'pending_payment' || purchase.status === 'pending') {
+        sections.pending_payment.push(purchase);
       }
     });
 
     return [
+      {
+        title: 'Awaiting Payment',
+        icon: <CreditCard className="h-4 w-4" />,
+        purchases: sections.pending_payment,
+        variant: 'secondary' as const,
+        defaultOpen: true,
+      },
       {
         title: 'Payment in Escrow',
         icon: <Package className="h-4 w-4" />,
@@ -346,15 +357,16 @@ const MyPurchases = () => {
                       <Card key={purchase.id} className="overflow-hidden">
                         <div className="md:flex">
                           <div className="md:w-48 md:flex-shrink-0">
-                            {purchase.listing.images && purchase.listing.images.length > 0 ? (
+                            {purchase.listing?.images && purchase.listing.images.length > 0 ? (
                               <img
                                 src={purchase.listing.images[0]}
-                                alt={purchase.listing.title}
+                                alt={purchase.listing?.title || 'Listing'}
                                 className="h-48 w-full object-cover md:h-full"
+                                loading="lazy"
                               />
                             ) : (
                               <div className="h-48 w-full bg-muted flex items-center justify-center md:h-full">
-                                <span className="text-muted-foreground">No image</span>
+                                <span className="text-muted-foreground">Listing unavailable</span>
                               </div>
                             )}
                           </div>
@@ -364,7 +376,7 @@ const MyPurchases = () => {
                               {/* Header */}
                               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div className="flex-1">
-                                  <h3 className="font-semibold text-lg">{purchase.listing.title}</h3>
+                                  <h3 className="font-semibold text-lg">{purchase.listing?.title || 'Listing'}</h3>
                                   <p className="text-2xl font-bold text-primary mt-1">
                                     £{Number(purchase.amount).toLocaleString()}
                                   </p>
@@ -428,7 +440,7 @@ const MyPurchases = () => {
                                 
                                 <Button
                                   variant="outline"
-                                  onClick={() => navigate(`/dashboard?tab=messages&conversation=${purchase.listing.seller_id}&listing=${purchase.listing.id}`)}
+                                  onClick={() => navigate(`/dashboard?tab=messages&conversation=${purchase.seller ? purchase.listing?.seller_id : purchase.seller_id}&listing=${purchase.listing?.id || ''}`)}
                                   size="sm"
                                 >
                                   <MessageCircle className="mr-2 h-4 w-4" />
@@ -437,8 +449,9 @@ const MyPurchases = () => {
                                 
                                 <Button
                                   variant="outline"
-                                  onClick={() => navigate(`/listing/${purchase.listing.id}`)}
+                                  onClick={() => purchase.listing?.id && navigate(`/listing/${purchase.listing.id}`)}
                                   size="sm"
+                                  disabled={!purchase.listing?.id}
                                 >
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Listing
