@@ -11,6 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { formatCondition, formatReasonForSelling } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -543,24 +549,37 @@ const ListingDetails = () => {
             <div className="flex flex-wrap gap-2">
               {user?.id !== listing.seller_id && (
                 <>
-                  <Button 
-                    onClick={handleBuyNow}
-                    size="lg"
-                    className="flex-1 sm:flex-none sm:px-8"
-                    disabled={isProcessingPayment}
-                  >
-                    {isProcessingPayment ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <PoundSterling className="mr-2 h-5 w-5" />
-                        Buy Now
-                      </>
-                    )}
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <span className="flex-1 sm:flex-none">
+                          <Button 
+                            onClick={handleBuyNow}
+                            size="lg"
+                            className="w-full sm:w-auto sm:px-8"
+                            disabled={isProcessingPayment}
+                          >
+                            {isProcessingPayment ? (
+                              <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <PoundSterling className="mr-2 h-5 w-5" />
+                                Buy Now
+                              </>
+                            )}
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {!user && (
+                        <TooltipContent>
+                          <p>Sign in to purchase</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                   
                   <Button 
                     onClick={handleMakeOffer}

@@ -733,6 +733,9 @@ const CreateListing = () => {
                         locationBounds: locationData.bounds
                       }));
                     }} placeholder="Enter postcode or town/city..." required disabled={isLoading} />
+                    <p className="text-xs text-muted-foreground">
+                      🔒 Only your town/city area is shown publicly, not your full address
+                    </p>
                     </div>
                   </div>
 

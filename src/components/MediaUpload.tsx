@@ -330,8 +330,15 @@ const MediaUpload = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <h3 className="text-base font-medium">Media ({imageCount} images, {videoCount} videos)</h3>
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-base font-medium">Media ({imageCount} images, {videoCount} videos)</h3>
+          {imageCount === 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              ⚠️ At least 1 photo required
+            </p>
+          )}
+        </div>
         <div className="text-xs text-muted-foreground">
           Max {maxImages} images, {maxVideos} videos
         </div>
