@@ -150,22 +150,32 @@ const CreateListing = () => {
     data: categories = []
   } = useCategories();
 
-  // Check Stripe onboarding status
+  // Check Stripe onboarding status via the edge function
   useEffect(() => {
     const checkStripeStatus = async () => {
       if (!user) return;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('stripe_onboarding_complete')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error checking Stripe status:', error);
+      try {
+        // Check actual Stripe status via edge function
+        const { data, error } = await supabase.functions.invoke('check-connect-status');
+        
+        if (error) {
+          console.error('Error checking Stripe status:', error);
+          setStripeOnboarded(false);
+          return;
+        }
+        
+        console.log('Stripe status check:', data);
+        
+        // User must have onboarding complete AND charges enabled
+        const isFullyOnboarded = data?.connected && 
+                                 data?.onboardingComplete && 
+                                 data?.chargesEnabled;
+        
+        setStripeOnboarded(isFullyOnboarded);
+      } catch (err) {
+        console.error('Failed to check Stripe status:', err);
         setStripeOnboarded(false);
-      } else {
-        setStripeOnboarded(data?.stripe_onboarding_complete ?? false);
       }
     };
     
