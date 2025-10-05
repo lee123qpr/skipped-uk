@@ -302,10 +302,7 @@ const MyPurchases = () => {
     };
   };
 
-  console.log('MyPurchases render:', { isLoading, purchases, user: !!user, error });
-
   if (isLoading) {
-    console.log('MyPurchases: Showing loading skeletons');
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
@@ -329,7 +326,6 @@ const MyPurchases = () => {
   }
 
   if (!purchases || purchases.length === 0) {
-    console.log('MyPurchases: No purchases found, showing empty state');
     return (
       <EmptyState
         icon={ShoppingBag}
