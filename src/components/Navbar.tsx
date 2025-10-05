@@ -222,6 +222,10 @@ const Navbar = () => {
                       <ShoppingBag className="mr-2 h-4 w-4" />
                       <span>My Purchases</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Messages</span>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>
                       <Heart className="mr-2 h-4 w-4" />
                       <span>Favourites</span>
@@ -368,6 +372,10 @@ const Navbar = () => {
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=purchases")}>
                       <ShoppingBag className="mr-2 h-4 w-4" />
                       <span>My Purchases</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Messages</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>
                       <Heart className="mr-2 h-4 w-4" />
