@@ -30,7 +30,7 @@ import {
   AlertTriangle,
   Inbox
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -824,7 +824,7 @@ const MessagesInbox = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+      <div>
           <h2 className="text-xl font-semibold">Messages & Offers</h2>
           <p className="text-sm text-muted-foreground">
             Manage your communications and offers
@@ -832,23 +832,7 @@ const MessagesInbox = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="messages" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 gap-1 h-auto p-1">
-          <TabsTrigger 
-            value="messages" 
-            className="flex items-center gap-2 px-4 py-2"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Messages & Offers</span>
-            {(unreadCount > 0 || pendingOffersCount > 0) && (
-              <Badge variant="destructive" className="text-xs">
-                {unreadCount + pendingOffersCount}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="messages" className="space-y-4">
+      <div className="space-y-4">
           {conversationsList.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
@@ -1154,9 +1138,7 @@ const MessagesInbox = () => {
               </Card>
             ))
           )}
-        </TabsContent>
-
-      </Tabs>
+      </div>
 
       {/* Counter Offer Dialog */}
       {counterOfferDialog && (
