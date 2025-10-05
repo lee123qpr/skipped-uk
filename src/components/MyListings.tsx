@@ -52,6 +52,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { formatDistanceToNow } from "date-fns";
 import { formatConditionBadge } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
+import { HolidayBanner } from "@/components/HolidayBanner";
 
 interface Listing {
   id: string;
@@ -90,6 +91,24 @@ const MyListings = () => {
   const queryClient = useQueryClient();
   const [deleteListingId, setDeleteListingId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  // Fetch user profile to check holiday status
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('on_holiday, holiday_start_date, holiday_end_date, holiday_message')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: listings, isLoading, refetch } = useQuery({
     queryKey: ['myListings', user?.id],
@@ -349,6 +368,18 @@ const MyListings = () => {
 
   return (
     <>
+      {/* Holiday Mode Banner */}
+      {userProfile?.on_holiday && (
+        <div className="mb-6">
+          <HolidayBanner 
+            holidayMessage={userProfile.holiday_message || undefined}
+            holidayStartDate={userProfile.holiday_start_date || undefined}
+            holidayEndDate={userProfile.holiday_end_date || undefined}
+            variant="listing"
+          />
+        </div>
+      )}
+      
       <div className="space-y-6">
         {sections.map((section) => (
           <Collapsible

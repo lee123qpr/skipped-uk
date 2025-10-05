@@ -57,6 +57,7 @@ import { SellerReviews } from '@/components/SellerReviews';
 import { ImageModal } from '@/components/ImageModal';
 import { VerificationBadges } from '@/components/VerificationBadge';
 import { DeliveryMethodDialog } from '@/components/DeliveryMethodDialog';
+import { HolidayBanner } from '@/components/HolidayBanner';
 import { 
   Carousel,
   CarouselContent,
@@ -93,7 +94,11 @@ const ListingDetails = () => {
             verified,
             stripe_onboarding_complete,
             identity_verified,
-            created_at
+            created_at,
+            on_holiday,
+            holiday_start_date,
+            holiday_end_date,
+            holiday_message
           ),
           categories (
             id,
@@ -462,6 +467,18 @@ const ListingDetails = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Browse
           </Button>
+
+          {/* Holiday Mode Banner */}
+          {listing.profiles?.on_holiday && (
+            <div className="mb-6">
+              <HolidayBanner 
+                holidayMessage={listing.profiles.holiday_message || undefined}
+                holidayStartDate={listing.profiles.holiday_start_date || undefined}
+                holidayEndDate={listing.profiles.holiday_end_date || undefined}
+                variant="listing"
+              />
+            </div>
+          )}
 
           {/* Image Gallery */}
           <div className="mb-8">

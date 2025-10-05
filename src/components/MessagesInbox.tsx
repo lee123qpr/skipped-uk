@@ -34,6 +34,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { HolidayBanner } from '@/components/HolidayBanner';
 
 interface Message {
   id: string;
@@ -49,11 +50,15 @@ interface Message {
     username: string;
     avatar_url: string;
     display_name: string;
+    on_holiday?: boolean;
+    holiday_message?: string;
   };
   receiver_profile?: {
     username: string;
     avatar_url: string;
     display_name: string;
+    on_holiday?: boolean;
+    holiday_message?: string;
   };
   listing?: {
     title: string;
@@ -76,6 +81,8 @@ interface Conversation {
     username: string;
     avatar_url: string;
     display_name: string;
+    on_holiday?: boolean;
+    holiday_message?: string;
   };
   listingId: string;
   listing: {
@@ -386,8 +393,8 @@ const MessagesInbox = () => {
       ])];
 
       const { data: profiles, error: profilesError } = await supabase
-        .from('public_profiles')
-        .select('user_id, username, avatar_url, display_name')
+        .from('profiles')
+        .select('user_id, username, avatar_url, display_name, on_holiday, holiday_message, verified, identity_verified')
         .in('user_id', userIds);
       
       if (profilesError) throw profilesError;
@@ -860,6 +867,14 @@ const MessagesInbox = () => {
                   </div>
                 </div>
               </CardHeader>
+              {selectedConversation.otherUserProfile?.on_holiday && (
+                <div className="px-6 pt-4">
+                  <HolidayBanner 
+                    holidayMessage={selectedConversation.otherUserProfile.holiday_message || undefined}
+                    variant="conversation"
+                  />
+                </div>
+              )}
               <CardContent className="p-0">
                 <ScrollArea ref={scrollAreaRef} className="h-[400px] px-3 py-2">
                   <div className="space-y-2">
