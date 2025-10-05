@@ -25,6 +25,7 @@ import { SellerReviews } from "@/components/SellerReviews";
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface UserProfile {
@@ -47,6 +48,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [hasListings, setHasListings] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Get seller rating for current user
   const { data: sellerRating } = useSellerRating(user?.id);
@@ -116,10 +118,12 @@ const Dashboard = () => {
           title: "Payment Successful!",
           description: "Your payment has been confirmed. The seller has been notified.",
         });
-        // Switch to messages tab and clean up URL to trigger refetch
+        // Invalidate queries to refresh data without page reload
+        await queryClient.invalidateQueries({ queryKey: ['myPurchases', user?.id] });
+        await queryClient.invalidateQueries({ queryKey: ['messages'] });
+        await queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        // Switch to messages tab and clean up URL
         setSearchParams({ tab: 'messages' });
-        // Force a small delay to ensure state updates
-        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Payment Verification",
@@ -282,31 +286,31 @@ const Dashboard = () => {
                 <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Package className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">My Listings</span>
-                  <span className="sm:hidden text-[10px] truncate">Lists</span>
+                  <span className="sm:hidden text-xs truncate">Lists</span>
                 </TabsTrigger>
                 
                 <TabsTrigger value="purchases" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <ShoppingBag className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">My Purchases</span>
-                  <span className="sm:hidden text-[10px] truncate">Buys</span>
+                  <span className="sm:hidden text-xs truncate">Buys</span>
                   <NotificationBadge count={counts.activeTransactions} />
                 </TabsTrigger>
                 
                 <TabsTrigger value="messages" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 relative min-w-0">
                   <MessageCircle className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Messages</span>
-                  <span className="sm:hidden text-[10px] truncate">Msgs</span>
+                  <span className="sm:hidden text-xs truncate">Msgs</span>
                   <NotificationBadge count={counts.unreadMessages + counts.pendingOffers + counts.newOffers} />
                 </TabsTrigger>
                 <TabsTrigger value="favourites" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Heart className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Favourites</span>
-                  <span className="sm:hidden text-[10px] truncate">Favs</span>
+                  <span className="sm:hidden text-xs truncate">Favs</span>
                 </TabsTrigger>
                 <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Settings className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Profile</span>
-                  <span className="sm:hidden text-[10px] truncate">Profile</span>
+                  <span className="sm:hidden text-xs truncate">Profile</span>
                 </TabsTrigger>
               </TabsList>
             </div>

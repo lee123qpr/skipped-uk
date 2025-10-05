@@ -84,10 +84,13 @@ export default function BlogPost() {
         
         if (localStorage.getItem(viewKey)) return;
         
-        await supabase.from("blog_post_views").insert({
-          post_id: post.id,
-          session_id: sessionId,
-          user_agent: navigator.userAgent,
+        // Call secure edge function to record view
+        await supabase.functions.invoke('track-blog-view', {
+          body: {
+            postId: post.id,
+            sessionId: sessionId,
+            userAgent: navigator.userAgent,
+          }
         });
         
         localStorage.setItem(viewKey, "true");
@@ -179,15 +182,16 @@ export default function BlogPost() {
 
       <div className="min-h-screen bg-background">
         {/* Hero Image */}
-        {post.featured_image_url && (
-          <div className="w-full h-[400px] overflow-hidden">
-            <img
-              src={post.featured_image_url}
-              alt={post.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+          {post.featured_image_url && (
+            <div className="w-full h-[400px] overflow-hidden">
+              <img
+                src={post.featured_image_url}
+                alt={post.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          )}
 
         <article className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Breadcrumbs */}
@@ -234,6 +238,7 @@ export default function BlogPost() {
                       src={post.profiles.avatar_url}
                       alt={post.profiles.display_name || ""}
                       className="w-8 h-8 rounded-full"
+                      loading="lazy"
                     />
                   )}
                   <span className="font-medium">
@@ -329,6 +334,7 @@ export default function BlogPost() {
                           src={relatedPost.featured_image_url}
                           alt={relatedPost.title}
                           className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
                         />
                       </div>
                     )}
