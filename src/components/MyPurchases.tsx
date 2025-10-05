@@ -98,7 +98,7 @@ const MyPurchases = () => {
         .from('transactions')
         .select(`
           *,
-          listing:listings!inner(
+          listing:listings(
             id,
             title,
             images,
@@ -381,16 +381,16 @@ const MyPurchases = () => {
                               {/* Seller Info */}
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarImage src={purchase.seller.avatar_url} />
+                                  <AvatarImage src={purchase.seller?.avatar_url || undefined} />
                                   <AvatarFallback>
-                                    {purchase.seller.display_name?.[0] || purchase.seller.username?.[0] || 'S'}
+                                    {purchase.seller?.display_name?.[0] || purchase.seller?.username?.[0] || 'S'}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">
-                                    {purchase.seller.display_name || purchase.seller.username}
+                                    {purchase.seller?.display_name || purchase.seller?.username || 'Unknown seller'}
                                   </span>
-                                  {purchase.seller.verified && (
+                                  {purchase.seller?.verified && (
                                     <Badge variant="default" className="h-5 text-xs">
                                       Verified
                                     </Badge>
