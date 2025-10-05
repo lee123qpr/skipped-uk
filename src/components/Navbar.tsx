@@ -278,6 +278,13 @@ const Navbar = () => {
               <Button variant="marketplace" size="sm" onClick={handleSellClick}>
                 <Plus className="h-4 w-4" />
               </Button>
+              <Button
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate("/browse")}
+              >
+                <ShoppingBag className="h-4 w-4" />
+              </Button>
               {user && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
