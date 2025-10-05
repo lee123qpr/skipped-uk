@@ -91,11 +91,16 @@ const MyPurchases = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Purchase | null>(null);
   const [confirmingDelivery, setConfirmingDelivery] = useState<string | null>(null);
 
-  const { data: purchases, isLoading, refetch } = useQuery({
+  const { data: purchases, isLoading, refetch, error } = useQuery({
     queryKey: ['myPurchases', user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      console.log('MyPurchases: Starting query, user:', user?.id);
+      if (!user) {
+        console.log('MyPurchases: No user, returning empty array');
+        return [];
+      }
       
+      console.log('MyPurchases: Fetching transactions for user:', user.id);
       const { data: purchasesData, error } = await supabase
         .from('transactions')
         .select(`
@@ -112,7 +117,7 @@ const MyPurchases = () => {
             certificate_reference,
             carbon_saved_kg
           ),
-          review:reviews(
+          review:reviews!reviews_transaction_id_fkey(
             id,
             rating,
             comment
@@ -121,23 +126,32 @@ const MyPurchases = () => {
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('MyPurchases: Transactions response:', { purchasesData, error });
       if (error) throw error;
-      if (!purchasesData || purchasesData.length === 0) return [];
+      if (!purchasesData || purchasesData.length === 0) {
+        console.log('MyPurchases: No transactions found');
+        return [];
+      }
 
       // Get seller profiles from public_profiles to bypass RLS
       const sellerIds = [...new Set(purchasesData.map(p => p.seller_id))];
+      console.log('MyPurchases: Fetching seller profiles for:', sellerIds);
       const { data: sellerProfiles, error: profilesError } = await supabase
         .from('public_profiles')
         .select('user_id, username, display_name, avatar_url, verified')
         .in('user_id', sellerIds);
 
+      console.log('MyPurchases: Seller profiles response:', { sellerProfiles, profilesError });
       if (profilesError) throw profilesError;
 
       // Merge seller data with purchases
-      return purchasesData.map(purchase => ({
+      const result = purchasesData.map(purchase => ({
         ...purchase,
         seller: sellerProfiles?.find(p => p.user_id === purchase.seller_id) || null
       })) as any;
+      
+      console.log('MyPurchases: Final result:', result);
+      return result;
     },
     enabled: !!user,
   });
@@ -266,7 +280,10 @@ const MyPurchases = () => {
     };
   };
 
+  console.log('MyPurchases render:', { isLoading, purchases, user: !!user, error });
+
   if (isLoading) {
+    console.log('MyPurchases: Showing loading skeletons');
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
@@ -276,7 +293,21 @@ const MyPurchases = () => {
     );
   }
 
+  if (error) {
+    console.error('MyPurchases error:', error);
+    return (
+      <EmptyState
+        icon={ShoppingBag}
+        title="Error loading purchases"
+        description={`Failed to load your purchases: ${error.message}`}
+        actionLabel="Try Again"
+        onAction={() => refetch()}
+      />
+    );
+  }
+
   if (!purchases || purchases.length === 0) {
+    console.log('MyPurchases: No purchases found, showing empty state');
     return (
       <EmptyState
         icon={ShoppingBag}
