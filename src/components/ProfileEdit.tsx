@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Camera, Save, User, MapPin, Building, Phone, Mail, AlertTriangle, Plane } from 'lucide-react';
+import { Loader2, Camera, Save, User, MapPin, Building, Phone, Mail, AlertTriangle, Plane, Bell } from 'lucide-react';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { VerificationBadges } from '@/components/VerificationBadge';
 import { z } from 'zod';
@@ -45,6 +45,10 @@ interface UserProfile {
   holiday_start_date: string | null;
   holiday_end_date: string | null;
   email_notifications_enabled: boolean;
+  email_new_message: boolean;
+  email_new_offer: boolean;
+  email_transaction_update: boolean;
+  email_review_reminder: boolean;
 }
 
 const ProfileEdit = () => {
@@ -71,6 +75,15 @@ const ProfileEdit = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Notification preferences state
+  const [emailNotifications, setEmailNotifications] = useState({
+    enabled: true,
+    newMessage: true,
+    newOffer: true,
+    transactionUpdate: true,
+    reviewReminder: true,
+  });
 
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
@@ -102,6 +115,15 @@ const ProfileEdit = () => {
           });
           setHolidayMode(data.on_holiday || false);
           setHolidayMessage(data.holiday_message || '');
+          
+          // Set notification preferences
+          setEmailNotifications({
+            enabled: data.email_notifications_enabled ?? true,
+            newMessage: data.email_new_message ?? true,
+            newOffer: data.email_new_offer ?? true,
+            transactionUpdate: data.email_transaction_update ?? true,
+            reviewReminder: data.email_review_reminder ?? true,
+          });
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -439,6 +461,42 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleNotificationChange = async (field: keyof typeof emailNotifications, value: boolean) => {
+    if (!user) return;
+
+    const dbFieldMap = {
+      enabled: 'email_notifications_enabled',
+      newMessage: 'email_new_message',
+      newOffer: 'email_new_offer',
+      transactionUpdate: 'email_transaction_update',
+      reviewReminder: 'email_review_reminder',
+    };
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [dbFieldMap[field]]: value })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setEmailNotifications(prev => ({ ...prev, [field]: value }));
+      setProfile(prev => prev ? { ...prev, [dbFieldMap[field]]: value } : null);
+      
+      toast({
+        title: 'Notification preferences updated',
+        description: 'Your email preferences have been saved',
+      });
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update notification preferences',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleAccountDeletion = async () => {
     if (!user || !deletePassword) return;
 
@@ -751,6 +809,103 @@ const ProfileEdit = () => {
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* Notification Preferences Section */}
+            <div className="pt-6 border-t">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell className="h-5 w-5 text-primary" />
+                <h3 className="font-medium">Notification Preferences</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Choose which email notifications you'd like to receive
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <Label htmlFor="email_notifications" className="font-medium">
+                      Email Notifications
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Master toggle for all email notifications
+                    </p>
+                  </div>
+                  <Switch
+                    id="email_notifications"
+                    checked={emailNotifications.enabled}
+                    onCheckedChange={(checked) => handleNotificationChange('enabled', checked)}
+                  />
+                </div>
+
+                {emailNotifications.enabled && (
+                  <div className="ml-4 space-y-3 pl-4 border-l-2 border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="email_new_message" className="text-sm">
+                          New Messages
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Notify me when I receive new messages
+                        </p>
+                      </div>
+                      <Switch
+                        id="email_new_message"
+                        checked={emailNotifications.newMessage}
+                        onCheckedChange={(checked) => handleNotificationChange('newMessage', checked)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="email_new_offer" className="text-sm">
+                          New Offers
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Notify me when I receive offers on my listings
+                        </p>
+                      </div>
+                      <Switch
+                        id="email_new_offer"
+                        checked={emailNotifications.newOffer}
+                        onCheckedChange={(checked) => handleNotificationChange('newOffer', checked)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="email_transaction_update" className="text-sm">
+                          Transaction Updates
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Notify me about payment, dispatch, and delivery updates
+                        </p>
+                      </div>
+                      <Switch
+                        id="email_transaction_update"
+                        checked={emailNotifications.transactionUpdate}
+                        onCheckedChange={(checked) => handleNotificationChange('transactionUpdate', checked)}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="email_review_reminder" className="text-sm">
+                          Review Reminders
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Remind me to leave reviews after completed transactions
+                        </p>
+                      </div>
+                      <Switch
+                        id="email_review_reminder"
+                        checked={emailNotifications.reviewReminder}
+                        onCheckedChange={(checked) => handleNotificationChange('reviewReminder', checked)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Danger Zone - Account Deletion */}

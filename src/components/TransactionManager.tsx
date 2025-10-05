@@ -388,8 +388,11 @@ export const TransactionManager = ({
               </ul>
 
               <div className="p-3 bg-muted rounded-md">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mb-2">
                   💡 <strong>Auto-confirmation:</strong> You have 2 days to confirm delivery. If you don't take action within this time, the delivery will be automatically confirmed and funds will be released to the seller.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  📋 <strong>What happens next:</strong> Once confirmed, the seller receives their payment and the transaction is marked as complete. You'll be able to leave a review.
                 </p>
               </div>
 

@@ -309,8 +309,8 @@ const Dashboard = () => {
                 </TabsTrigger>
                 <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Settings className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">Profile</span>
-                  <span className="sm:hidden text-xs truncate">Profile</span>
+                  <span className="hidden sm:inline truncate">Settings</span>
+                  <span className="sm:hidden text-xs truncate">Settings</span>
                 </TabsTrigger>
               </TabsList>
             </div>
