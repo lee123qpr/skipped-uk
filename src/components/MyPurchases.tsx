@@ -103,26 +103,7 @@ const MyPurchases = () => {
       console.log('MyPurchases: Fetching transactions for user:', user.id);
       const { data: purchasesData, error } = await supabase
         .from('transactions')
-        .select(`
-          *,
-          listing:listings(
-            id,
-            title,
-            images,
-            location,
-            seller_id
-          ),
-          certificate:environmental_certificates(
-            id,
-            certificate_reference,
-            carbon_saved_kg
-          ),
-          review:reviews!reviews_transaction_id_fkey(
-            id,
-            rating,
-            comment
-          )
-        `)
+        .select('*')
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -134,7 +115,7 @@ const MyPurchases = () => {
       }
 
       // Get seller profiles from public_profiles to bypass RLS
-      const sellerIds = [...new Set(purchasesData.map(p => p.seller_id))];
+      const sellerIds = [...new Set(purchasesData.map((p: any) => p.seller_id))];
       console.log('MyPurchases: Fetching seller profiles for:', sellerIds);
       const { data: sellerProfiles, error: profilesError } = await supabase
         .from('public_profiles')
@@ -144,10 +125,57 @@ const MyPurchases = () => {
       console.log('MyPurchases: Seller profiles response:', { sellerProfiles, profilesError });
       if (profilesError) throw profilesError;
 
-      // Merge seller data with purchases
-      const result = purchasesData.map(purchase => ({
+      // Manually fetch related data (no FK relationships available for PostgREST expansion)
+      const listingIds = [...new Set(purchasesData.map((p: any) => p.listing_id).filter(Boolean))];
+      const transactionIds = purchasesData.map((p: any) => p.id);
+      console.log('MyPurchases: Fetching listings/certificates/reviews', { listingIds, transactionIds });
+
+      // Listings
+      let listings: any[] = [];
+      if (listingIds.length > 0) {
+        const { data: listingsData, error: listingsError } = await supabase
+          .from('listings')
+          .select('id, title, images, location, seller_id')
+          .in('id', listingIds);
+        if (listingsError) throw listingsError;
+        listings = listingsData || [];
+      }
+
+      // Certificates
+      let certificates: any[] = [];
+      if (transactionIds.length > 0) {
+        const { data: certData, error: certError } = await supabase
+          .from('environmental_certificates')
+          .select('id, certificate_reference, carbon_saved_kg, transaction_id')
+          .in('transaction_id', transactionIds);
+        if (certError) throw certError;
+        certificates = certData || [];
+      }
+
+      // Reviews (by current buyer)
+      let reviews: any[] = [];
+      if (transactionIds.length > 0) {
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('id, rating, comment, transaction_id')
+          .in('transaction_id', transactionIds)
+          .eq('reviewer_id', user.id);
+        if (reviewsError) throw reviewsError;
+        reviews = reviewsData || [];
+      }
+
+      // Create lookup maps
+      const listingsMap = new Map(listings.map((l: any) => [l.id, l]));
+      const certMap = new Map(certificates.map((c: any) => [c.transaction_id, c]));
+      const reviewMap = new Map(reviews.map((r: any) => [r.transaction_id, r]));
+
+      // Merge all related data
+      const result = purchasesData.map((purchase: any) => ({
         ...purchase,
-        seller: sellerProfiles?.find(p => p.user_id === purchase.seller_id) || null
+        listing: listingsMap.get(purchase.listing_id) || null,
+        certificate: certMap.get(purchase.id) || null,
+        review: reviewMap.get(purchase.id) || null,
+        seller: sellerProfiles?.find((p) => p.user_id === purchase.seller_id) || null,
       })) as any;
       
       console.log('MyPurchases: Final result:', result);
@@ -548,7 +576,7 @@ const MyPurchases = () => {
           onOpenChange={setDisputeDialogOpen}
           transactionId={selectedTransaction.id}
           userRole="buyer"
-          otherUserId={selectedTransaction.listing.seller_id}
+          otherUserId={selectedTransaction.listing?.seller_id || selectedTransaction.seller_id}
           onSuccess={() => {
             refetch();
             setDisputeDialogOpen(false);
