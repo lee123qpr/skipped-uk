@@ -1,4 +1,4 @@
-import { User, Heart, ShoppingBag, Plus, LogOut, Bell, Shield } from "lucide-react";
+import { User, Heart, ShoppingBag, Plus, LogOut, Bell, Shield, Settings, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthContext";
@@ -195,15 +195,7 @@ const Navbar = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => navigate("/dashboard?tab=favourites")}
-                  >
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button 
+                  <Button
                     variant="ghost" 
                     size="sm"
                     onClick={() => navigate("/browse")}
@@ -222,11 +214,22 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>Favourites</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>Settings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>My Listings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=purchases")}>
+                      <ShoppingBag className="mr-2 h-4 w-4" />
+                      <span>My Purchases</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Favourites</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
                     {isAdmin && (
                       <>
                         <DropdownMenuSeparator />
@@ -358,10 +361,33 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="z-50 bg-background border shadow-lg">
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>Dashboard</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=listings")}>My Listings</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=messages")}>Messages</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>Favourites</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>My Listings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=purchases")}>
+                      <ShoppingBag className="mr-2 h-4 w-4" />
+                      <span>My Purchases</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=favourites")}>
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Favourites</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                        {pendingDisputesCount > 0 && (
+                          <Badge variant="destructive" className="ml-auto">
+                            {pendingDisputesCount}
+                          </Badge>
+                        )}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />

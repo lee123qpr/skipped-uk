@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          reason: string | null
+          requested_at: string | null
+          scheduled_deletion_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string | null
+          scheduled_deletion_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string | null
+          scheduled_deletion_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           color: string | null
@@ -891,10 +921,19 @@ export type Database = {
           company_name: string | null
           created_at: string
           display_name: string | null
+          email_new_message: boolean | null
+          email_new_offer: boolean | null
+          email_notifications_enabled: boolean | null
+          email_review_reminder: boolean | null
+          email_transaction_update: boolean | null
+          holiday_end_date: string | null
+          holiday_message: string | null
+          holiday_start_date: string | null
           id: string
           identity_verified: boolean | null
           identity_verified_at: string | null
           location: string | null
+          on_holiday: boolean | null
           phone: string | null
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean | null
@@ -910,10 +949,19 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          email_new_message?: boolean | null
+          email_new_offer?: boolean | null
+          email_notifications_enabled?: boolean | null
+          email_review_reminder?: boolean | null
+          email_transaction_update?: boolean | null
+          holiday_end_date?: string | null
+          holiday_message?: string | null
+          holiday_start_date?: string | null
           id?: string
           identity_verified?: boolean | null
           identity_verified_at?: string | null
           location?: string | null
+          on_holiday?: boolean | null
           phone?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
@@ -929,10 +977,19 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           display_name?: string | null
+          email_new_message?: boolean | null
+          email_new_offer?: boolean | null
+          email_notifications_enabled?: boolean | null
+          email_review_reminder?: boolean | null
+          email_transaction_update?: boolean | null
+          holiday_end_date?: string | null
+          holiday_message?: string | null
+          holiday_start_date?: string | null
           id?: string
           identity_verified?: boolean | null
           identity_verified_at?: string | null
           location?: string | null
+          on_holiday?: boolean | null
           phone?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
@@ -1436,6 +1493,10 @@ export type Database = {
       increment_listing_view_count: {
         Args: { listing_id: string }
         Returns: undefined
+      }
+      is_user_on_holiday: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       send_review_reminders: {
         Args: Record<PropertyKey, never>

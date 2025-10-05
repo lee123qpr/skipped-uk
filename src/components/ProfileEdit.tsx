@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Camera, Save, User, MapPin, Building, Phone, Mail } from 'lucide-react';
+import { Loader2, Camera, Save, User, MapPin, Building, Phone, Mail, AlertTriangle, Plane } from 'lucide-react';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
 import { VerificationBadges } from '@/components/VerificationBadge';
 import { z } from 'zod';
@@ -38,6 +40,11 @@ interface UserProfile {
   identity_verified: boolean;
   created_at: string;
   updated_at: string;
+  on_holiday: boolean;
+  holiday_message: string | null;
+  holiday_start_date: string | null;
+  holiday_end_date: string | null;
+  email_notifications_enabled: boolean;
 }
 
 const ProfileEdit = () => {
@@ -58,6 +65,12 @@ const ProfileEdit = () => {
     location: '',
     business_logo_url: '',
   });
+
+  const [holidayMode, setHolidayMode] = useState(false);
+  const [holidayMessage, setHolidayMessage] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
@@ -87,6 +100,8 @@ const ProfileEdit = () => {
             location: data.location || '',
             business_logo_url: data.business_logo_url || '',
           });
+          setHolidayMode(data.on_holiday || false);
+          setHolidayMessage(data.holiday_message || '');
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -367,6 +382,102 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleHolidayModeChange = async (enabled: boolean) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ on_holiday: enabled })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setHolidayMode(enabled);
+      setProfile(prev => prev ? { ...prev, on_holiday: enabled } : null);
+      
+      toast({
+        title: enabled ? 'Holiday mode enabled' : 'Holiday mode disabled',
+        description: enabled 
+          ? 'Your away message will be shown to potential buyers' 
+          : 'You are now marked as available',
+      });
+    } catch (error) {
+      console.error('Error updating holiday mode:', error);
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update holiday mode',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleHolidayMessageSave = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ holiday_message: holidayMessage })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, holiday_message: holidayMessage } : null);
+      
+      toast({
+        title: 'Holiday message saved',
+        description: 'Your away message has been updated',
+      });
+    } catch (error) {
+      console.error('Error saving holiday message:', error);
+      toast({
+        title: 'Save failed',
+        description: 'Failed to save holiday message',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAccountDeletion = async () => {
+    if (!user || !deletePassword) return;
+
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('request-account-deletion', {
+        body: { password: deletePassword, reason: 'User requested deletion' },
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: 'Deletion failed',
+          description: data.error,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({
+        title: 'Account deletion scheduled',
+        description: 'Your account will be deleted in 30 days. You can cancel this request before then.',
+      });
+
+      setDeleteDialogOpen(false);
+      setDeletePassword('');
+    } catch (error: any) {
+      console.error('Error requesting account deletion:', error);
+      toast({
+        title: 'Deletion failed',
+        description: error.message || 'Failed to request account deletion',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -602,6 +713,117 @@ const ProfileEdit = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Holiday/Away Mode Section */}
+            <div className="pt-6 border-t">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Plane className="h-5 w-5 text-primary" />
+                  <h3 className="font-medium">Holiday Mode</h3>
+                </div>
+                <Switch
+                  checked={holidayMode}
+                  onCheckedChange={handleHolidayModeChange}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enable holiday mode to let buyers know you're away. Your listings will remain visible but buyers will see your away message.
+              </p>
+              
+              {holidayMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="holiday_message">Away Message</Label>
+                  <Textarea
+                    id="holiday_message"
+                    value={holidayMessage}
+                    onChange={(e) => setHolidayMessage(e.target.value)}
+                    placeholder="E.g. I'm currently away and will respond to messages from [date]"
+                    rows={3}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleHolidayMessageSave}
+                  >
+                    Save Message
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Danger Zone - Account Deletion */}
+            <div className="pt-6 border-t border-destructive/20">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <h3 className="font-medium text-destructive">Danger Zone</h3>
+              </div>
+              <Card className="border-destructive/50 bg-destructive/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Delete Account</CardTitle>
+                  <CardDescription>
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        Delete My Account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>This will permanently delete your account and remove all your data from our servers.</p>
+                          <p className="font-medium">This includes:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>Profile information and photos</li>
+                            <li>All your listings (if no active transactions)</li>
+                            <li>Messages and conversation history</li>
+                            <li>Favourites and saved searches</li>
+                            <li>Reviews (will be anonymized)</li>
+                          </ul>
+                          <p className="text-destructive font-medium mt-4">
+                            You cannot delete your account if you have active transactions or pending disputes.
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="delete_password">Enter your password to confirm</Label>
+                          <Input
+                            id="delete_password"
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            placeholder="Your password"
+                          />
+                        </div>
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleAccountDeletion}
+                          disabled={!deletePassword || deleting}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          {deleting ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            'Delete Account'
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="flex justify-end">
