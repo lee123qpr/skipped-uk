@@ -110,7 +110,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .from('transactions')
         .select('*', { count: 'exact', head: true })
         .eq('buyer_id', user.id)
-        .in('status', ['paid', 'dispatched', 'delivered', 'disputed', 'disputed_pending_review']);
+        .in('status', ['dispatched', 'completed', 'disputed', 'disputed_pending_review']);
 
       setCounts({
         unreadMessages: messagesCount || 0,
