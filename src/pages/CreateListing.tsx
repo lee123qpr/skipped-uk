@@ -143,11 +143,34 @@ const CreateListing = () => {
     calculationConfidence?: string;
   } | null>(null);
   const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
+  const [stripeOnboarded, setStripeOnboarded] = useState<boolean | null>(null);
 
   // Use shared categories hook
   const {
     data: categories = []
   } = useCategories();
+
+  // Check Stripe onboarding status
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('stripe_onboarding_complete')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error checking Stripe status:', error);
+        setStripeOnboarded(false);
+      } else {
+        setStripeOnboarded(data?.stripe_onboarding_complete ?? false);
+      }
+    };
+    
+    checkStripeStatus();
+  }, [user]);
 
   // Fetch existing listing data when editing
   useEffect(() => {
@@ -538,6 +561,110 @@ const CreateListing = () => {
       setIsLoading(false);
     }
   };
+  
+  // Loading state
+  if (loading || isLoading || stripeOnboarded === null) {
+    return (
+      <>
+        <SEOHead
+          title={isEditing ? "Edit Listing - Skipped" : "Create Listing - Skipped"}
+          description={isEditing ? "Edit your construction materials listing" : "List your surplus construction materials for sale"}
+          keywords="create listing, sell materials, construction marketplace"
+        />
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          <main className="container mx-auto px-4 py-8">
+            <div className="max-w-3xl mx-auto">
+              <div className="flex items-center justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </>
+    );
+  }
+
+  // Block listing creation if Stripe onboarding is not complete
+  if (!stripeOnboarded && !isEditing) {
+    return (
+      <>
+        <SEOHead
+          title="Payment Setup Required - Skipped"
+          description="Complete payment setup to start selling on Skipped"
+          keywords="payment setup, stripe connect, seller onboarding"
+        />
+        <div className="min-h-screen bg-background">
+          <Navbar />
+          <main className="container mx-auto px-4 py-8">
+            <div className="max-w-2xl mx-auto">
+              <Card className="border-warning/50 shadow-lg">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mb-4">
+                    <Package className="h-8 w-8 text-warning" />
+                  </div>
+                  <CardTitle className="text-2xl">Payment Setup Required</CardTitle>
+                  <CardDescription className="text-base mt-2">
+                    To create listings and receive payments, you need to set up your Stripe account first
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                    <h3 className="font-semibold text-sm">Why is this required?</h3>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">✓</span>
+                        <span>Secure payment processing for all transactions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">✓</span>
+                        <span>Direct deposits to your bank account</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">✓</span>
+                        <span>Buyer protection and fraud prevention</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">✓</span>
+                        <span>Builds trust with potential buyers</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-semibold text-foreground">Quick setup:</span> The Stripe onboarding process takes about 5 minutes. You'll need basic business information and bank details.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => navigate('/dashboard?tab=profile')}
+                      className="flex-1"
+                      size="lg"
+                    >
+                      Set Up Payments
+                    </Button>
+                    <Button 
+                      onClick={() => navigate('/browse')}
+                      variant="outline"
+                      className="flex-1"
+                      size="lg"
+                    >
+                      Browse Listings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </>
+    );
+  }
+  
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
