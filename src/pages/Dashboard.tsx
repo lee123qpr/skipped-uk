@@ -46,7 +46,6 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasListings, setHasListings] = useState(false);
-  const [hasPurchases, setHasPurchases] = useState(false);
   const { toast } = useToast();
   
   // Get seller rating for current user
@@ -163,14 +162,6 @@ const Dashboard = () => {
         .eq('seller_id', user.id);
 
       setHasListings((count || 0) > 0);
-
-      // Check if user has any purchases (is a buyer)
-      const { count: purchaseCount } = await supabase
-        .from('transactions')
-        .select('*', { count: 'exact', head: true })
-        .eq('buyer_id', user.id);
-
-      setHasPurchases((purchaseCount || 0) > 0);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -288,22 +279,18 @@ const Dashboard = () => {
           <Tabs value={activeTab} onValueChange={(value) => navigate(`/dashboard?tab=${value}`)} className="w-full">
             <div className="overflow-x-auto mb-6 sticky top-20 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4">
               <TabsList className="grid w-full grid-cols-5 bg-muted/80 backdrop-blur-sm border h-auto p-1 min-w-[320px]">
-                {hasListings && (
-                  <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
-                    <Package className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline truncate">My Listings</span>
-                    <span className="sm:hidden text-[10px] truncate">Lists</span>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="listings" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <Package className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">My Listings</span>
+                  <span className="sm:hidden text-[10px] truncate">Lists</span>
+                </TabsTrigger>
                 
-                {hasPurchases && (
-                  <TabsTrigger value="purchases" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
-                    <ShoppingBag className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline truncate">My Purchases</span>
-                    <span className="sm:hidden text-[10px] truncate">Buys</span>
-                    <NotificationBadge count={counts.activeTransactions} />
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="purchases" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <ShoppingBag className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">My Purchases</span>
+                  <span className="sm:hidden text-[10px] truncate">Buys</span>
+                  <NotificationBadge count={counts.activeTransactions} />
+                </TabsTrigger>
                 
                 <TabsTrigger value="messages" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 relative min-w-0">
                   <MessageCircle className="h-4 w-4 flex-shrink-0" />
@@ -324,17 +311,13 @@ const Dashboard = () => {
               </TabsList>
             </div>
             
-            {hasListings && (
-              <TabsContent value="listings" className="space-y-4 mt-0">
-                <MyListings />
-              </TabsContent>
-            )}
+            <TabsContent value="listings" className="space-y-4 mt-0">
+              <MyListings />
+            </TabsContent>
             
-            {hasPurchases && (
-              <TabsContent value="purchases" className="space-y-4 mt-0">
-                <MyPurchases />
-              </TabsContent>
-            )}
+            <TabsContent value="purchases" className="space-y-4 mt-0">
+              <MyPurchases />
+            </TabsContent>
             
             <TabsContent value="messages" className="space-y-4 mt-0">
               <div ref={messagesSectionRef}>
