@@ -63,12 +63,12 @@ export function AdminTransactions() {
 
   // Status counts for cards
   const statusCounts = {
-    pending: transactions.filter(t => t.status === 'pending').length,
+    pending_payment: transactions.filter(t => t.status === 'pending_payment').length,
     paid: transactions.filter(t => t.status === 'paid').length,
     dispatched: transactions.filter(t => t.status === 'dispatched').length,
     delivered: transactions.filter(t => t.status === 'delivered').length,
     completed: transactions.filter(t => t.status === 'completed').length,
-    disputed: transactions.filter(t => t.status === 'disputed').length,
+    disputed: transactions.filter(t => t.status === 'disputed' || t.status === 'disputed_pending_review').length,
   };
 
   const filteredTransactions = transactions.filter(transaction =>
@@ -79,16 +79,17 @@ export function AdminTransactions() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { variant: "secondary" as const, label: "Pending", icon: Clock },
+      pending_payment: { variant: "secondary" as const, label: "Pending Payment", icon: Clock },
       paid: { variant: "default" as const, label: "Paid", icon: CreditCard },
       dispatched: { variant: "default" as const, label: "Dispatched", icon: Package },
       delivered: { variant: "default" as const, label: "Delivered", icon: CheckCircle },
       completed: { variant: "default" as const, label: "Completed", icon: CheckCircle },
       disputed: { variant: "destructive" as const, label: "Disputed", icon: AlertTriangle },
+      disputed_pending_review: { variant: "destructive" as const, label: "Dispute - Under Review", icon: AlertTriangle },
       refunded: { variant: "secondary" as const, label: "Refunded", icon: XCircle },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending_payment;
     const Icon = config.icon;
 
     return (
@@ -117,8 +118,8 @@ export function AdminTransactions() {
       {/* Status Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-4">
-          <p className="text-xs text-muted-foreground">Pending</p>
-          <p className="text-2xl font-bold mt-1">{statusCounts.pending}</p>
+          <p className="text-xs text-muted-foreground">Pending Payment</p>
+          <p className="text-2xl font-bold mt-1">{statusCounts.pending_payment}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Paid</p>
@@ -160,12 +161,13 @@ export function AdminTransactions() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="pending_payment">Pending Payment</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="dispatched">Dispatched</SelectItem>
               <SelectItem value="delivered">Delivered</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="disputed">Disputed</SelectItem>
+              <SelectItem value="disputed_pending_review">Dispute - Under Review</SelectItem>
             </SelectContent>
           </Select>
         </div>

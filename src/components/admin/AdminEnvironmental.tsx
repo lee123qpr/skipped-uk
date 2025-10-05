@@ -20,7 +20,7 @@ export function AdminEnvironmental() {
             environmental_assessment_enabled
           )
         `)
-        .in('status', ['completed', 'pending', 'paid', 'awaiting_dispatch', 'dispatched', 'in_transit', 'delivered']);
+        .in('status', ['completed', 'pending_payment', 'paid', 'dispatched', 'delivered']);
 
       if (txError) throw txError;
 

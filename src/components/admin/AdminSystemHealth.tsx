@@ -39,7 +39,7 @@ export function AdminSystemHealth() {
       const { data: transactions } = await supabase
         .from('transactions')
         .select('status, updated_at')
-        .in('status', ['pending', 'paid', 'dispatched', 'delivered']);
+        .in('status', ['pending_payment', 'paid', 'dispatched', 'delivered']);
 
       const now = Date.now();
       const oneDayAgo = now - 24 * 60 * 60 * 1000;

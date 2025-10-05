@@ -264,16 +264,6 @@ const MessagesInbox = () => {
             };
       }
       
-      if (transaction.status === 'pending') {
-        return {
-          label: 'Transaction Pending',
-          icon: Clock,
-          variant: 'outline',
-          bgColor: 'bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700',
-          textColor: 'text-slate-800 dark:text-slate-300',
-          iconColor: 'text-slate-700 dark:text-slate-400'
-        };
-      }
     }
     
     // Priority 4: Offer states

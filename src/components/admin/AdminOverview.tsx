@@ -92,7 +92,7 @@ export function AdminOverview({ stats }: AdminOverviewProps) {
       const { data: stuckTransactions } = await supabase
         .from('transactions')
         .select('id, status, updated_at')
-        .in('status', ['pending', 'paid', 'dispatched'])
+        .in('status', ['pending_payment', 'paid', 'dispatched'])
         .lt('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
       if (stuckTransactions && stuckTransactions.length > 0) {

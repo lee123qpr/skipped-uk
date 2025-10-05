@@ -105,12 +105,6 @@ const MyPurchases = () => {
             location,
             seller_id
           ),
-          seller:profiles!transactions_seller_id_fkey(
-            display_name,
-            username,
-            avatar_url,
-            verified
-          ),
           certificate:environmental_certificates(
             id,
             certificate_reference,
@@ -126,7 +120,22 @@ const MyPurchases = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (purchasesData || []) as any;
+      if (!purchasesData || purchasesData.length === 0) return [];
+
+      // Get seller profiles from public_profiles to bypass RLS
+      const sellerIds = [...new Set(purchasesData.map(p => p.seller_id))];
+      const { data: sellerProfiles, error: profilesError } = await supabase
+        .from('public_profiles')
+        .select('user_id, username, display_name, avatar_url, verified')
+        .in('user_id', sellerIds);
+
+      if (profilesError) throw profilesError;
+
+      // Merge seller data with purchases
+      return purchasesData.map(purchase => ({
+        ...purchase,
+        seller: sellerProfiles?.find(p => p.user_id === purchase.seller_id) || null
+      })) as any;
     },
     enabled: !!user,
   });
