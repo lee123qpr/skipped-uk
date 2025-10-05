@@ -42,6 +42,7 @@ interface Purchase {
   status: string;
   amount: number;
   created_at: string;
+  updated_at: string;
   paid_at: string | null;
   dispatch_confirmed_at: string | null;
   delivery_confirmed_at: string | null;
@@ -49,6 +50,7 @@ interface Purchase {
   disputed_at: string | null;
   refunded_at: string | null;
   seller_id: string;
+  listing_id: string;
   listing: {
     id: string;
     title: string;
@@ -215,6 +217,54 @@ const MyPurchases = () => {
     setDisputeDialogOpen(true);
   };
 
+  // Helper function to get the most recent effective timestamp
+  const getEffectiveTimestamp = (purchase: Purchase): number => {
+    const timestamps = [
+      purchase.completed_at,
+      purchase.refunded_at,
+      purchase.disputed_at,
+      purchase.delivery_confirmed_at,
+      purchase.dispatch_confirmed_at,
+      purchase.paid_at,
+      purchase.updated_at,
+      purchase.created_at,
+    ].filter(Boolean);
+    
+    if (timestamps.length === 0) return new Date(purchase.created_at).getTime();
+    
+    const mostRecent = timestamps.reduce((latest, current) => {
+      const latestTime = new Date(latest).getTime();
+      const currentTime = new Date(current!).getTime();
+      return currentTime > latestTime ? current : latest;
+    });
+    
+    return new Date(mostRecent!).getTime();
+  };
+
+  // Deduplicate purchases by listing_id, keeping only the latest transaction
+  const dedupeLatestByListing = (purchases: Purchase[]): Purchase[] => {
+    const listingMap = new Map<string, Purchase>();
+    
+    purchases.forEach(purchase => {
+      const listingId = purchase.listing_id;
+      const existing = listingMap.get(listingId);
+      
+      if (!existing) {
+        listingMap.set(listingId, purchase);
+      } else {
+        // Keep the one with the most recent effective timestamp
+        const existingTime = getEffectiveTimestamp(existing);
+        const currentTime = getEffectiveTimestamp(purchase);
+        
+        if (currentTime > existingTime) {
+          listingMap.set(listingId, purchase);
+        }
+      }
+    });
+    
+    return Array.from(listingMap.values());
+  };
+
   const categorizePurchases = (purchases: Purchase[]): PurchaseSection[] => {
     const sections: Record<string, Purchase[]> = {
       pending_payment: [],
@@ -301,10 +351,13 @@ const MyPurchases = () => {
   const getTotalStats = () => {
     if (!purchases) return { count: 0, spent: 0, carbonSaved: 0 };
     
+    // Use deduplicated purchases for stats
+    const dedupedPurchases = dedupeLatestByListing(purchases);
+    
     return {
-      count: purchases.length,
-      spent: purchases.reduce((sum, p) => sum + Number(p.amount), 0),
-      carbonSaved: purchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
+      count: dedupedPurchases.length,
+      spent: dedupedPurchases.reduce((sum, p) => sum + Number(p.amount), 0),
+      carbonSaved: dedupedPurchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
     };
   };
 
@@ -347,7 +400,9 @@ const MyPurchases = () => {
     );
   }
 
-  const sections = categorizePurchases(purchases);
+  // Deduplicate purchases by listing - keep only the latest transaction per listing
+  const dedupedPurchases = dedupeLatestByListing(purchases);
+  const sections = categorizePurchases(dedupedPurchases);
   const stats = getTotalStats();
 
   return (
