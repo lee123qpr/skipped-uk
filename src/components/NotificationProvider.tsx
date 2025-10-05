@@ -22,6 +22,7 @@ interface NotificationCounts {
   pendingOffers: number;
   newOffers: number;
   unreadNotifications: number;
+  activeTransactions: number;
 }
 
 interface NotificationContextType {
@@ -33,7 +34,7 @@ interface NotificationContextType {
 }
 
 const NotificationContext = createContext<NotificationContextType>({
-  counts: { unreadMessages: 0, pendingOffers: 0, newOffers: 0, unreadNotifications: 0 },
+  counts: { unreadMessages: 0, pendingOffers: 0, newOffers: 0, unreadNotifications: 0, activeTransactions: 0 },
   notifications: [],
   refreshCounts: async () => {},
   markAsRead: async () => {},
@@ -56,12 +57,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     pendingOffers: 0,
     newOffers: 0,
     unreadNotifications: 0,
+    activeTransactions: 0,
   });
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const fetchCounts = async () => {
     if (!user) {
-      setCounts({ unreadMessages: 0, pendingOffers: 0, newOffers: 0, unreadNotifications: 0 });
+      setCounts({ 
+        unreadMessages: 0, 
+        pendingOffers: 0, 
+        newOffers: 0, 
+        unreadNotifications: 0,
+        activeTransactions: 0 
+      });
       setNotifications([]);
       return;
     }
@@ -97,11 +105,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .order('created_at', { ascending: false })
         .limit(20);
 
+      // Fetch active buyer transactions count
+      const { count: activeTransactionsCount } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('buyer_id', user.id)
+        .in('status', ['paid', 'dispatched', 'delivered', 'disputed', 'disputed_pending_review']);
+
       setCounts({
         unreadMessages: messagesCount || 0,
         pendingOffers: pendingOffersCount || 0,
         newOffers: newOffersCount || 0,
         unreadNotifications: notificationsCount || 0,
+        activeTransactions: activeTransactionsCount || 0,
       });
 
       setNotifications(notificationsData || []);

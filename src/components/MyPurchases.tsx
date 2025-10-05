@@ -1,0 +1,509 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  CheckCircle2,
+  Truck,
+  AlertTriangle,
+  Package,
+  ShoppingBag,
+  MessageCircle,
+  Eye,
+  Star,
+  FileCheck,
+  ChevronDown,
+  ChevronRight,
+  Leaf,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MyListingSkeleton } from "./LoadingSkeletons";
+import { EmptyState } from "./EmptyState";
+import { useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { formatDistanceToNow } from "date-fns";
+import { getStatusConfig, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
+import { DisputeDialog } from "./DisputeDialog";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { TransactionTimeline } from "./TransactionTimeline";
+
+interface Purchase {
+  id: string;
+  status: string;
+  amount: number;
+  created_at: string;
+  paid_at: string | null;
+  dispatch_confirmed_at: string | null;
+  delivery_confirmed_at: string | null;
+  completed_at: string | null;
+  disputed_at: string | null;
+  refunded_at: string | null;
+  listing: {
+    id: string;
+    title: string;
+    images: string[];
+    location: string;
+    seller_id: string;
+  };
+  seller: {
+    display_name: string;
+    username: string;
+    avatar_url: string;
+    verified: boolean;
+  };
+  certificate: {
+    id: string;
+    certificate_reference: string;
+    carbon_saved_kg: number;
+  } | null;
+  review: {
+    id: string;
+    rating: number;
+    comment: string;
+  } | null;
+}
+
+interface PurchaseSection {
+  title: string;
+  icon: React.ReactNode;
+  purchases: Purchase[];
+  variant: "default" | "destructive" | "outline" | "secondary";
+  defaultOpen?: boolean;
+}
+
+const MyPurchases = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Purchase | null>(null);
+  const [confirmingDelivery, setConfirmingDelivery] = useState<string | null>(null);
+
+  const { data: purchases, isLoading, refetch } = useQuery({
+    queryKey: ['myPurchases', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data: purchasesData, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          listing:listings!inner(
+            id,
+            title,
+            images,
+            location,
+            seller_id
+          ),
+          seller:profiles!transactions_seller_id_fkey(
+            display_name,
+            username,
+            avatar_url,
+            verified
+          ),
+          certificate:environmental_certificates(
+            id,
+            certificate_reference,
+            carbon_saved_kg
+          ),
+          review:reviews!reviews_transaction_id_fkey(
+            id,
+            rating,
+            comment
+          )
+        `)
+        .eq('buyer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (purchasesData || []) as any;
+    },
+    enabled: !!user,
+  });
+
+  const handleConfirmDelivery = async (transactionId: string) => {
+    setConfirmingDelivery(transactionId);
+    try {
+      const { error } = await supabaseClient.functions.invoke('confirm-delivery', {
+        body: { transactionId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Delivery confirmed',
+        description: 'Payment has been released to the seller.',
+      });
+
+      refetch();
+    } catch (error) {
+      toast({
+        title: 'Error confirming delivery',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setConfirmingDelivery(null);
+    }
+  };
+
+  const handleRaiseDispute = (purchase: Purchase) => {
+    setSelectedTransaction(purchase);
+    setDisputeDialogOpen(true);
+  };
+
+  const categorizePurchases = (purchases: Purchase[]): PurchaseSection[] => {
+    const sections: Record<string, Purchase[]> = {
+      paid: [],
+      dispatched: [],
+      delivered: [],
+      disputed: [],
+      completed: [],
+      refunded: [],
+    };
+
+    purchases.forEach(purchase => {
+      if (purchase.status === 'disputed' || purchase.status === 'disputed_pending_review') {
+        sections.disputed.push(purchase);
+      } else if (purchase.status === 'refunded') {
+        sections.refunded.push(purchase);
+      } else if (purchase.status === 'completed') {
+        sections.completed.push(purchase);
+      } else if (purchase.status === 'delivered') {
+        sections.delivered.push(purchase);
+      } else if (purchase.status === 'dispatched') {
+        sections.dispatched.push(purchase);
+      } else if (purchase.status === 'paid') {
+        sections.paid.push(purchase);
+      }
+    });
+
+    return [
+      {
+        title: 'Payment in Escrow',
+        icon: <Package className="h-4 w-4" />,
+        purchases: sections.paid,
+        variant: 'default' as const,
+        defaultOpen: true,
+      },
+      {
+        title: 'Item Dispatched',
+        icon: <Truck className="h-4 w-4" />,
+        purchases: sections.dispatched,
+        variant: 'secondary' as const,
+        defaultOpen: true,
+      },
+      {
+        title: 'Delivered',
+        icon: <CheckCircle2 className="h-4 w-4" />,
+        purchases: sections.delivered,
+        variant: 'default' as const,
+      },
+      {
+        title: 'In Dispute',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        purchases: sections.disputed,
+        variant: 'destructive' as const,
+        defaultOpen: true,
+      },
+      {
+        title: 'Completed',
+        icon: <CheckCircle2 className="h-4 w-4" />,
+        purchases: sections.completed,
+        variant: 'default' as const,
+      },
+      {
+        title: 'Refunded',
+        icon: <AlertTriangle className="h-4 w-4" />,
+        purchases: sections.refunded,
+        variant: 'destructive' as const,
+      },
+    ].filter(section => section.purchases.length > 0);
+  };
+
+  const toggleSection = (title: string) => {
+    setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const getTotalStats = () => {
+    if (!purchases) return { count: 0, spent: 0, carbonSaved: 0 };
+    
+    return {
+      count: purchases.length,
+      spent: purchases.reduce((sum, p) => sum + Number(p.amount), 0),
+      carbonSaved: purchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <MyListingSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  if (!purchases || purchases.length === 0) {
+    return (
+      <EmptyState
+        icon={ShoppingBag}
+        title="No purchases yet"
+        description="You haven't made any purchases. Browse available materials to get started."
+        actionLabel="Browse Listings"
+        onAction={() => navigate('/browse')}
+      />
+    );
+  }
+
+  const sections = categorizePurchases(purchases);
+  const stats = getTotalStats();
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-sm text-muted-foreground">Total Purchases</div>
+              <div className="text-2xl font-bold">{stats.count}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-sm text-muted-foreground">Total Spent</div>
+              <div className="text-2xl font-bold">£{stats.spent.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-muted-foreground">CO₂ Saved</div>
+                  <div className="text-2xl font-bold">{stats.carbonSaved.toFixed(1)} kg</div>
+                </div>
+                <Leaf className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Purchase Sections */}
+        {sections.map((section) => (
+          <Collapsible
+            key={section.title}
+            open={openSections[section.title] !== false && section.defaultOpen !== false}
+            onOpenChange={() => toggleSection(section.title)}
+          >
+            <Card>
+              <CollapsibleTrigger className="w-full">
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colours">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {section.icon}
+                      <CardTitle className="text-lg">{section.title}</CardTitle>
+                      <Badge variant={section.variant}>
+                        {section.purchases.length}
+                      </Badge>
+                    </div>
+                    {openSections[section.title] !== false && section.defaultOpen !== false ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5" />
+                    )}
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <CardContent className="space-y-4 pt-0">
+                  {section.purchases.map((purchase) => {
+                    const statusConfig = getStatusConfig(purchase.status);
+                    const StatusIcon = statusConfig.icon;
+
+                    return (
+                      <Card key={purchase.id} className="overflow-hidden">
+                        <div className="md:flex">
+                          <div className="md:w-48 md:flex-shrink-0">
+                            {purchase.listing.images && purchase.listing.images.length > 0 ? (
+                              <img
+                                src={purchase.listing.images[0]}
+                                alt={purchase.listing.title}
+                                className="h-48 w-full object-cover md:h-full"
+                              />
+                            ) : (
+                              <div className="h-48 w-full bg-muted flex items-center justify-center md:h-full">
+                                <span className="text-muted-foreground">No image</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 p-4">
+                            <div className="space-y-4">
+                              {/* Header */}
+                              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-lg">{purchase.listing.title}</h3>
+                                  <p className="text-2xl font-bold text-primary mt-1">
+                                    £{Number(purchase.amount).toLocaleString()}
+                                  </p>
+                                </div>
+                                
+                                <div className="flex flex-col gap-2">
+                                  <Badge variant={statusConfig.variant} className={statusConfig.className}>
+                                    <StatusIcon className="mr-1 h-3 w-3" />
+                                    {statusConfig.label}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              {/* Seller Info */}
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={purchase.seller.avatar_url} />
+                                  <AvatarFallback>
+                                    {purchase.seller.display_name?.[0] || purchase.seller.username?.[0] || 'S'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">
+                                    {purchase.seller.display_name || purchase.seller.username}
+                                  </span>
+                                  {purchase.seller.verified && (
+                                    <Badge variant="default" className="h-5 text-xs">
+                                      Verified
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Transaction Timeline */}
+                              <TransactionTimeline transaction={purchase} userRole="buyer" />
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-wrap gap-2">
+                                {canBuyerConfirmDelivery(purchase.status) && (
+                                  <>
+                                    <Button
+                                      onClick={() => handleConfirmDelivery(purchase.id)}
+                                      disabled={confirmingDelivery === purchase.id}
+                                      size="sm"
+                                    >
+                                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                                      Confirm Delivery
+                                    </Button>
+                                    {canRaiseDispute(purchase.status) && (
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => handleRaiseDispute(purchase)}
+                                        size="sm"
+                                      >
+                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                        Raise Dispute
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                                
+                                <Button
+                                  variant="outline"
+                                  onClick={() => navigate(`/dashboard?tab=messages&conversation=${purchase.listing.seller_id}&listing=${purchase.listing.id}`)}
+                                  size="sm"
+                                >
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Contact Seller
+                                </Button>
+                                
+                                <Button
+                                  variant="outline"
+                                  onClick={() => navigate(`/listing/${purchase.listing.id}`)}
+                                  size="sm"
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Listing
+                                </Button>
+
+                                {purchase.status === 'completed' && !purchase.review && (
+                                  <Button
+                                    variant="default"
+                                    onClick={() => navigate(`/dashboard?tab=profile&review=${purchase.id}`)}
+                                    size="sm"
+                                  >
+                                    <Star className="mr-2 h-4 w-4" />
+                                    Leave Review
+                                  </Button>
+                                )}
+
+                                {purchase.certificate && (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => window.open(purchase.certificate!.certificate_reference, '_blank')}
+                                    size="sm"
+                                  >
+                                    <FileCheck className="mr-2 h-4 w-4" />
+                                    View Certificate
+                                  </Button>
+                                )}
+                              </div>
+
+                              {/* Environmental Impact */}
+                              {purchase.certificate && (
+                                <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 text-sm text-green-800 dark:text-green-400">
+                                    <Leaf className="h-4 w-4" />
+                                    <span className="font-medium">
+                                      Environmental Impact: {purchase.certificate.carbon_saved_kg.toFixed(1)} kg CO₂ saved
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Purchase Date */}
+                              <div className="text-sm text-muted-foreground">
+                                Purchased {formatDistanceToNow(new Date(purchase.created_at), { addSuffix: true })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+        ))}
+      </div>
+
+      {/* Dispute Dialog */}
+      {selectedTransaction && (
+        <DisputeDialog
+          open={disputeDialogOpen}
+          onOpenChange={setDisputeDialogOpen}
+          transactionId={selectedTransaction.id}
+          userRole="buyer"
+          otherUserId={selectedTransaction.listing.seller_id}
+          onSuccess={() => {
+            refetch();
+            setDisputeDialogOpen(false);
+            setSelectedTransaction(null);
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+export default MyPurchases;
