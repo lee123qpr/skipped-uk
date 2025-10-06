@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { RemoveUserDialog } from "./RemoveUserDialog";
+import { AdminMessageDialog } from "./AdminMessageDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,7 @@ export function AdminUsers() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [messageDialog, setMessageDialog] = useState<{ open: boolean; userId: string; userName: string } | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -199,10 +201,12 @@ export function AdminUsers() {
     toast.error("User profile view page needs to be implemented");
   };
 
-  const handleMessage = (userId: string) => {
-    // Messaging a user directly from admin would need special implementation
-    // For now, show info that this feature needs implementation
-    toast.error("Direct messaging from admin panel needs to be implemented");
+  const handleMessage = (user: UserProfile) => {
+    setMessageDialog({
+      open: true,
+      userId: user.id,
+      userName: user.display_name || user.username || 'User'
+    });
   };
 
   const handleRemoveUser = (user: UserProfile) => {
@@ -331,7 +335,7 @@ export function AdminUsers() {
                       <Eye className="h-4 w-4 mr-2" />
                       View Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleMessage(user.user_id)}>
+                    <DropdownMenuItem onClick={() => handleMessage(user)}>
                       <Mail className="h-4 w-4 mr-2" />
                       Send Message
                     </DropdownMenuItem>
@@ -455,6 +459,16 @@ export function AdminUsers() {
           userId={selectedUser.user_id}
           userName={selectedUser.display_name || selectedUser.username}
           onSuccess={fetchUsers}
+        />
+      )}
+
+      {/* Admin Message Dialog */}
+      {messageDialog && (
+        <AdminMessageDialog
+          open={messageDialog.open}
+          onOpenChange={(open) => !open && setMessageDialog(null)}
+          userId={messageDialog.userId}
+          userName={messageDialog.userName}
         />
       )}
     </div>

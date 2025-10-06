@@ -807,7 +807,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          listing_id: string
+          listing_id: string | null
           message_type: Database["public"]["Enums"]["message_type"]
           offer_id: string | null
           read: boolean
@@ -819,7 +819,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
-          listing_id: string
+          listing_id?: string | null
           message_type?: Database["public"]["Enums"]["message_type"]
           offer_id?: string | null
           read?: boolean
@@ -831,7 +831,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
-          listing_id?: string
+          listing_id?: string | null
           message_type?: Database["public"]["Enums"]["message_type"]
           offer_id?: string | null
           read?: boolean

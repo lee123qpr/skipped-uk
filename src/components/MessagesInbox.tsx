@@ -399,14 +399,18 @@ const MessagesInbox = () => {
       
       if (profilesError) throw profilesError;
 
-      // Get listings
-      const listingIds = [...new Set(messages.map(m => m.listing_id))];
-      const { data: listings, error: listingsError } = await supabase
-        .from('listings')
-        .select('id, title, price, images, environmental_assessment_enabled')
-        .in('id', listingIds);
-      
-      if (listingsError) throw listingsError;
+      // Get listings (filtering out null listing_ids for admin messages)
+      const listingIds = [...new Set(messages.filter(m => m.listing_id).map(m => m.listing_id))];
+      let listings: any[] = [];
+      if (listingIds.length > 0) {
+        const { data: listingsData, error: listingsError } = await supabase
+          .from('listings')
+          .select('id, title, price, images, environmental_assessment_enabled')
+          .in('id', listingIds);
+        
+        if (listingsError) throw listingsError;
+        listings = listingsData || [];
+      }
 
       // Get transactions for these messages directly using transaction_id
       const transactionIds = [...new Set(messages.filter(m => m.transaction_id).map(m => m.transaction_id))];
@@ -457,10 +461,12 @@ const MessagesInbox = () => {
   const conversations: Record<string, Conversation> = allMessagesData.reduce((acc, message) => {
     const otherUserId = message.sender_id === user?.id ? message.receiver_id : message.sender_id;
     
-    // Create unique key: Use transaction_id if exists, otherwise fall back to listing+user for pre-transaction messages
+    // Create unique key: Use transaction_id if exists, admin messages if no listing, otherwise fall back to listing+user
     const key = message.transaction_id 
       ? `transaction-${message.transaction_id}`
-      : `listing-${message.listing_id}-${otherUserId}`;
+      : message.listing_id === null 
+        ? `admin-${message.sender_id}-${message.receiver_id}`
+        : `listing-${message.listing_id}-${otherUserId}`;
     
     if (!acc[key]) {
       acc[key] = {
@@ -468,8 +474,12 @@ const MessagesInbox = () => {
         otherUserProfile: message.sender_id === user?.id 
           ? message.receiver_profile 
           : message.sender_profile,
-        listingId: message.listing_id,
-        listing: message.listing,
+        listingId: message.listing_id || 'admin',
+        listing: message.listing || { 
+          title: 'System Message', 
+          price: 0, 
+          images: [] 
+        },
         messages: [],
         unreadCount: 0,
         lastMessage: message,
