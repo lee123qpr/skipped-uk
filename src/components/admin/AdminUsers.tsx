@@ -194,11 +194,15 @@ export function AdminUsers() {
   });
 
   const handleViewProfile = (userId: string) => {
-    navigate(`/dashboard?userId=${userId}`);
+    // Open profile in new tab (public profile view would need to be created)
+    // For now, show info that this feature needs implementation
+    toast.error("User profile view page needs to be implemented");
   };
 
   const handleMessage = (userId: string) => {
-    navigate(`/dashboard?tab=messages&userId=${userId}`);
+    // Messaging a user directly from admin would need special implementation
+    // For now, show info that this feature needs implementation
+    toast.error("Direct messaging from admin panel needs to be implemented");
   };
 
   const handleRemoveUser = (user: UserProfile) => {
