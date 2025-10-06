@@ -32,7 +32,6 @@ export default function BlogPost() {
         .from("blog_posts")
         .select(`
           *,
-          profiles:author_id(display_name, username, avatar_url),
           blog_post_categories(
             blog_categories(id, name, slug, color)
           )
@@ -175,7 +174,7 @@ export default function BlogPost() {
           dateModified: post.updated_at,
           author: {
             "@type": "Person",
-            name: post.profiles?.display_name || post.profiles?.username,
+            name: "Skipped UK",
           },
         }}
       />
@@ -231,21 +230,6 @@ export default function BlogPost() {
 
             {/* Metadata */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              {post.profiles && (
-                <div className="flex items-center gap-2">
-                  {post.profiles.avatar_url && (
-                    <img
-                      src={post.profiles.avatar_url}
-                      alt={post.profiles.display_name || ""}
-                      className="w-8 h-8 rounded-full"
-                      loading="lazy"
-                    />
-                  )}
-                  <span className="font-medium">
-                    {post.profiles.display_name || post.profiles.username}
-                  </span>
-                </div>
-              )}
               {post.published_at && (
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />

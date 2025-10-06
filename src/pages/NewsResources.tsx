@@ -35,7 +35,6 @@ export default function NewsResources() {
         .from("blog_posts")
         .select(`
           *,
-          profiles:author_id(display_name, username),
           blog_post_categories(
             blog_categories(id, name, slug, color)
           )
@@ -53,16 +52,37 @@ export default function NewsResources() {
       const { data, error } = await query;
       if (error) throw error;
 
+      let postsWithProfiles = data || [];
+
+      // Fetch author profiles separately for non-null author_ids
+      if (postsWithProfiles && postsWithProfiles.length > 0) {
+        const authorIds = postsWithProfiles.filter(post => post.author_id).map(post => post.author_id);
+        if (authorIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, display_name, username')
+            .in('user_id', authorIds);
+          
+          // Attach profile data to posts
+          postsWithProfiles = postsWithProfiles.map(post => ({
+            ...post,
+            profiles: post.author_id 
+              ? profiles?.find(p => p.user_id === post.author_id) || null
+              : null
+          }));
+        }
+      }
+
       // Filter by category if selected
       if (selectedCategory) {
-        return data.filter((post) =>
+        return postsWithProfiles.filter((post) =>
           post.blog_post_categories.some(
             (pc: any) => pc.blog_categories.id === selectedCategory
           )
         );
       }
 
-      return data;
+      return postsWithProfiles;
     },
   });
 

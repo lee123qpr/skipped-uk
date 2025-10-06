@@ -40,7 +40,6 @@ export function AdminBlogPostsList({ onCreatePost, onEditPost }: AdminBlogPostsL
         .from("blog_posts")
         .select(`
           *,
-          profiles:author_id(display_name, username),
           blog_post_categories(
             blog_categories(name, slug, color)
           )
@@ -56,6 +55,26 @@ export function AdminBlogPostsList({ onCreatePost, onEditPost }: AdminBlogPostsL
 
       const { data, error } = await query;
       if (error) throw error;
+      
+      // Fetch author profiles separately for non-null author_ids
+      if (data && data.length > 0) {
+        const authorIds = data.filter(post => post.author_id).map(post => post.author_id);
+        if (authorIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, display_name, username')
+            .in('user_id', authorIds);
+          
+          // Attach profile data to posts
+          return data.map(post => ({
+            ...post,
+            profiles: post.author_id 
+              ? profiles?.find(p => p.user_id === post.author_id) || null
+              : null
+          }));
+        }
+      }
+      
       return data;
     },
   });
@@ -143,7 +162,7 @@ export function AdminBlogPostsList({ onCreatePost, onEditPost }: AdminBlogPostsL
                   <TableCell className="font-medium">{post.title}</TableCell>
                   <TableCell>{getStatusBadge(post.status)}</TableCell>
                   <TableCell>
-                    {post.profiles?.display_name || post.profiles?.username || "Unknown"}
+                    {(post as any).profiles?.display_name || (post as any).profiles?.username || "Unknown"}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
