@@ -44,6 +44,79 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       blog_categories: {
         Row: {
           color: string | null
@@ -915,6 +988,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string | null
           avatar_url: string | null
           bio: string | null
           business_logo_url: string | null
@@ -932,17 +1006,22 @@ export type Database = {
           id: string
           identity_verified: boolean | null
           identity_verified_at: string | null
+          last_active_at: string | null
           location: string | null
           on_holiday: boolean | null
           phone: string | null
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
           updated_at: string
           user_id: string
           username: string | null
           verified: boolean | null
         }
         Insert: {
+          account_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           business_logo_url?: string | null
@@ -960,17 +1039,22 @@ export type Database = {
           id?: string
           identity_verified?: boolean | null
           identity_verified_at?: string | null
+          last_active_at?: string | null
           location?: string | null
           on_holiday?: boolean | null
           phone?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
           verified?: boolean | null
         }
         Update: {
+          account_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           business_logo_url?: string | null
@@ -988,17 +1072,43 @@ export type Database = {
           id?: string
           identity_verified?: boolean | null
           identity_verified_at?: string | null
+          last_active_at?: string | null
           location?: string | null
           on_holiday?: boolean | null
           phone?: string | null
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
           verified?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profiles_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profiles_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       rate_limit_log: {
         Row: {
