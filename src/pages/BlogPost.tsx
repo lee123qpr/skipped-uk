@@ -261,13 +261,10 @@ export default function BlogPost() {
           <Separator className="my-8" />
 
           {/* Content */}
-          <div className="prose prose-lg max-w-none dark:prose-invert">
-            {post.content.split("\n").map((paragraph, idx) => (
-              <p key={idx} className="mb-4">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <div 
+            className="prose prose-lg max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
 
           <Separator className="my-8" />
 
