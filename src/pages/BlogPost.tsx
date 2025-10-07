@@ -10,6 +10,8 @@ import { ThumbsUp, ThumbsDown, Clock, Eye, Calendar, ChevronRight, Share2 } from
 import { format } from "date-fns";
 import SEOHead from "@/components/SEOHead";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 export default function BlogPost() {
@@ -179,6 +181,8 @@ export default function BlogPost() {
         }}
       />
 
+      <Navbar />
+
       <div className="min-h-screen bg-background">
         {/* Hero Image */}
           {post.featured_image_url && (
@@ -333,6 +337,8 @@ export default function BlogPost() {
           )}
         </article>
       </div>
+
+      <Footer />
     </>
   );
 }
