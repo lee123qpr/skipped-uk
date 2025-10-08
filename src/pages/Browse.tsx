@@ -112,8 +112,8 @@ const Browse = () => {
             name,
             slug
           ),
-          profiles!listings_seller_id_fkey (
-            id,
+          public_safe_profiles!inner (
+            user_id,
             username,
             verified,
             stripe_onboarding_complete,
