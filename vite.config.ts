@@ -20,6 +20,21 @@ export default defineConfig(({ mode }) => ({
       "react/jsx-dev-runtime": path.resolve(__dirname, "./node_modules/react/jsx-dev-runtime"),
     },
     // Ensure only one React instance is used to prevent invalid hook calls
-    dedupe: ["react", "react-dom"],
+    dedupe: [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "scheduler",
+      "use-sync-external-store"
+    ],
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime"
+    ],
   },
 }));
