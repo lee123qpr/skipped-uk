@@ -41,7 +41,9 @@ import {
   ChevronRight,
   AlertTriangle,
   Package,
-  Clock
+  Clock,
+  Leaf,
+  FileCheck
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MyListingSkeleton } from "./LoadingSkeletons";
@@ -75,6 +77,12 @@ interface Listing {
     created_at: string;
     completed_at?: string;
   }>;
+  certificate?: {
+    id: string;
+    certificate_reference: string;
+    carbon_saved_kg: number;
+    seller_certificate_url: string;
+  } | null;
 }
 
 interface ListingSection {
@@ -144,11 +152,26 @@ const MyListings = () => {
         .select('listing_id')
         .in('listing_id', listingsData.map(l => l.id));
 
+      // Fetch certificates for completed transactions
+      const completedTransactionIds = transactionsData?.filter(t => t.status === 'completed').map(t => t.id) || [];
+      const { data: certificatesData } = completedTransactionIds.length > 0
+        ? await supabase
+            .from('environmental_certificates')
+            .select('id, transaction_id, certificate_reference, carbon_saved_kg, seller_certificate_url')
+            .in('transaction_id', completedTransactionIds)
+        : { data: [] };
+
       // Enrich listings with analytics
       return listingsData.map(listing => {
         const transactions = transactionsData?.filter(t => t.listing_id === listing.id) || [];
         const messages = messagesData?.filter(m => m.listing_id === listing.id) || [];
         const favourites = favouritesData?.filter(f => f.listing_id === listing.id) || [];
+        
+        // Find certificate for completed transaction
+        const completedTx = transactions.find(t => t.status === 'completed');
+        const certificate = completedTx 
+          ? certificatesData?.find(c => c.transaction_id === completedTx.id)
+          : null;
 
         return {
           ...listing,
@@ -157,6 +180,7 @@ const MyListings = () => {
           message_count: messages.length,
           unread_message_count: messages.filter(m => !m.read).length,
           transactions: transactions,
+          certificate: certificate,
         };
       });
     },
@@ -541,10 +565,36 @@ const MyListings = () => {
                                 if (completedTransaction && completedTransaction.completed_at) {
                                   const daysToSell = getDaysListed(listing.created_at);
                                   return (
-                                    <div className="pt-2 mt-2 border-t text-sm">
-                                      <p className="text-muted-foreground">
+                                    <div className="pt-2 mt-2 border-t space-y-3">
+                                      <p className="text-muted-foreground text-sm">
                                         Sold {formatDistanceToNow(new Date(completedTransaction.completed_at), { addSuffix: true })} • {daysToSell} {daysToSell === 1 ? 'day' : 'days'} to sell
                                       </p>
+                                      
+                                      {/* Environmental Certificate */}
+                                      {listing.certificate && (
+                                        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 space-y-2">
+                                          <div className="flex items-center gap-2 text-sm">
+                                            <Leaf className="h-4 w-4 text-green-600" />
+                                            <span className="font-medium text-green-800 dark:text-green-400">
+                                              Environmental Impact: {listing.certificate.carbon_saved_kg.toFixed(1)} kg CO₂ saved
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <Badge variant="outline" className="text-xs">
+                                              {listing.certificate.certificate_reference}
+                                            </Badge>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => window.open(listing.certificate!.seller_certificate_url, '_blank')}
+                                              className="h-7 text-xs"
+                                            >
+                                              <FileCheck className="mr-1 h-3 w-3" />
+                                              Download Certificate
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 }

@@ -68,6 +68,7 @@ interface Purchase {
     id: string;
     certificate_reference: string;
     carbon_saved_kg: number;
+    buyer_certificate_url: string;
   } | null;
   review: {
     id: string;
@@ -104,7 +105,7 @@ const MyPurchases = () => {
         .select(`
           *,
           listing:listings(id, title, images, location, seller_id),
-          certificate:environmental_certificates!environmental_certificates_transaction_id_fkey(id, certificate_reference, carbon_saved_kg),
+          certificate:environmental_certificates!environmental_certificates_transaction_id_fkey(id, certificate_reference, carbon_saved_kg, buyer_certificate_url),
           review:reviews!transaction_id(id, rating, comment)
         `)
         .eq('buyer_id', user.id)
@@ -534,7 +535,7 @@ const MyPurchases = () => {
                                 {purchase.certificate && (
                                   <Button
                                     variant="outline"
-                                    onClick={() => window.open(purchase.certificate!.certificate_reference, '_blank')}
+                                    onClick={() => window.open(purchase.certificate!.buyer_certificate_url, '_blank')}
                                     size="sm"
                                   >
                                     <FileCheck className="mr-2 h-4 w-4" />
