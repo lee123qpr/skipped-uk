@@ -154,12 +154,14 @@ const MyListings = () => {
 
       // Fetch certificates for completed transactions
       const completedTransactionIds = transactionsData?.filter(t => t.status === 'completed').map(t => t.id) || [];
-      const { data: certificatesData } = completedTransactionIds.length > 0
-        ? await supabase
-            .from('environmental_certificates')
-            .select('id, transaction_id, certificate_reference, carbon_saved_kg, seller_certificate_url')
-            .in('transaction_id', completedTransactionIds)
-        : { data: [] };
+      let certificatesData = [];
+      if (completedTransactionIds.length > 0) {
+        const { data } = await supabase
+          .from('environmental_certificates')
+          .select('id, transaction_id, certificate_reference, carbon_saved_kg, seller_certificate_url')
+          .in('transaction_id', completedTransactionIds);
+        certificatesData = data || [];
+      }
 
       // Enrich listings with analytics
       return listingsData.map(listing => {
