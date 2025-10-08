@@ -18,10 +18,9 @@ import FavouritesTab from "@/components/FavouritesTab";
 import ProfileEdit from "@/components/ProfileEdit";
 import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
-import TransactionReviews from "@/components/TransactionReviews";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
-import { SellerReviews } from "@/components/SellerReviews";
+import { UnifiedReviews } from "@/components/UnifiedReviews";
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
@@ -357,22 +356,7 @@ const Dashboard = () => {
               )}
               <ProfileEdit />
               
-              {/* Show seller reviews received */}
-              {sellerRating && sellerRating.totalReviews > 0 && (
-                <Card id="reviews">
-                  <CardHeader>
-                    <CardTitle>Your Reviews as a Seller</CardTitle>
-                    <CardDescription>
-                      Feedback from buyers who have purchased from you
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <SellerReviews sellerId={user?.id || ''} />
-                  </CardContent>
-                </Card>
-              )}
-              
-              <TransactionReviews />
+              <UnifiedReviews userId={user?.id || ''} />
             </TabsContent>
           </Tabs>
         </main>
