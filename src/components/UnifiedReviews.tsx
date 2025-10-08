@@ -151,9 +151,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
           seller_id,
           completed_at,
           amount,
-          listings (title),
-          buyer:profiles!transactions_buyer_id_fkey (username, avatar_url, display_name),
-          seller:profiles!transactions_seller_id_fkey (username, avatar_url, display_name)
+          listings (title)
         `)
         .eq('status', 'completed')
         .gte('completed_at', thirtyDaysAgo.toISOString())
@@ -426,7 +424,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
               ) : (
                 pendingTransactions.map((transaction) => {
                   const isUserBuyer = transaction.buyer_id === userId;
-                  const otherParty = isUserBuyer ? transaction.seller_profile : transaction.buyer_profile;
+                  const otherPartyName = isUserBuyer ? 'Seller' : 'Buyer';
                   const formData = reviewForms[transaction.id] || { rating: 0, title: '', comment: '' };
                   
                   return (
@@ -436,7 +434,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
                           <div>
                             <h4 className="font-medium">{transaction.listings?.title}</h4>
                             <p className="text-sm text-muted-foreground">
-                              {isUserBuyer ? 'Purchased from' : 'Sold to'}: {otherParty?.display_name || `@${otherParty?.username}` || "User"}
+                              {isUserBuyer ? 'Purchased from' : 'Sold to'}: {otherPartyName}
                             </p>
                           </div>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
