@@ -283,12 +283,14 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Overview Card */}
+
+      {/* Tabbed Reviews */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-6">
+        <CardHeader>
+          <CardTitle>Your Reviews</CardTitle>
+          <div className="mt-2 flex items-center gap-6 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="text-4xl font-bold">{averageRating > 0 ? averageRating : "—"}</div>
+              <div className="text-3xl font-bold">{averageRating > 0 ? averageRating : "—"}</div>
               <div>
                 <StarRating rating={Math.round(averageRating)} readonly size="md" />
                 <p className="text-sm text-muted-foreground mt-1">
@@ -298,20 +300,13 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
             </div>
             <div className="border-l pl-6 space-y-1">
               <p className="text-sm text-muted-foreground">Total Reviews</p>
-              <p className="text-2xl font-semibold">{totalReviews}</p>
+              <p className="text-xl font-semibold">{totalReviews}</p>
             </div>
             <div className="border-l pl-6 space-y-1">
               <p className="text-sm text-muted-foreground">Pending</p>
-              <p className="text-2xl font-semibold">{pendingTransactions.length}</p>
+              <p className="text-xl font-semibold">{pendingTransactions.length}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Tabbed Reviews */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Reviews</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="received" className="w-full">
