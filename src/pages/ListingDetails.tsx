@@ -93,18 +93,14 @@ const ListingDetails = () => {
         .from('listings')
         .select(`
           *,
-          profiles!seller_id (
-            id,
+          public_safe_profiles!inner (
+            user_id,
             username,
             avatar_url,
             verified,
             stripe_onboarding_complete,
             identity_verified,
-            created_at,
-            on_holiday,
-            holiday_start_date,
-            holiday_end_date,
-            holiday_message
+            created_at
           ),
           categories (
             id,
@@ -475,18 +471,6 @@ const ListingDetails = () => {
             Back to Browse
           </Button>
 
-          {/* Holiday Mode Banner */}
-          {listing.profiles?.on_holiday && (
-            <div className="mb-6">
-              <HolidayBanner 
-                holidayMessage={listing.profiles.holiday_message || undefined}
-                holidayStartDate={listing.profiles.holiday_start_date || undefined}
-                holidayEndDate={listing.profiles.holiday_end_date || undefined}
-                variant="listing"
-              />
-            </div>
-          )}
-
           {/* Image Gallery */}
           <div className="mb-8">
             <Card className="overflow-hidden">
@@ -853,7 +837,7 @@ const ListingDetails = () => {
                 <CardContent>
                   <div className="flex items-start gap-4">
                     <Avatar className="w-16 h-16">
-                      <AvatarImage src={listing.profiles?.avatar_url} />
+                      <AvatarImage src={listing.public_safe_profiles?.avatar_url} />
                       <AvatarFallback>
                         <User className="h-8 w-8" />
                       </AvatarFallback>
@@ -861,16 +845,16 @@ const ListingDetails = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="text-lg font-semibold">
-                          {listing.profiles?.username || 'Seller'}
+                          {listing.public_safe_profiles?.username || 'Seller'}
                         </h3>
                       </div>
                       
                       {/* Verification Badges */}
                       <div className="mb-3">
                         <VerificationBadges
-                          emailVerified={listing.profiles?.verified || false}
-                          stripeVerified={listing.profiles?.stripe_onboarding_complete || false}
-                          identityVerified={listing.profiles?.identity_verified || false}
+                          emailVerified={listing.public_safe_profiles?.verified || false}
+                          stripeVerified={listing.public_safe_profiles?.stripe_onboarding_complete || false}
+                          identityVerified={listing.public_safe_profiles?.identity_verified || false}
                           size="sm"
                           showLabel={true}
                         />
@@ -889,7 +873,7 @@ const ListingDetails = () => {
                       )}
                       
                       <p className="text-sm text-muted-foreground">
-                        Member since {new Date(listing.profiles?.created_at || '').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                        Member since {new Date(listing.public_safe_profiles?.created_at || '').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
@@ -901,7 +885,7 @@ const ListingDetails = () => {
               <SellerOtherItems 
                 sellerId={listing.seller_id}
                 currentListingId={listing.id}
-                sellerUsername={listing.profiles?.username}
+                sellerUsername={listing.public_safe_profiles?.username}
               />
             </div>
           </div>
@@ -911,7 +895,7 @@ const ListingDetails = () => {
             <CardHeader>
               <CardTitle>Seller Reviews & Feedback</CardTitle>
               <CardDescription>
-                See what buyers are saying about {listing.profiles?.username || 'this seller'}
+                See what buyers are saying about {listing.public_safe_profiles?.username || 'this seller'}
               </CardDescription>
             </CardHeader>
             <CardContent>
