@@ -20,23 +20,41 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/components/AuthContext";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Browse = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Initialize viewMode from URL or default to grid
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">(() => {
+    const viewParam = searchParams.get('view');
+    return (viewParam === 'list' || viewParam === 'map') ? viewParam : 'grid';
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // Get search param from URL on mount
+  // Get search and category params from URL on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const searchParam = params.get('search');
+    const searchParam = searchParams.get('search');
+    const categoryParam = searchParams.get('category');
     if (searchParam) {
       setSearchTerm(searchParam);
     }
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
   }, []);
+  
+  // Update URL when viewMode changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('view', viewMode);
+    navigate(`?${params.toString()}`, { replace: true });
+  }, [viewMode, navigate]);
   const [selectedCondition, setSelectedCondition] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [priceRange, setPriceRange] = useState<string>("all");
