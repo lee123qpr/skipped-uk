@@ -393,8 +393,8 @@ const MessagesInbox = () => {
       ])];
 
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, username, avatar_url, display_name, on_holiday, holiday_message, verified, identity_verified')
+        .from('public_safe_profiles')
+        .select('user_id, username, avatar_url, display_name, verified, identity_verified')
         .in('user_id', userIds);
       
       if (profilesError) throw profilesError;
@@ -525,7 +525,7 @@ const MessagesInbox = () => {
       // Get buyer profiles
       const buyerIds = [...new Set(offers.map(o => o.buyer_id))];
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('public_safe_profiles')
         .select('user_id, username, avatar_url')
         .in('user_id', buyerIds);
       
