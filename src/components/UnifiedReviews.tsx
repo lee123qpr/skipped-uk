@@ -106,8 +106,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
           seller_id,
           transaction_id,
           listing_id,
-          listings:listing_id (title),
-          reviewer_profile:profiles!reviews_reviewer_id_fkey (username, avatar_url, display_name)
+          listings:listing_id (title)
         `)
         .eq('seller_id', userId)
         .order('created_at', { ascending: false });
@@ -130,8 +129,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
           seller_id,
           transaction_id,
           listing_id,
-          listings:listing_id (title),
-          seller_profile:profiles!reviews_seller_id_fkey (username, avatar_url, display_name)
+          listings:listing_id (title)
         `)
         .eq('reviewer_id', userId)
         .order('created_at', { ascending: false });
@@ -163,8 +161,33 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
       const existingReviewTransactionIds = new Set(given?.map(r => r.transaction_id) || []);
       const pending = (transactions || []).filter(t => !existingReviewTransactionIds.has(t.id));
 
-      setReceivedReviews(received || []);
-      setGivenReviews(given || []);
+      // Fetch public profiles for reviewer and seller and merge
+      const ids = Array.from(new Set([
+        ...(received?.map(r => r.reviewer_id) || []),
+        ...(given?.map(r => r.seller_id) || []),
+      ]));
+
+      let profileMap = new Map<string, any>();
+      if (ids.length > 0) {
+        const { data: profiles } = await supabase
+          .from('public_safe_profiles')
+          .select('user_id, username, avatar_url, display_name')
+          .in('user_id', ids);
+        profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      }
+
+      const receivedWithProfiles = (received || []).map(r => ({
+        ...r,
+        reviewer_profile: profileMap.get(r.reviewer_id) || null,
+      }));
+
+      const givenWithProfiles = (given || []).map(r => ({
+        ...r,
+        seller_profile: profileMap.get(r.seller_id) || null,
+      }));
+
+      setReceivedReviews(receivedWithProfiles);
+      setGivenReviews(givenWithProfiles);
       setPendingTransactions(pending as any);
 
       // Calculate overall stats
@@ -340,7 +363,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-medium">
-                                {review.reviewer_profile?.display_name || `@${review.reviewer_profile?.username}` || "Anonymous"}
+                                {review.reviewer_profile?.display_name || (review.reviewer_profile?.username ? `@${review.reviewer_profile.username}` : "User")}
                               </p>
                               <Badge variant="outline" className="text-xs">
                                 {review.reviewer_type === 'buyer' ? 'Buyer' : 'Seller'}
@@ -388,7 +411,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-medium">
-                                To: {review.seller_profile?.display_name || `@${review.seller_profile?.username}` || "Anonymous"}
+                                To: {review.seller_profile?.display_name || (review.seller_profile?.username ? `@${review.seller_profile.username}` : "User")}
                               </p>
                               <Badge variant="outline" className="text-xs">
                                 You as {review.reviewer_type === 'buyer' ? 'Buyer' : 'Seller'}
