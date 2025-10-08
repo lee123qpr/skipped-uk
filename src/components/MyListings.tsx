@@ -412,15 +412,15 @@ const MyListings = () => {
                   {section.listings.map((listing) => (
                     <Card key={listing.id} className="overflow-hidden">
                       <div className="md:flex">
-                        <div className="md:w-48 md:flex-shrink-0">
+                        <div className="md:w-48 md:flex-shrink-0 md:h-48">
                           {listing.images && listing.images.length > 0 ? (
                             <img
                               src={listing.images[0]}
                               alt={listing.title}
-                              className="h-48 w-full object-cover md:h-full"
+                              className="h-48 w-full object-cover"
                             />
                           ) : (
-                            <div className="h-48 w-full bg-muted flex items-center justify-center md:h-full">
+                            <div className="h-48 w-full bg-muted flex items-center justify-center">
                               <span className="text-muted-foreground">No image</span>
                             </div>
                           )}
