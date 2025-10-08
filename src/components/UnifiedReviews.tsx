@@ -72,7 +72,7 @@ interface UnifiedReviewsProps {
   userId: string;
 }
 
-export function UnifiedReviews({ userId }: UnifiedReviewsProps) {
+function UnifiedReviews({ userId }: UnifiedReviewsProps) {
   const [receivedReviews, setReceivedReviews] = useState<Review[]>([]);
   const [givenReviews, setGivenReviews] = useState<Review[]>([]);
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
