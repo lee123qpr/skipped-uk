@@ -151,7 +151,7 @@ function UnifiedReviews({ userId }: UnifiedReviewsProps) {
           seller_id,
           completed_at,
           amount,
-          listings!transactions_listing_id_fkey (title),
+          listings (title),
           buyer:profiles!transactions_buyer_id_fkey (username, avatar_url, display_name),
           seller:profiles!transactions_seller_id_fkey (username, avatar_url, display_name)
         `)
