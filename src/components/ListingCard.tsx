@@ -95,12 +95,6 @@ const ListingCard = ({
       {/* Image Carousel */}
       <div 
         className={`relative bg-muted ${variant === "list" ? "w-64 h-40 flex-shrink-0" : "aspect-[4/3]"}`}
-        onClick={(e) => {
-          // Prevent card click when clicking on carousel area
-          if (images && images.length > 1) {
-            e.stopPropagation();
-          }
-        }}
       >
         {images && images.length > 0 ? (
           <Carousel 
