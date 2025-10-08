@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/AuthContext";
 import { useNotifications } from "@/components/NotificationProvider";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,12 +20,14 @@ import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
-import UnifiedReviews from "@/components/UnifiedReviews";
+
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+const UnifiedReviews = React.lazy(() => import("@/components/UnifiedReviews"));
 
 interface UserProfile {
   display_name: string | null;
@@ -356,7 +358,9 @@ const Dashboard = () => {
               )}
               <ProfileEdit />
               
-              <UnifiedReviews userId={user?.id || ''} />
+              <Suspense fallback={<Card><CardContent className="py-8 text-center text-muted-foreground">Loading reviews…</CardContent></Card>}>
+                <UnifiedReviews userId={user?.id || ''} />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </main>
