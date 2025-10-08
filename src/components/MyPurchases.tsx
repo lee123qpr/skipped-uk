@@ -98,13 +98,12 @@ const MyPurchases = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Optimized query using FK relationships (added in migration)
+      // Fetch transactions first
       const { data: purchasesData, error } = await supabase
         .from('transactions')
         .select(`
           *,
           listing:listings(id, title, images, location, seller_id),
-          seller:profiles!seller_id(user_id, username, display_name, avatar_url, verified),
           certificate:environmental_certificates(id, certificate_reference, carbon_saved_kg),
           review:reviews!transaction_id(id, rating, comment)
         `)
@@ -113,10 +112,22 @@ const MyPurchases = () => {
 
       if (error) throw error;
       
+      // Get unique seller IDs
+      const sellerIds = [...new Set(purchasesData?.map(tx => tx.seller_id).filter(Boolean))];
+      
+      // Fetch seller info from public_safe_profiles
+      const { data: sellersData } = await supabase
+        .from('public_safe_profiles')
+        .select('user_id, username, display_name, avatar_url, verified')
+        .in('user_id', sellerIds);
+      
+      // Create a map of seller info
+      const sellersMap = new Map(sellersData?.map(s => [s.user_id, s]));
+      
       // Transform the data to match Purchase interface
       const transformed = (purchasesData || []).map((tx: any) => ({
         ...tx,
-        seller: Array.isArray(tx.seller) ? tx.seller[0] : tx.seller,
+        seller: sellersMap.get(tx.seller_id),
         listing: Array.isArray(tx.listing) ? tx.listing[0] : tx.listing,
         certificate: Array.isArray(tx.certificate) ? tx.certificate[0] : tx.certificate,
         review: Array.isArray(tx.review) ? tx.review.find((r: any) => r.reviewer_id === user.id) : tx.review,

@@ -55,7 +55,7 @@ const FeaturedListings = () => {
           dimensions,
           delivery_available,
           pickup_available,
-          profiles:seller_id (
+          public_safe_profiles!inner (
             username,
             verified,
             stripe_onboarding_complete,
@@ -84,8 +84,8 @@ const FeaturedListings = () => {
         images: listing.images?.length > 0 ? listing.images : ["/api/placeholder/400/300"],
         carbonSaved: Number(listing.carbon_saved || 0),
         seller: {
-          username: listing.profiles?.username || "Anonymous",
-          verified: listing.profiles?.verified || false,
+          username: listing.public_safe_profiles?.username || "Anonymous",
+          verified: listing.public_safe_profiles?.verified || false,
           rating: 0, // No ratings yet - will be calculated from reviews later
           reviewCount: 0 // No reviews yet
         },
@@ -93,9 +93,9 @@ const FeaturedListings = () => {
         quantity: listing.quantity,
         deliveryAvailable: listing.delivery_available,
         pickupAvailable: listing.pickup_available,
-        sellerVerified: listing.profiles?.verified || false,
-        sellerStripeVerified: listing.profiles?.stripe_onboarding_complete || false,
-        sellerIdentityVerified: listing.profiles?.identity_verified || false,
+        sellerVerified: listing.public_safe_profiles?.verified || false,
+        sellerStripeVerified: listing.public_safe_profiles?.stripe_onboarding_complete || false,
+        sellerIdentityVerified: listing.public_safe_profiles?.identity_verified || false,
         weight: listing.weight,
         dimensions: listing.dimensions
       })) || [];
