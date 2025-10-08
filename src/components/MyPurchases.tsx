@@ -104,7 +104,7 @@ const MyPurchases = () => {
         .select(`
           *,
           listing:listings(id, title, images, location, seller_id),
-          certificate:environmental_certificates(id, certificate_reference, carbon_saved_kg),
+          certificate:environmental_certificates!environmental_certificates_transaction_id_fkey(id, certificate_reference, carbon_saved_kg),
           review:reviews!transaction_id(id, rating, comment)
         `)
         .eq('buyer_id', user.id)
