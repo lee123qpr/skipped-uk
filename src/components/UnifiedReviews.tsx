@@ -496,3 +496,5 @@ export function UnifiedReviews({ userId }: UnifiedReviewsProps) {
     </div>
   );
 }
+
+export default UnifiedReviews;

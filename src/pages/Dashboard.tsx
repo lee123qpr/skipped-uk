@@ -20,7 +20,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
-import { UnifiedReviews } from "@/components/UnifiedReviews";
+import UnifiedReviews from "@/components/UnifiedReviews";
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
