@@ -502,6 +502,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "disputes_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "disputes_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
@@ -577,6 +584,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "environmental_certificates_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "environmental_certificates_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
@@ -588,6 +602,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_certificates_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
             referencedColumns: ["id"]
           },
           {
@@ -624,6 +645,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favourites_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -826,6 +854,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_offer_id_fkey"
             columns: ["offer_id"]
             isOneToOne: false
@@ -926,6 +961,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offers_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
             referencedColumns: ["id"]
           },
           {
@@ -1167,6 +1209,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reviews_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
             referencedColumns: ["id"]
           },
           {
@@ -1424,6 +1473,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_transactions_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_dispute_id_fkey"
             columns: ["dispute_id"]
             isOneToOne: false
@@ -1455,6 +1511,137 @@ export type Database = {
       }
     }
     Views: {
+      public_listings: {
+        Row: {
+          available: boolean | null
+          calculation_confidence: string | null
+          carbon_saved: number | null
+          category_id: string | null
+          certificate_methodology: Json | null
+          condition: string | null
+          created_at: string | null
+          delivery_available: boolean | null
+          delivery_cost: number | null
+          delivery_radius: number | null
+          description: string | null
+          dimensions: Json | null
+          environmental_assessment_enabled: boolean | null
+          featured: boolean | null
+          id: string | null
+          images: string[] | null
+          last_viewed_at: string | null
+          location: string | null
+          manufacturer: string | null
+          pickup_available: boolean | null
+          price: number | null
+          public_location: string | null
+          quantity: number | null
+          reason_for_selling: string | null
+          search_vector: unknown | null
+          seller_id: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+          weight: number | null
+        }
+        Insert: {
+          available?: boolean | null
+          calculation_confidence?: string | null
+          carbon_saved?: number | null
+          category_id?: string | null
+          certificate_methodology?: Json | null
+          condition?: string | null
+          created_at?: string | null
+          delivery_available?: boolean | null
+          delivery_cost?: number | null
+          delivery_radius?: number | null
+          description?: string | null
+          dimensions?: Json | null
+          environmental_assessment_enabled?: boolean | null
+          featured?: boolean | null
+          id?: string | null
+          images?: string[] | null
+          last_viewed_at?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          pickup_available?: boolean | null
+          price?: number | null
+          public_location?: string | null
+          quantity?: number | null
+          reason_for_selling?: string | null
+          search_vector?: unknown | null
+          seller_id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          weight?: number | null
+        }
+        Update: {
+          available?: boolean | null
+          calculation_confidence?: string | null
+          carbon_saved?: number | null
+          category_id?: string | null
+          certificate_methodology?: Json | null
+          condition?: string | null
+          created_at?: string | null
+          delivery_available?: boolean | null
+          delivery_cost?: number | null
+          delivery_radius?: number | null
+          description?: string | null
+          dimensions?: Json | null
+          environmental_assessment_enabled?: boolean | null
+          featured?: boolean | null
+          id?: string | null
+          images?: string[] | null
+          last_viewed_at?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          pickup_available?: boolean | null
+          price?: number | null
+          public_location?: string | null
+          quantity?: number | null
+          reason_for_selling?: string | null
+          search_vector?: unknown | null
+          seller_id?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null
@@ -1506,6 +1693,52 @@ export type Database = {
         }
         Relationships: []
       }
+      public_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          listing_id: string | null
+          rating: number | null
+          reviewer_avatar: string | null
+          reviewer_name: string | null
+          reviewer_type: string | null
+          reviewer_username: string | null
+          reviewer_verified: boolean | null
+          seller_avatar: string | null
+          seller_name: string | null
+          seller_reply: string | null
+          seller_reply_created_at: string | null
+          seller_username: string | null
+          seller_verified: boolean | null
+          title: string | null
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_reviews_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reviews_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "public_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reviews_transaction"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_safe_profiles: {
         Row: {
           avatar_url: string | null
@@ -1514,9 +1747,13 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           display_name: string | null
+          holiday_end_date: string | null
+          holiday_message: string | null
+          holiday_start_date: string | null
           id: string | null
           identity_verified: boolean | null
           location: string | null
+          on_holiday: boolean | null
           stripe_onboarding_complete: boolean | null
           updated_at: string | null
           user_id: string | null
@@ -1530,9 +1767,13 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           display_name?: string | null
+          holiday_end_date?: string | null
+          holiday_message?: string | null
+          holiday_start_date?: string | null
           id?: string | null
           identity_verified?: boolean | null
           location?: string | null
+          on_holiday?: boolean | null
           stripe_onboarding_complete?: boolean | null
           updated_at?: string | null
           user_id?: string | null
@@ -1546,9 +1787,13 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           display_name?: string | null
+          holiday_end_date?: string | null
+          holiday_message?: string | null
+          holiday_start_date?: string | null
           id?: string | null
           identity_verified?: boolean | null
           location?: string | null
+          on_holiday?: boolean | null
           stripe_onboarding_complete?: boolean | null
           updated_at?: string | null
           user_id?: string | null
