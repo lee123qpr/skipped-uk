@@ -559,7 +559,7 @@ const MessagesInbox = () => {
       // Get seller profiles
       const sellerIds = [...new Set(offers.map(o => o.seller_id))];
       const { data: profiles, error: profilesError } = await supabase
-        .from('public_profiles')
+        .from('public_safe_profiles')
         .select('user_id, username, avatar_url, display_name')
         .in('user_id', sellerIds);
       

@@ -84,13 +84,6 @@ export type Database = {
             foreignKeyName: "admin_actions_admin_id_fkey"
             columns: ["admin_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "admin_actions_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["user_id"]
           },
@@ -99,13 +92,6 @@ export type Database = {
             columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "admin_actions_target_user_id_fkey"
-            columns: ["target_user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -236,13 +222,6 @@ export type Database = {
             foreignKeyName: "blog_post_feedback_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_feedback_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["id"]
           },
@@ -289,13 +268,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_views_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -796,13 +768,6 @@ export type Database = {
             foreignKeyName: "listings_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "listings_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1118,13 +1083,6 @@ export type Database = {
             foreignKeyName: "profiles_suspended_by_fkey"
             columns: ["suspended_by"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "profiles_suspended_by_fkey"
-            columns: ["suspended_by"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1236,13 +1194,6 @@ export type Database = {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1251,13 +1202,6 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "reviews_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -1630,68 +1574,10 @@ export type Database = {
             foreignKeyName: "listings_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "listings_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
             referencedRelation: "public_safe_profiles"
             referencedColumns: ["user_id"]
           },
         ]
-      }
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          business_logo_url: string | null
-          company_name: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          identity_verified: boolean | null
-          location: string | null
-          stripe_onboarding_complete: boolean | null
-          updated_at: string | null
-          user_id: string | null
-          username: string | null
-          verified: boolean | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          business_logo_url?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          identity_verified?: boolean | null
-          location?: string | null
-          stripe_onboarding_complete?: boolean | null
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-          verified?: boolean | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          business_logo_url?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          identity_verified?: boolean | null
-          location?: string | null
-          stripe_onboarding_complete?: boolean | null
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-          verified?: boolean | null
-        }
-        Relationships: []
       }
       public_reviews: {
         Row: {

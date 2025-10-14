@@ -156,7 +156,7 @@ export function AdminDisputes({ onDisputeResolved }: AdminDisputesProps) {
         const userIds = [...new Set([...data.map(d => d.raised_by_id), ...data.map(d => d.against_id)])];
         
         const { data: profilesData } = await supabase
-          .from("public_profiles")
+          .from("public_safe_profiles")
           .select("*")
           .in("user_id", userIds);
 
