@@ -28,18 +28,19 @@ interface Listing {
   allowOffers?: boolean;
 }
 
-const FeaturedListings = () => {
+const ShowcaseSection = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFeaturedListings();
+    fetchShowcaseListings();
   }, []);
 
-  const fetchFeaturedListings = async () => {
+  const fetchShowcaseListings = async () => {
     try {
       setLoading(true);
-      const { data: listingsData, error } = await supabase
+      // First try to get featured listings
+      let { data: listingsData, error } = await supabase
         .from('listings')
         .select(`
           id,
@@ -64,8 +65,43 @@ const FeaturedListings = () => {
         `)
         .eq('status', 'active')
         .eq('available', true)
-        .order('carbon_saved', { ascending: false, nullsFirst: false })
+        .eq('featured', true)
+        .order('created_at', { ascending: false })
         .limit(4);
+
+      // Fallback to recent listings if no featured items
+      if (!error && (!listingsData || listingsData.length === 0)) {
+        const fallback = await supabase
+          .from('listings')
+          .select(`
+            id,
+            title,
+            price,
+            location,
+            condition,
+            images,
+            carbon_saved,
+            created_at,
+            quantity,
+            weight,
+            dimensions,
+            delivery_available,
+            pickup_available,
+            public_safe_profiles!inner (
+              username,
+              verified,
+              stripe_onboarding_complete,
+              identity_verified
+            )
+          `)
+          .eq('status', 'active')
+          .eq('available', true)
+          .order('created_at', { ascending: false })
+          .limit(4);
+        
+        listingsData = fallback.data;
+        error = fallback.error;
+      }
 
       if (error) {
         setListings([]);
@@ -110,10 +146,10 @@ const FeaturedListings = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            High Carbon Savings
+            Featured Items
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            These materials offer exceptional environmental impact - save money while making a real difference
+            Discover quality construction materials from verified sellers across the UK
           </p>
         </div>
 
@@ -131,14 +167,16 @@ const FeaturedListings = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No featured listings available at the moment.</p>
+            <p className="text-muted-foreground">No listings available at the moment.</p>
           </div>
         )}
 
         <div className="text-center">
-          <Button variant="default" size="lg">
-            View All High Impact Items
-            <ArrowRight className="h-4 w-4" />
+          <Button variant="default" size="lg" asChild>
+            <a href="/browse">
+              Browse All Listings
+              <ArrowRight className="h-4 w-4" />
+            </a>
           </Button>
         </div>
       </div>
@@ -146,4 +184,4 @@ const FeaturedListings = () => {
   );
 };
 
-export default FeaturedListings;
+export default ShowcaseSection;

@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import HeroSection from "@/components/HeroSection";
 import CategoriesSection from "@/components/CategoriesSection";
-import FeaturedListings from "@/components/FeaturedListings";
+import ShowcaseSection from "@/components/ShowcaseSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import TrustSection from "@/components/TrustSection";
@@ -36,8 +36,8 @@ const Index = () => {
         <AnnouncementBanner />
         <main>
           <HeroSection />
+          <ShowcaseSection />
           <CategoriesSection />
-          <FeaturedListings />
           <HowItWorksSection />
           <TestimonialsSection />
           <TrustSection />
