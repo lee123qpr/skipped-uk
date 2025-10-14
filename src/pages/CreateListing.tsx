@@ -160,12 +160,9 @@ const CreateListing = () => {
         const { data, error } = await supabase.functions.invoke('check-connect-status');
         
         if (error) {
-          console.error('Error checking Stripe status:', error);
           setStripeOnboarded(false);
           return;
         }
-        
-        console.log('Stripe status check:', data);
         
         // User must have onboarding complete AND charges enabled
         const isFullyOnboarded = data?.connected && 
@@ -174,7 +171,6 @@ const CreateListing = () => {
         
         setStripeOnboarded(isFullyOnboarded);
       } catch (err) {
-        console.error('Failed to check Stripe status:', err);
         setStripeOnboarded(false);
       }
     };
@@ -199,7 +195,6 @@ const CreateListing = () => {
             )
           `).eq('id', listingId).eq('seller_id', user.id).single();
         if (error) {
-          console.error('Error fetching listing:', error);
           toast({
             title: 'Error loading listing',
             description: 'Could not load listing data for editing.',
@@ -281,7 +276,6 @@ const CreateListing = () => {
           setMediaFiles(existingMedia);
         }
       } catch (error) {
-        console.error('Error fetching listing:', error);
         toast({
           title: 'Error loading listing',
           description: 'Could not load listing data for editing.',
@@ -339,7 +333,6 @@ const CreateListing = () => {
         body: requestData
       });
       if (error) {
-        console.error('Carbon calculation error:', error);
         throw error;
       }
       if (data && data.success) {
@@ -356,7 +349,6 @@ const CreateListing = () => {
       }
       return 0;
     } catch (error) {
-      console.error('Failed to calculate carbon:', error);
       toast({
         title: 'Carbon calculation failed',
         description: 'Using estimated carbon savings. Please check your listing details.',
@@ -527,7 +519,6 @@ const CreateListing = () => {
         navigate('/browse');
       }
     } catch (error) {
-      console.error('Form submission error:', error);
       if (error instanceof z.ZodError) {
         // Map errors to fields for visual feedback
         const errors: Record<string, string> = {};

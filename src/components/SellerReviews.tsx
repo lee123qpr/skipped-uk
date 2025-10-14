@@ -74,7 +74,7 @@ export function SellerReviews({ sellerId, limit }: SellerReviewsProps) {
         setAverageRating(0);
       }
     } catch (error) {
-      console.error('Error fetching seller reviews:', error);
+      // Silently fail
     } finally {
       setLoading(false);
     }

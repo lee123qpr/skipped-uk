@@ -122,7 +122,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       setNotifications(notificationsData || []);
     } catch (error) {
-      console.error('Error fetching notification counts:', error);
+      // Silently fail - notifications are non-critical
     }
   };
 
@@ -143,7 +143,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         unreadNotifications: Math.max(0, prev.unreadNotifications - 1),
       }));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      // Silently fail
     }
   };
 
@@ -160,7 +160,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setCounts(prev => ({ ...prev, unreadNotifications: 0 }));
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      // Silently fail
     }
   };
 

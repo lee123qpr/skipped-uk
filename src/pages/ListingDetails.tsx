@@ -173,7 +173,6 @@ const ListingDetails = () => {
         setShowMessageDialog(true);
       }
     } catch (error) {
-      console.error('Error checking messages:', error);
       // Fallback to showing dialog
       setShowMessageDialog(true);
     }
@@ -243,7 +242,6 @@ const ListingDetails = () => {
       }
       
     } catch (error) {
-      console.error('Error creating payment:', error);
       setIsProcessingPayment(false);
       toast({
         title: "Payment Error",
@@ -374,7 +372,7 @@ const ListingDetails = () => {
           }
       }
     } catch (err) {
-      console.error('Error sharing:', err);
+      // Silently fail
     }
   };
 

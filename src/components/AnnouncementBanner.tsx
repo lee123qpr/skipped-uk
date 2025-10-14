@@ -30,7 +30,7 @@ const AnnouncementBanner = () => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching banner:", error);
+        // Silently fail - banner is non-critical
         return;
       }
 

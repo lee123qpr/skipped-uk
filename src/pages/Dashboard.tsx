@@ -134,7 +134,6 @@ const Dashboard = () => {
         setSearchParams({ tab: activeTab });
       }
     } catch (error: any) {
-      console.error('Payment verification error:', error);
       toast({
         title: "Verification Error",
         description: error.message || "Failed to verify payment status.",
@@ -155,7 +154,7 @@ const Dashboard = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        // Silently fail
       } else {
         setProfile(data);
       }
@@ -168,7 +167,7 @@ const Dashboard = () => {
 
       setHasListings((count || 0) > 0);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      // Silently fail
     } finally {
       setLoading(false);
     }

@@ -193,8 +193,7 @@ const ListingCard = ({
               
               // Invalidate and refetch favourites without page reload
               queryClient.invalidateQueries({ queryKey: ['user-favourites'] });
-            } catch (error) {
-              console.error('Error toggling favourite:', error);
+        } catch (error) {
               toast({
                 title: "Error",
                 description: "Failed to update favourites. Please try again.",

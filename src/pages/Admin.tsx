@@ -67,7 +67,6 @@ export default function Admin() {
       setIsAdmin(true);
       await fetchDashboardStats();
     } catch (error) {
-      console.error("Admin access check failed:", error);
       navigate("/");
     } finally {
       setLoading(false);
@@ -151,7 +150,6 @@ export default function Admin() {
         avgTransactionValue: Math.round(avgTransactionValue * 100) / 100,
       });
     } catch (error) {
-      console.error("Failed to fetch dashboard stats:", error);
       toast.error("Failed to load dashboard statistics");
     }
   };

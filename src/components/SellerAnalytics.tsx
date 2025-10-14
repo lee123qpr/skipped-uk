@@ -66,7 +66,7 @@ export const SellerAnalytics = () => {
           totalReviews,
         });
       } catch (error) {
-        console.error("Error fetching analytics:", error);
+        // Silently fail
       } finally {
         setLoading(false);
       }

@@ -68,12 +68,9 @@ const FeaturedListings = () => {
         .limit(4);
 
       if (error) {
-        console.error('Error fetching listings:', error);
         setListings([]);
         return;
       }
-
-      console.log('Fetched listings data:', listingsData);
 
       const formattedListings: Listing[] = listingsData?.map((listing: any) => ({
         id: listing.id,
@@ -100,10 +97,8 @@ const FeaturedListings = () => {
         dimensions: listing.dimensions
       })) || [];
 
-      console.log('Formatted listings:', formattedListings);
       setListings(formattedListings);
     } catch (error) {
-      console.error('Error fetching featured listings:', error);
       setListings([]);
     } finally {
       setLoading(false);

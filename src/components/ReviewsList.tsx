@@ -61,7 +61,7 @@ export function ReviewsList({ listingId, refreshTrigger }: ReviewsListProps) {
         setAverageRating(0);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      // Silently fail - reviews are non-critical
     } finally {
       setLoading(false);
     }

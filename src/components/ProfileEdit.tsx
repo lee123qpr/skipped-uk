@@ -126,7 +126,6 @@ const ProfileEdit = () => {
           });
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
         toast({
           title: 'Error',
           description: 'Failed to load profile data',
@@ -164,7 +163,6 @@ const ProfileEdit = () => {
 
       setUsernameAvailable(data.length === 0);
     } catch (error) {
-      console.error('Error checking username:', error);
       setUsernameAvailable(null);
     } finally {
       setCheckingUsername(false);
@@ -248,7 +246,6 @@ const ProfileEdit = () => {
         description: 'Your profile photo has been updated successfully',
       });
     } catch (error) {
-      console.error('Error uploading avatar:', error);
       toast({
         title: 'Upload failed',
         description: 'Failed to upload avatar. Please try again.',
@@ -324,7 +321,6 @@ const ProfileEdit = () => {
         description: 'Your business logo has been updated successfully',
       });
     } catch (error) {
-      console.error('Error uploading logo:', error);
       toast({
         title: 'Upload failed',
         description: 'Failed to upload logo. Please try again.',
@@ -392,7 +388,6 @@ const ProfileEdit = () => {
           variant: 'destructive',
         });
       } else {
-        console.error('Error updating profile:', error);
         toast({
           title: 'Update failed',
           description: 'Failed to update profile. Please try again.',
@@ -425,7 +420,6 @@ const ProfileEdit = () => {
           : 'You are now marked as available',
       });
     } catch (error) {
-      console.error('Error updating holiday mode:', error);
       toast({
         title: 'Update failed',
         description: 'Failed to update holiday mode',
@@ -452,7 +446,6 @@ const ProfileEdit = () => {
         description: 'Your away message has been updated',
       });
     } catch (error) {
-      console.error('Error saving holiday message:', error);
       toast({
         title: 'Save failed',
         description: 'Failed to save holiday message',
@@ -488,7 +481,6 @@ const ProfileEdit = () => {
         description: 'Your email preferences have been saved',
       });
     } catch (error) {
-      console.error('Error updating notification preferences:', error);
       toast({
         title: 'Update failed',
         description: 'Failed to update notification preferences',
@@ -525,7 +517,6 @@ const ProfileEdit = () => {
       setDeleteDialogOpen(false);
       setDeletePassword('');
     } catch (error: any) {
-      console.error('Error requesting account deletion:', error);
       toast({
         title: 'Deletion failed',
         description: error.message || 'Failed to request account deletion',

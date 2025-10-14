@@ -34,7 +34,6 @@ const StripeConnectOnboarding = () => {
 
       setStatus(data);
     } catch (error) {
-      console.error('Error fetching Connect status:', error);
       toast({
         title: 'Error',
         description: 'Failed to check payment setup status',
@@ -88,7 +87,6 @@ const StripeConnectOnboarding = () => {
         });
       }
     } catch (error) {
-      console.error('Error creating Connect account:', error);
       preOpened?.close();
       toast({
         title: 'Error',

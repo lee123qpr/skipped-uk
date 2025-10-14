@@ -22,13 +22,11 @@ const ResetPassword = () => {
       });
 
       if (error) {
-        console.error("Password reset error:", error);
         // Still show success message to avoid revealing if email exists
       }
-      
+
       setIsSubmitted(true);
     } catch (error) {
-      console.error("Password reset error:", error);
       setIsSubmitted(true);
     }
   };

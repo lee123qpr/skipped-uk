@@ -361,8 +361,6 @@ const MessagesInbox = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('[MessagesInbox] Fetching messages for user:', user.id);
-      
       // Get all messages where user is sender or receiver - including transaction_id
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
@@ -421,15 +419,8 @@ const MessagesInbox = () => {
           .select('*')
           .in('id', transactionIds);
         
-        if (transactionsError) console.error('Error fetching transactions:', transactionsError);
         transactions = transactionsData || [];
       }
-      
-      console.log('[MessagesInbox] Found transactions:', transactions?.map(t => ({ 
-        id: t.id, 
-        status: t.status, 
-        listing_id: t.listing_id 
-      })));
 
       // Combine data - transaction is directly linked via transaction_id
       const combinedData = messages.map(message => {
@@ -447,7 +438,6 @@ const MessagesInbox = () => {
         };
       });
       
-      console.log('[MessagesInbox] Processed conversations with transactions');
       return combinedData;
     },
     enabled: !!user,
@@ -650,8 +640,6 @@ const MessagesInbox = () => {
   useEffect(() => {
     if (!user) return;
 
-    console.log('[MessagesInbox] Setting up realtime subscriptions for user:', user.id);
-
     const transactionChannel = supabase
       .channel('transaction-updates')
       .on(
@@ -663,7 +651,6 @@ const MessagesInbox = () => {
           filter: `buyer_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('[MessagesInbox] Transaction UPDATE received (buyer):', payload);
           refetchMessages();
           refreshCounts(); // Update notification counts
         }
@@ -677,7 +664,6 @@ const MessagesInbox = () => {
           filter: `seller_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('[MessagesInbox] Transaction UPDATE received (seller):', payload);
           refetchMessages();
           refreshCounts(); // Update notification counts
         }
@@ -705,7 +691,6 @@ const MessagesInbox = () => {
           filter: `sender_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('[MessagesInbox] Message event (sender):', payload.eventType);
           refetchMessages();
         }
       )
@@ -722,7 +707,6 @@ const MessagesInbox = () => {
           filter: `receiver_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('[MessagesInbox] Message event (receiver):', payload.eventType);
           refetchMessages();
           refreshCounts(); // Update notification badge
         }
@@ -1023,17 +1007,7 @@ const MessagesInbox = () => {
                 </ScrollArea>
 
                 {/* Transaction Management */}
-                {selectedConversation.transaction && (() => {
-                  console.log('[MessagesInbox] Rendering TransactionManager with:', {
-                    transactionId: selectedConversation.transaction.id,
-                    status: selectedConversation.transaction.status,
-                    buyerId: selectedConversation.transaction.buyer_id,
-                    sellerId: selectedConversation.transaction.seller_id,
-                    currentUserId: user?.id,
-                    userRole: selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'
-                  });
-                  
-                  return (
+                {selectedConversation.transaction && (
                     <div className="border-t p-3 bg-muted/30">
                       <TransactionManager
                         transaction={{
@@ -1042,14 +1016,12 @@ const MessagesInbox = () => {
                         }}
                         userRole={selectedConversation.transaction.buyer_id === user?.id ? 'buyer' : 'seller'}
                         onUpdate={() => {
-                          console.log('[MessagesInbox] TransactionManager onUpdate called, refetching...');
                           refetchMessages();
                           refetchOffers();
                         }}
                       />
                     </div>
-                  );
-                })()}
+                )}
 
                 {/* Message Input - Always Available */}
                 <div className="border-t-2 bg-background p-3">

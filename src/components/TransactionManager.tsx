@@ -72,14 +72,6 @@ export const TransactionManager = ({
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const { toast } = useToast();
 
-  console.log('[TransactionManager] Rendering with:', { 
-    transactionId: transaction.id, 
-    status: transaction.status, 
-    userRole,
-    paidAt: transaction.paid_at,
-    dispatchedAt: transaction.dispatch_confirmed_at 
-  });
-
   // Fetch certificate if transaction is completed and environmental assessment is enabled
   useEffect(() => {
     const fetchCertificate = async () => {
@@ -154,7 +146,6 @@ export const TransactionManager = ({
         });
 
         if (certError) {
-          console.error('Certificate generation error:', certError);
           // Don't fail the delivery confirmation if certificate generation fails
         }
       }

@@ -125,7 +125,6 @@ const CounterOfferDialog = ({
           variant: 'destructive',
         });
       } else {
-        console.error('Error making counter offer:', error);
         toast({
           title: 'Error making counter offer',
           description: 'Please try again later.',

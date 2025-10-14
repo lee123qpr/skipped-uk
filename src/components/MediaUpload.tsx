@@ -151,7 +151,6 @@ const MediaUpload = ({
 
       return publicUrl;
     } catch (error) {
-      console.error('Upload error:', error);
       return null;
     }
   };
@@ -187,14 +186,12 @@ const MediaUpload = ({
           try {
             mediaFile.thumbnail = await generateVideoThumbnail(file);
           } catch (error) {
-            console.warn('Failed to generate video thumbnail:', error);
             // Continue without thumbnail - will show video icon instead
           }
         }
 
         newFiles.push(mediaFile);
-      } catch (error) {
-        console.error('Error processing file:', error);
+      } catch (error: any) {
         toast({
           title: 'File processing error',
           description: `Failed to process ${file.name}`,
@@ -266,7 +263,7 @@ const MediaUpload = ({
         const path = fileToRemove.url.split('/').slice(-2).join('/');
         await supabase.storage.from('listing-media').remove([path]);
       } catch (error) {
-        console.error('Error deleting file:', error);
+        // Silently fail - file cleanup is non-critical
       }
     }
 

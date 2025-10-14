@@ -52,7 +52,6 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   useEffect(() => {
     const initializeAutocomplete = async () => {
       if (!inputRef.current || !(inputRef.current instanceof HTMLInputElement)) {
-        console.error('Invalid input element for Google Maps Autocomplete');
         return;
       }
 
@@ -61,7 +60,6 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         
         const apiKey = await getGoogleMapsApiKey();
         if (!apiKey) {
-          console.error('Google Maps API key not available');
           return;
         }
         
@@ -77,7 +75,6 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
         // Type guard to ensure inputRef.current is still valid HTMLInputElement
         if (!inputRef.current || !(inputRef.current instanceof HTMLInputElement)) {
-          console.error('Input element became invalid during initialization');
           return;
         }
 
@@ -136,8 +133,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
         autocompleteRef.current = autocompleteInstance;
       } catch (error) {
-        console.error('Error loading Google Maps:', error);
-      } finally {
+        // Silently fail - autocomplete is non-critical
+      } finally{
         setIsLoading(false);
       }
     };

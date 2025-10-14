@@ -66,13 +66,11 @@ const SignIn = () => {
             navigate("/dashboard");
           }
         } catch (roleError) {
-          console.error("Role check error:", roleError);
           navigate("/dashboard");
         }
       }, 100);
 
     } catch (error) {
-      console.error("Sign in error:", error);
       toast({
         title: "Sign in failed",
         description: "An unexpected error occurred. Please try again.",

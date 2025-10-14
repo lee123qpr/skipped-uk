@@ -325,7 +325,6 @@ const MyPurchases = () => {
   }
 
   if (error) {
-    console.error('MyPurchases error:', error);
     return (
       <EmptyState
         icon={ShoppingBag}

@@ -38,7 +38,6 @@ const PaymentVerifier = () => {
           }
         })
         .catch((err: any) => {
-          console.error("verify-payment error", err);
           toast({
             title: "Verification Error",
             description: err.message || "Failed to verify payment status.",

@@ -105,7 +105,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
         const snippet = apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '';
         setDebugInfo((d) => ({ ...d, invoked: true, apiKeyOk: !!apiKey, apiKeySnippet: snippet }));
         if (!apiKey) {
-          console.error('Google Maps API key not available - check edge function');
           setIsLoading(false);
           return;
         }
@@ -157,7 +156,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
         setInfoWindow(infoWindowInstance);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.error('Error loading Google Maps:', error);
         
         if (msg.includes('RefererNotAllowedMapError')) {
           setDebugInfo((d) => ({ ...d, error: `Domain authorization required. Add ${window.location.origin} to Google Cloud Console > APIs & Services > Credentials > Web Client > Authorized JavaScript origins` }));
@@ -372,7 +370,6 @@ const MapSearch: React.FC<MapSearchProps> = ({
         apiKeySnippet: apiKey ? `${apiKey.slice(0,4)}…${apiKey.slice(-4)}` : '',
         error: error?.message || ''
       }));
-      console.log('Edge function response', { hasKey: !!apiKey, hasMapId: !!mapId, error });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setDebugInfo((d) => ({ ...d, error: msg }));

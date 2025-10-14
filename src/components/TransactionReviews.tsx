@@ -93,7 +93,6 @@ const TransactionReviews = () => {
         .order('completed_at', { ascending: false });
 
       if (transactionError) {
-        console.error('Error fetching transactions:', transactionError);
         return;
       }
 

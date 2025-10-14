@@ -65,7 +65,6 @@ const OfferDialog = ({
 
         setSellerConnected(data?.stripe_onboarding_complete || false);
       } catch (error) {
-        console.error('Error checking seller status:', error);
         setSellerConnected(false);
       } finally {
         setCheckingStatus(false);
