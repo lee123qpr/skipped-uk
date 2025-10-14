@@ -41,7 +41,7 @@ const HeroSection = () => {
           <div className="space-y-4">
             {/* Large Recycling Symbol */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center animate-pulse-slow">
+              <div className="w-20 h-20 bg-primary/30 rounded-full flex items-center justify-center animate-pulse-slow">
                 <img src={recyclingSymbol} alt="Recycling symbol" className="h-12 w-12" />
               </div>
             </div>
@@ -121,7 +121,7 @@ const HeroSection = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto pt-8">
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-primary/30 rounded-2xl flex items-center justify-center mx-auto">
                 <img src={recyclingSymbol} alt="Recycling symbol" className="h-8 w-8" />
               </div>
               <div className="text-2xl font-bold text-foreground">2.4M kg</div>
@@ -129,7 +129,7 @@ const HeroSection = () => {
             </div>
             
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-accent/30 rounded-2xl flex items-center justify-center mx-auto">
                 <Shield className="h-8 w-8 text-accent" />
               </div>
               <div className="text-2xl font-bold text-foreground">100%</div>
@@ -137,7 +137,7 @@ const HeroSection = () => {
             </div>
             
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 bg-warning/10 rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-warning/30 rounded-2xl flex items-center justify-center mx-auto">
                 <Container className="h-8 w-8 text-warning" />
               </div>
               <div className="text-2xl font-bold text-foreground">850+ Tonnes</div>
