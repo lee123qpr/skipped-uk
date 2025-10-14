@@ -12,8 +12,23 @@ if (typeof window !== 'undefined') {
   // Add skip-to-content link for accessibility
   addSkipToContent();
   
-  // Register service worker for PWA
-  if ('serviceWorker' in navigator) {
+  // In development, unregister any existing service workers and clear caches to avoid stale bundles
+  if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((reg) => reg.unregister());
+      if (import.meta.env.DEV) console.info('[SW] Unregistered all service workers');
+    });
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        Promise.all(keys.map((k) => caches.delete(k))).then(() => {
+          if (import.meta.env.DEV) console.info('[SW] Cleared all caches');
+        });
+      });
+    }
+  }
+  
+  // Register service worker for PWA only in production to avoid dev caching issues
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
         .then((registration) => {
