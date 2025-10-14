@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import ListingCard from "./ListingCard";
 import { ListingCardSkeleton } from "@/components/LoadingSkeletons";
@@ -173,10 +174,10 @@ const ShowcaseSection = () => {
 
         <div className="text-center">
           <Button variant="default" size="lg" asChild>
-            <a href="/browse">
+            <Link to="/browse">
               Browse All Listings
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </Button>
         </div>
       </div>
