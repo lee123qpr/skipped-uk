@@ -1,11 +1,12 @@
 // Service Worker for PWA functionality
-const CACHE_NAME = 'skipped-v1';
+const CACHE_NAME = 'skipped-v2';
 const urlsToCache = [
   '/',
-  '/browse',
-  '/sell',
-  '/how-it-works',
-  '/index.css',
+  '/manifest.json',
+  '/favicon.svg',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/offline.html',
 ];
 
 // Install event - cache resources
@@ -16,6 +17,10 @@ self.addEventListener('install', (event) => {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
+      .catch((err) => {
+        console.warn('[SW] Precache failed, continuing without some assets', err);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -68,6 +73,6 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
