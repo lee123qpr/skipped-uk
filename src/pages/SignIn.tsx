@@ -157,11 +157,7 @@ const SignIn = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2 text-sm">
-                <input type="checkbox" className="rounded border-border" disabled={isLoading} />
-                <span className="text-muted-foreground">Remember me</span>
-              </label>
+            <div className="flex justify-end">
               <Link to="/reset-password" className="text-sm text-primary hover:text-primary-hover transition-smooth">
                 Forgot password?
               </Link>
