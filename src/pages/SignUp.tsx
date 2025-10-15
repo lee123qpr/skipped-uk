@@ -84,13 +84,17 @@ const SignUp = () => {
         });
         return;
       }
+      
+      // Show success message
       toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account."
+        title: "Check your email!",
+        description: "We've sent you a verification link. Please check your inbox and click the link to verify your account.",
       });
 
-      // Redirect to dashboard
-      navigate("/dashboard");
+      // Redirect to sign-in page after a brief delay
+      setTimeout(() => {
+        navigate("/sign-in");
+      }, 2000);
     } catch (error: any) {
       toast({
         title: "Error",

@@ -27,6 +27,7 @@ import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ResetPassword from "./pages/ResetPassword";
+import AuthCallback from "./pages/AuthCallback";
 import Browse from "./pages/Browse";
 import Sell from "./pages/Sell";
 import CreateListing from "./pages/CreateListing";
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/sign-in" element={<SignIn />} />
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/browse" element={<Browse />} />
                 <Route path="/sell" element={<Sell />} />
                 <Route path="/listing/:id" element={<ListingDetails />} />
