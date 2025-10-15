@@ -642,17 +642,35 @@ const CreateListing = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button 
                       onClick={async () => {
+                        // Pre-open a tab synchronously to avoid popup blocking
+                        const preOpened = window.open('', '_blank');
+                        
                         try {
                           const { data, error } = await supabase.functions.invoke('create-connect-account');
                           if (error) throw error;
+                          
                           if (data?.url) {
-                            window.open(data.url, '_blank');
+                            if (preOpened) {
+                              preOpened.location.href = data.url;
+                            } else {
+                              // Fallback if browser blocked the pre-opened tab
+                              window.location.href = data.url;
+                            }
+                            
                             toast({
                               title: 'Opening Stripe setup',
                               description: 'Complete the setup to start receiving payments',
                             });
+                          } else {
+                            preOpened?.close();
+                            toast({
+                              title: 'Error',
+                              description: 'No setup link returned. Please try again.',
+                              variant: 'destructive',
+                            });
                           }
                         } catch (error: any) {
+                          preOpened?.close();
                           toast({
                             title: 'Error',
                             description: 'Failed to initiate payment setup. Please try again.',
