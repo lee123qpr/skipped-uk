@@ -641,7 +641,25 @@ const CreateListing = () => {
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button 
-                      onClick={() => navigate('/dashboard?tab=profile')}
+                      onClick={async () => {
+                        try {
+                          const { data, error } = await supabase.functions.invoke('create-connect-account');
+                          if (error) throw error;
+                          if (data?.url) {
+                            window.open(data.url, '_blank');
+                            toast({
+                              title: 'Opening Stripe setup',
+                              description: 'Complete the setup to start receiving payments',
+                            });
+                          }
+                        } catch (error: any) {
+                          toast({
+                            title: 'Error',
+                            description: 'Failed to initiate payment setup. Please try again.',
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
                       className="flex-1"
                       size="lg"
                     >
