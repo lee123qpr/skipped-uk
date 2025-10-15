@@ -13,48 +13,54 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {
-        // Get the hash parameters from the URL
+        // Parse both search and hash params (Supabase may use either depending on flow)
+        const searchParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const type = hashParams.get('type');
 
-        if (type === 'signup' && accessToken) {
-          // Email verification successful
-          setStatus('success');
-          toast({
-            title: "Email verified!",
-            description: "Your account has been verified. Please sign in to continue.",
-          });
-          
-          // Redirect to sign-in page after a brief delay
-          setTimeout(() => {
-            navigate('/sign-in');
-          }, 2000);
-        } else {
-          // No valid verification token
+        const errorCode = searchParams.get('error_code') || hashParams.get('error_code');
+        const errorDescription = searchParams.get('error_description') || hashParams.get('error_description');
+        const type = searchParams.get('type') || hashParams.get('type');
+        const accessToken = hashParams.get('access_token');
+
+        if (errorCode) {
+          // Explicit error from Supabase
           setStatus('error');
           toast({
-            title: "Verification failed",
-            description: "Invalid or expired verification link.",
-            variant: "destructive",
+            title: 'Verification failed',
+            description: errorDescription || 'Invalid or expired verification link.',
+            variant: 'destructive',
           });
-          
-          setTimeout(() => {
-            navigate('/sign-in');
-          }, 3000);
+          setTimeout(() => navigate('/sign-in'), 2500);
+          return;
         }
+
+        // Treat verified if type=signup OR an access_token exists
+        if (type === 'signup' || !!accessToken) {
+          setStatus('success');
+          toast({
+            title: 'Email verified!',
+            description: 'Your account has been verified. Please sign in to continue.',
+          });
+          setTimeout(() => navigate('/sign-in'), 1500);
+          return;
+        }
+
+        // Fallback: Supabase sometimes redirects without tokens after verifying on server
+        setStatus('success');
+        toast({
+          title: 'You’re all set!',
+          description: 'If you just confirmed your email, you can now sign in.',
+        });
+        setTimeout(() => navigate('/sign-in'), 1500);
       } catch (error: any) {
         console.error('Verification error:', error);
         setStatus('error');
         toast({
-          title: "Verification failed",
-          description: error.message || "Something went wrong during verification.",
-          variant: "destructive",
+          title: 'Verification failed',
+          description: error?.message || 'Something went wrong during verification.',
+          variant: 'destructive',
         });
-        
-        setTimeout(() => {
-          navigate('/sign-in');
-        }, 3000);
+        setTimeout(() => navigate('/sign-in'), 2500);
       }
     };
 
