@@ -88,10 +88,11 @@ const Dashboard = () => {
     return "Good evening";
   };
 
-  // Handle payment verification
+  // Handle payment verification and Stripe onboarding success
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
     const sessionId = searchParams.get('session_id');
+    const stripeSuccess = searchParams.get('success');
     
     if (paymentStatus === 'success' && sessionId && user) {
       verifyPayment(sessionId);
@@ -103,6 +104,13 @@ const Dashboard = () => {
       });
       // Clean up URL and switch to messages tab
       setSearchParams({ tab: 'messages' });
+    } else if (stripeSuccess === 'true') {
+      toast({
+        title: "Payment Setup Complete!",
+        description: "Your Stripe account is now configured. You can start receiving payments.",
+      });
+      // Clean up URL
+      setSearchParams({ tab: 'profile' });
     }
   }, [searchParams, user]);
 
