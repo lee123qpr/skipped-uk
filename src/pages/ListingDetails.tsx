@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSellerRating } from '@/hooks/useSellerRating';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,6 +87,7 @@ const ListingDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: listing, isLoading, error } = useQuery({
     queryKey: ['listing', id],
@@ -144,6 +145,22 @@ const ListingDetails = () => {
   useEffect(() => {
     setIsFavourited(!!favouriteData);
   }, [favouriteData]);
+
+  // Increment view count when a non-owner views the listing
+  useEffect(() => {
+    if (!id || !listing) return;
+    if (user && listing?.seller_id && user.id === listing.seller_id) return; // don't count seller's own views
+    (async () => {
+      try {
+        await supabase.rpc('increment_listing_view_count', { listing_id: id });
+        // Ensure seller dashboard picks up the change next time
+        queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      } catch (e) {
+        // silently ignore
+      }
+    })();
+    // run only when listing id or viewer changes
+  }, [id, user?.id, listing?.seller_id]);
 
   const handleContact = async () => {
     if (!user) {
@@ -293,6 +310,8 @@ const ListingDetails = () => {
           title: "Removed from favourites",
           description: "Item removed from your favourites",
         });
+        // Update seller dashboard analytics cache
+        queryClient.invalidateQueries({ queryKey: ['myListings'] });
       } else {
         // Add to favourites
         const { error } = await supabase
@@ -309,6 +328,8 @@ const ListingDetails = () => {
           title: "Added to favourites",
           description: "Item saved to your favourites",
         });
+        // Update seller dashboard analytics cache
+        queryClient.invalidateQueries({ queryKey: ['myListings'] });
       }
     } catch (error) {
       toast({

@@ -49,7 +49,7 @@ import { useNavigate } from "react-router-dom";
 import { MyListingSkeleton } from "./LoadingSkeletons";
 import { EmptyState } from "./EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDistanceToNow } from "date-fns";
 import { formatConditionBadge } from "@/lib/utils";
@@ -189,6 +189,26 @@ const MyListings = () => {
     },
     enabled: !!user,
   });
+
+  // Realtime updates: refresh on listing updates (e.g., view_count changes)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`listing-stats-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'listings',
+        filter: `seller_id=eq.${user.id}`,
+      }, () => {
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, refetch]);
 
   const handleDeleteListing = async (listingId: string) => {
     try {
