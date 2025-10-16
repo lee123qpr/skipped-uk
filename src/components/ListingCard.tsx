@@ -208,6 +208,8 @@ const ListingCard = ({
               
               // Invalidate and refetch favourites without page reload
               queryClient.invalidateQueries({ queryKey: ['user-favourites'] });
+              // Also invalidate the seller's listings to update engagement counts
+              queryClient.invalidateQueries({ queryKey: ['myListings'] });
         } catch (error) {
               toast({
                 title: "Error",
