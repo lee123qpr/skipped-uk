@@ -109,8 +109,10 @@ const Dashboard = () => {
         title: "Payment Setup Complete!",
         description: "Your Stripe account is now configured. You can start receiving payments.",
       });
-      // Clean up URL
+      // Clean up URL and reload to fetch updated profile
       setSearchParams({ tab: 'profile' });
+      // Small delay to show toast before reload
+      setTimeout(() => window.location.reload(), 1000);
     }
   }, [searchParams, user]);
 
