@@ -48,6 +48,7 @@ import FAQ from "./pages/FAQ";
 import ContactUs from "./pages/ContactUs";
 import DisputeResolution from "./pages/DisputeResolution";
 import SafetyGuidelines from "./pages/SafetyGuidelines";
+import AuthHashRouter from "@/components/AuthHashRouter";
 
 const App = () => (
   <HelmetProvider>
@@ -60,6 +61,7 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <ScrollToTop />
+                <AuthHashRouter />
                 <PaymentVerifier />
                 <OfflineDetector />
                 <CookieConsent />
