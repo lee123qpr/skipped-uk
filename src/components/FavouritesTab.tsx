@@ -154,7 +154,35 @@ const FavouritesTab = () => {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-1">
-        {favourites.map((favourite) => (
+        {favourites.map((favourite) => {
+          // Handle cases where listing might be hidden by RLS (e.g., paused)
+          if (!favourite.listing) {
+            return (
+              <Card key={favourite.id} className="shadow-soft border-muted">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-muted-foreground">Listing No Longer Available</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        This listing has been removed or is temporarily unavailable.
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveFavourite(favourite.id, 'this listing')}
+                      className="text-xs"
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Remove
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return (
           <Card key={favourite.id} className="shadow-soft hover:shadow-medium transition-shadow">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -195,12 +223,18 @@ const FavouritesTab = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 mt-2">
-                        <Badge 
-                          variant={favourite.listing.status === 'active' ? 'default' : 'secondary'}
-                        >
-                          {favourite.listing.status}
+                        {/* Only show status if NOT active (to alert user) */}
+                        {favourite.listing.status !== 'active' && (
+                          <Badge variant="secondary">
+                            {favourite.listing.status === 'paused' ? 'Temporarily Unavailable' : 
+                             favourite.listing.status === 'sold' ? 'Sold' : favourite.listing.status}
+                          </Badge>
+                        )}
+                        <Badge variant="outline">
+                          {favourite.listing.condition.split('_').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                          ).join(' ')}
                         </Badge>
-                        <Badge variant="outline">{favourite.listing.condition}</Badge>
                         <Badge variant="outline" className="text-xs">
                           <Heart className="h-3 w-3 mr-1 fill-red-500 text-red-500" />
                           Saved {new Date(favourite.created_at).toLocaleDateString('en-GB')}
@@ -254,7 +288,8 @@ const FavouritesTab = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
