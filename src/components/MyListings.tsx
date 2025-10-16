@@ -67,6 +67,7 @@ interface Listing {
   created_at: string;
   updated_at: string;
   view_count: number;
+  available: boolean | null;
   favourite_count?: number;
   message_count?: number;
   unread_message_count?: number;
@@ -215,19 +216,19 @@ const MyListings = () => {
     }
   };
 
-  const handleStatusChange = async (listingId: string, newStatus: string) => {
+  const handleStatusChange = async (listingId: string, isPaused: boolean) => {
     try {
       const { error } = await supabase
         .from('listings')
-        .update({ status: newStatus })
+        .update({ available: !isPaused })
         .eq('id', listingId)
-        .eq('seller_id', user?.id); // Ensure user owns listing
+        .eq('seller_id', user?.id);
 
       if (error) throw error;
 
       toast({
         title: 'Status updated',
-        description: `Listing ${newStatus === 'paused' ? 'paused' : 'reactivated'} successfully.`,
+        description: `Listing ${isPaused ? 'paused' : 'reactivated'} successfully.`,
       });
 
       refetch();
@@ -480,14 +481,14 @@ const MyListings = () => {
                                       Edit
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    {listing.status === 'active' && (
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'paused')}>
+                                    {listing.available !== false && (
+                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, true)}>
                                         <PauseCircle className="mr-2 h-4 w-4" />
                                         Pause Listing
                                       </DropdownMenuItem>
                                     )}
-                                    {listing.status === 'paused' && (
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, 'active')}>
+                                    {listing.available === false && (
+                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, false)}>
                                         <PlayCircle className="mr-2 h-4 w-4" />
                                         Reactivate
                                       </DropdownMenuItem>
