@@ -147,11 +147,11 @@ const MyListings = () => {
         .eq('receiver_id', user.id)
         .in('listing_id', listingsData.map(l => l.id));
 
-      // Fetch favourite counts
-      const { data: favouritesData } = await supabase
-        .from('favourites')
-        .select('listing_id')
-        .in('listing_id', listingsData.map(l => l.id));
+      // Fetch favourite counts using secure RPC
+      const { data: favouriteCountsData, error: favCountError } = await supabase
+        .rpc('get_favourite_counts_for_seller', { _seller_id: user.id });
+      if (favCountError) throw favCountError;
+      const favCountMap = new Map((favouriteCountsData || []).map((r: { listing_id: string, favourite_count: number }) => [r.listing_id, Number(r.favourite_count)]));
 
       // Fetch certificates for completed transactions
       const completedTransactionIds = transactionsData?.filter(t => t.status === 'completed').map(t => t.id) || [];
@@ -168,7 +168,6 @@ const MyListings = () => {
       return listingsData.map(listing => {
         const transactions = transactionsData?.filter(t => t.listing_id === listing.id) || [];
         const messages = messagesData?.filter(m => m.listing_id === listing.id) || [];
-        const favourites = favouritesData?.filter(f => f.listing_id === listing.id) || [];
         
         // Find certificate for completed transaction
         const completedTx = transactions.find(t => t.status === 'completed');
@@ -179,7 +178,7 @@ const MyListings = () => {
         return {
           ...listing,
           view_count: listing.view_count || 0,
-          favourite_count: favourites.length,
+          favourite_count: favCountMap.get(listing.id) ?? 0,
           message_count: messages.length,
           unread_message_count: messages.filter(m => !m.read).length,
           transactions: transactions,
@@ -209,6 +208,30 @@ const MyListings = () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, refetch]);
+
+  // Realtime updates: refresh on favourite changes
+  useEffect(() => {
+    if (!user || !listings) return;
+    const myIds = new Set(listings.map(l => l.id));
+
+    const channel = supabase
+      .channel(`favourites-stats-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'favourites',
+      }, (payload) => {
+        const listingId = (payload.new as any)?.listing_id || (payload.old as any)?.listing_id;
+        if (listingId && myIds.has(listingId)) {
+          refetch();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, listings?.length, refetch]);
 
   const handleDeleteListing = async (listingId: string) => {
     try {

@@ -1702,6 +1702,13 @@ export type Database = {
         Args: { base_username: string }
         Returns: string[]
       }
+      get_favourite_counts_for_seller: {
+        Args: { _seller_id: string }
+        Returns: {
+          favourite_count: number
+          listing_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
