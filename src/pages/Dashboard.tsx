@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MessageCircle, Heart, Settings, ShoppingBag } from "lucide-react";
+import { Package, MessageCircle, Heart, Settings, ShoppingBag, Coins } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
@@ -20,6 +20,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeletons";
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
+import { SellerFinancials } from "@/components/SellerFinancials";
 
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
@@ -317,6 +318,16 @@ const Dashboard = () => {
                   <span className="hidden sm:inline truncate">Favourites</span>
                   <span className="sm:hidden text-xs truncate">Favs</span>
                 </TabsTrigger>
+                
+                {/* Only show Financials tab if user is a seller */}
+                {hasListings && (
+                  <TabsTrigger value="financials" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                    <Coins className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">Financials</span>
+                    <span className="sm:hidden text-xs truncate">Fin</span>
+                  </TabsTrigger>
+                )}
+                
                 <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Settings className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline truncate">Settings</span>
@@ -345,10 +356,15 @@ const Dashboard = () => {
               <FavouritesTab />
             </TabsContent>
             
+            {/* Financials Tab - Payment Setup & Financial Dashboard */}
+            {hasListings && (
+              <TabsContent value="financials" className="space-y-4 mt-0">
+                <StripeConnectOnboarding />
+                <SellerFinancials />
+              </TabsContent>
+            )}
+            
             <TabsContent value="profile" className="space-y-4 mt-0">
-              {/* Stripe Setup - Always visible at top */}
-              <StripeConnectOnboarding />
-              
               {hasListings && <SellerAnalytics />}
               
               <ProfileEdit />

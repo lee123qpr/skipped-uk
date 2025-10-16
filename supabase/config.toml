@@ -3,6 +3,9 @@ project_id = "whfjfwxjtujfntwukzih"
 [functions.calculate-carbon]
 verify_jwt = false
 
+[functions.get-seller-financials]
+verify_jwt = true
+
 [functions.get-google-maps-key]
 verify_jwt = false
 
