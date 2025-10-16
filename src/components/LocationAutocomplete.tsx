@@ -97,10 +97,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           const addressComponents = place.address_components;
           let town = '';
           let postcode = '';
+          let neighbourhood = '';
           
           for (const component of addressComponents) {
             const types = component.types;
             
+            if (types.includes('sublocality') || types.includes('neighborhood')) {
+              neighbourhood = component.long_name;
+            }
             if (types.includes('postal_town') || types.includes('locality')) {
               town = component.long_name;
             }
@@ -109,10 +113,17 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
             }
           }
 
-          // Create public location (postcode + town, or just town if no postcode)
-          const publicLocation = postcode && town 
-            ? `${postcode}, ${town}`
-            : town || place.formatted_address?.split(',')[0] || 'Location';
+          // Create public location with neighbourhood, postcode and town
+          let publicLocation = '';
+          if (neighbourhood && postcode && town) {
+            publicLocation = `${neighbourhood}, ${postcode}, ${town}`;
+          } else if (neighbourhood && town) {
+            publicLocation = `${neighbourhood}, ${town}`;
+          } else if (postcode && town) {
+            publicLocation = `${postcode}, ${town}`;
+          } else {
+            publicLocation = town || place.formatted_address?.split(',')[0] || 'Location';
+          }
 
           const locationData: LocationData = {
             fullAddress: place.formatted_address || '',
