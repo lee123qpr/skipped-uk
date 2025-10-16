@@ -72,6 +72,7 @@ interface MediaFile {
   uploading?: boolean;
   uploaded?: boolean;
   url?: string;
+  order: number; // For drag & drop ordering
 }
 const CreateListing = () => {
   const {
@@ -269,9 +270,24 @@ const CreateListing = () => {
             preview: url,
             type: 'image' as const,
             uploaded: true,
-            url: url
+            url: url,
+            order: index
           }));
           setMediaFiles(existingMedia);
+        }
+
+        // Set existing carbon calculation if available
+        if (listing.carbon_saved && listing.certificate_methodology) {
+          const methodology = listing.certificate_methodology as any;
+          setCarbonCalculation({
+            totalCarbon: listing.carbon_saved,
+            carbonPerUnit: methodology.carbonFactor || 0,
+            materialType: methodology.materialType || '',
+            calculationMethod: methodology.calculationMethod || '',
+            explanation: methodology.explanation || '',
+            landfillDiverted: methodology.weight || 0,
+            calculationConfidence: listing.calculation_confidence || 'medium'
+          });
         }
       } catch (error) {
         toast({
@@ -364,8 +380,11 @@ const CreateListing = () => {
     }
   };
 
-  // Auto-calculate carbon savings when key fields change
+  // Auto-calculate carbon savings when key fields change (but not on initial load when editing)
   useEffect(() => {
+    // Skip auto-calculation on initial load when editing
+    if (isEditing && !originalListing) return;
+
     const timeoutId = setTimeout(async () => {
       if (formData.title && formData.category_id && formData.condition && formData.quantity) {
         await calculateCarbonSavings();
@@ -373,7 +392,7 @@ const CreateListing = () => {
     }, 1000); // Debounce for 1 second
 
     return () => clearTimeout(timeoutId);
-  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight]);
+  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, isEditing, originalListing]);
   const handleMediaFilesChange = useCallback((files: MediaFile[]) => {
     setMediaFiles(files);
   }, []);
@@ -469,6 +488,15 @@ const CreateListing = () => {
           ...validatedData,
           images: uploadedImages,
           carbon_saved: finalCarbonSaved || 0,
+          environmental_assessment_enabled: formData.environmental_assessment_enabled,
+          calculation_confidence: carbonCalculation?.calculationConfidence as 'high' | 'medium' | 'low' | undefined,
+          certificate_methodology: formData.environmental_assessment_enabled && carbonCalculation ? {
+            carbonFactor: carbonCalculation.carbonPerUnit,
+            materialType: carbonCalculation.materialType,
+            calculationMethod: carbonCalculation.calculationMethod,
+            weight: carbonCalculation.landfillDiverted,
+            explanation: carbonCalculation.explanation
+          } : undefined,
           public_location: formData.location,
           full_address: formData.fullAddress || null,
           latitude: formData.latitude || null,
@@ -718,7 +746,15 @@ const CreateListing = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 pb-0">
-                  <MediaUpload onFilesChange={handleMediaFilesChange} maxImages={8} maxVideos={2} maxImageSize={10} maxVideoSize={50} />
+                  <MediaUpload 
+                    key={isEditing ? listingId : 'new-listing'}
+                    onFilesChange={handleMediaFilesChange} 
+                    initialFiles={mediaFiles}
+                    maxImages={8} 
+                    maxVideos={2} 
+                    maxImageSize={10} 
+                    maxVideoSize={50} 
+                  />
                 </CardContent>
               </Card>
 

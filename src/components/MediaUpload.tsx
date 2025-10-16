@@ -25,6 +25,7 @@ interface MediaUploadProps {
   maxVideos?: number;
   maxImageSize?: number; // in MB
   maxVideoSize?: number; // in MB
+  initialFiles?: MediaFile[]; // Add initial files support for editing
 }
 
 const MediaUpload = ({ 
@@ -32,11 +33,12 @@ const MediaUpload = ({
   maxImages = 8, 
   maxVideos = 2, 
   maxImageSize = 10,
-  maxVideoSize = 50 
+  maxVideoSize = 50,
+  initialFiles = []
 }: MediaUploadProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [files, setFiles] = useState<MediaFile[]>([]);
+  const [files, setFiles] = useState<MediaFile[]>(initialFiles);
   const [isDragOver, setIsDragOver] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const draggedOverIndex = useRef<number | null>(null);
