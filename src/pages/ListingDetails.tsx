@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -76,7 +76,9 @@ const ListingDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const fromDashboard = location.state?.fromDashboard;
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
@@ -466,7 +468,7 @@ const ListingDetails = () => {
             className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Browse
+            {fromDashboard ? 'Back to Listings' : 'Back to Browse'}
           </Button>
 
           {/* Image Gallery */}

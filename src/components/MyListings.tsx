@@ -472,7 +472,7 @@ const MyListings = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`)}>
+                                    <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
                                       <Eye className="mr-2 h-4 w-4" />
                                       View Listing
                                     </DropdownMenuItem>
