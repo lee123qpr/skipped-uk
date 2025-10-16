@@ -19,6 +19,7 @@ import Footer from '@/components/Footer';
 import MediaUpload from '@/components/MediaUpload';
 import CarbonBadge from '@/components/CarbonBadge';
 import LocationAutocomplete from '@/components/LocationAutocomplete';
+import StripeLogo from '@/components/StripeLogo';
 import { useCategories } from '@/hooks/useCategories';
 import { toTitleCase } from '@/lib/utils';
 const listingSchema = z.object({
@@ -602,13 +603,20 @@ const CreateListing = () => {
             <div className="max-w-2xl mx-auto">
               <Card className="border-warning/50 shadow-lg">
                 <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mb-4">
-                    <Package className="h-8 w-8 text-warning" />
+                  <div className="mx-auto mb-4 flex items-center justify-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-[#635BFF]/10 flex items-center justify-center">
+                      <StripeLogo className="h-6 w-auto text-[#635BFF]" />
+                    </div>
                   </div>
                   <CardTitle className="text-2xl">Payment Setup Required</CardTitle>
                   <CardDescription className="text-base mt-2">
-                    To create listings and receive payments, you need to set up your Stripe account first
+                    To create listings and receive payments, you need to set up your Stripe Connect account first
                   </CardDescription>
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center justify-center gap-1.5">
+                    <span>Powered by</span>
+                    <StripeLogo className="h-3 w-auto text-[#635BFF]" />
+                    <span className="font-semibold text-[#635BFF]">Stripe</span>
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -633,9 +641,9 @@ const CreateListing = () => {
                     </ul>
                   </div>
 
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <div className="bg-[#635BFF]/5 border border-[#635BFF]/20 rounded-lg p-4">
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">Quick setup:</span> The Stripe onboarding process takes about 5 minutes. You'll need basic business information and bank details.
+                      <span className="font-semibold text-foreground">Quick setup:</span> The Stripe Connect onboarding process takes about 5 minutes. You'll need basic business information and bank details.
                     </p>
                   </div>
 
