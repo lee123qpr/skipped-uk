@@ -509,7 +509,7 @@ const CreateListing = () => {
           title: 'Listing updated!',
           description: 'Your listing has been updated successfully.'
         });
-        navigate(`/listing/${listingId}`);
+        navigate('/dashboard');
       } else {
         // Create new listing
         const {
