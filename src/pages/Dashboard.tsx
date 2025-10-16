@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MessageCircle, Heart, Settings, ShoppingBag, Coins } from "lucide-react";
+import { Package, MessageCircle, Heart, ShoppingBag, Coins } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
@@ -324,12 +324,6 @@ const Dashboard = () => {
                   <span className="hidden sm:inline truncate">Financials</span>
                   <span className="sm:hidden text-xs truncate">Fin</span>
                 </TabsTrigger>
-                
-                <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
-                  <Settings className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">Settings</span>
-                  <span className="sm:hidden text-xs truncate">Settings</span>
-                </TabsTrigger>
               </TabsList>
             </div>
             
@@ -357,16 +351,6 @@ const Dashboard = () => {
             <TabsContent value="financials" className="space-y-4 mt-0">
               <StripeConnectOnboarding />
               {hasListings && <SellerFinancials />}
-            </TabsContent>
-            
-            <TabsContent value="profile" className="space-y-4 mt-0">
-              {hasListings && <SellerAnalytics />}
-              
-              <ProfileEdit />
-              
-              <Suspense fallback={<Card><CardContent className="py-8 text-center text-muted-foreground">Loading reviews…</CardContent></Card>}>
-                <UnifiedReviews userId={user?.id || ''} />
-              </Suspense>
             </TabsContent>
           </Tabs>
         </main>

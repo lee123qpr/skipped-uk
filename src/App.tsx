@@ -48,6 +48,7 @@ import FAQ from "./pages/FAQ";
 import ContactUs from "./pages/ContactUs";
 import DisputeResolution from "./pages/DisputeResolution";
 import SafetyGuidelines from "./pages/SafetyGuidelines";
+import Settings from "./pages/Settings";
 import AuthHashRouter from "@/components/AuthHashRouter";
 
 const App = () => (
@@ -90,6 +91,7 @@ const App = () => (
                 <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/dispute-resolution" element={<DisputeResolution />} />
                 <Route path="/safety-guidelines" element={<SafetyGuidelines />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

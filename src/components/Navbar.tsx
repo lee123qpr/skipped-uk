@@ -1,4 +1,4 @@
-import { User, Heart, ShoppingBag, Plus, LogOut, Bell, Shield, Settings, LayoutDashboard } from "lucide-react";
+import { User, Heart, ShoppingBag, Plus, LogOut, Bell, Shield, Settings, LayoutDashboard, Coins } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthContext";
@@ -230,7 +230,11 @@ const Navbar = () => {
                       <Heart className="mr-2 h-4 w-4" />
                       <span>Favourites</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=financials")}>
+                      <Coins className="mr-2 h-4 w-4" />
+                      <span>Financials</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/settings")}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
@@ -388,7 +392,11 @@ const Navbar = () => {
                       <Heart className="mr-2 h-4 w-4" />
                       <span>Favourites</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=profile")}>
+                    <DropdownMenuItem onClick={() => navigate("/dashboard?tab=financials")}>
+                      <Coins className="mr-2 h-4 w-4" />
+                      <span>Financials</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/settings")}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
