@@ -5,10 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
 import ProfileEdit from "@/components/ProfileEdit";
 import { ProfileSkeleton } from "@/components/LoadingSkeletons";
-import { SellerAnalytics } from "@/components/SellerAnalytics";
 
 const UnifiedReviews = React.lazy(() => import("@/components/UnifiedReviews"));
 
@@ -16,31 +14,14 @@ const Settings = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [hasListings, setHasListings] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       navigate("/sign-in");
-      return;
+    } else {
+      setLoading(false);
     }
-
-    const checkListings = async () => {
-      try {
-        const { count } = await supabase
-          .from('listings')
-          .select('*', { count: 'exact', head: true })
-          .eq('seller_id', user.id);
-
-        setHasListings((count || 0) > 0);
-      } catch (error) {
-        // Silently fail
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkListings();
   }, [user, authLoading, navigate]);
 
   if (authLoading || loading) {
@@ -81,8 +62,6 @@ const Settings = () => {
                 Manage your profile, preferences, and account information
               </p>
             </div>
-
-            {hasListings && <SellerAnalytics />}
             
             <ProfileEdit />
             

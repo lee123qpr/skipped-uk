@@ -13,6 +13,9 @@ import {
   Download,
   ArrowUpRight,
   ArrowDownRight,
+  Package,
+  PoundSterling,
+  Users,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -26,6 +29,16 @@ import {
   TableRow,
 } from "./ui/table";
 import { formatDistanceToNow } from "date-fns";
+import StripeConnectOnboarding from "./StripeConnectOnboarding";
+
+interface PerformanceData {
+  totalListings: number;
+  activeListings: number;
+  totalSales: number;
+  totalRevenue: number;
+  averageRating: number;
+  totalReviews: number;
+}
 
 interface FinancialData {
   hasStripeAccount: boolean;
@@ -64,6 +77,7 @@ interface FinancialData {
 export const SellerFinancials = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [data, setData] = useState<FinancialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,22 +89,65 @@ export const SellerFinancials = () => {
     else setLoading(true);
 
     try {
-      const { data: result, error } = await supabase.functions.invoke("get-seller-financials", {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
+      // Fetch performance data and financial data in parallel
+      const [
+        { count: totalListingsCount },
+        { count: activeListingsCount },
+        { data: completedTransactions },
+        { data: reviews },
+        financialResult
+      ] = await Promise.all([
+        supabase
+          .from("listings")
+          .select("*", { count: "exact", head: true })
+          .eq("seller_id", user.id),
+        supabase
+          .from("listings")
+          .select("*", { count: "exact", head: true })
+          .eq("seller_id", user.id)
+          .eq("status", "active"),
+        supabase
+          .from("transactions")
+          .select("amount")
+          .eq("seller_id", user.id)
+          .eq("status", "completed"),
+        supabase
+          .from("reviews")
+          .select("rating")
+          .eq("seller_id", user.id),
+        supabase.functions.invoke("get-seller-financials", {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+        })
+      ]);
+
+      // Set performance data
+      const totalSales = completedTransactions?.length || 0;
+      const totalRevenue = completedTransactions?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      const totalReviews = reviews?.length || 0;
+      const averageRating = totalReviews > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+        : 0;
+
+      setPerformanceData({
+        totalListings: totalListingsCount || 0,
+        activeListings: activeListingsCount || 0,
+        totalSales,
+        totalRevenue,
+        averageRating,
+        totalReviews,
       });
 
-      if (error) throw error;
-      
-      if (result.error) {
-        throw new Error(result.error);
+      // Handle financial data
+      if (financialResult.error) {
+        throw new Error(financialResult.error);
       }
 
-      if (!result.hasStripeAccount) {
+      if (!financialResult.data?.hasStripeAccount) {
         setData(null);
       } else {
-        setData(result);
+        setData(financialResult.data);
       }
     } catch (error) {
       console.error("Error fetching financials:", error);
@@ -145,13 +202,28 @@ export const SellerFinancials = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-8">
         <Skeleton className="h-32 w-full" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+        {/* Performance Metrics Skeleton */}
+        <div className="space-y-4">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={`perf-${i}`} className="h-32 w-full" />
+            ))}
+          </div>
+        </div>
+        {/* Financial Overview Skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={`fin-${i}`} className="h-32 w-full" />
+            ))}
+          </div>
         </div>
         <Skeleton className="h-64 w-full" />
       </div>
@@ -174,8 +246,66 @@ export const SellerFinancials = () => {
   const availableBalance = data.balance.available[0]?.amount || 0;
   const pendingBalance = data.balance.pending[0]?.amount || 0;
 
+  const performanceStats = [
+    {
+      title: "Total Listings",
+      value: performanceData?.totalListings || 0,
+      description: `${performanceData?.activeListings || 0} currently active`,
+      icon: Package,
+    },
+    {
+      title: "Total Sales",
+      value: performanceData?.totalSales || 0,
+      description: "Completed transactions",
+      icon: TrendingUp,
+    },
+    {
+      title: "Total Revenue",
+      value: `£${(performanceData?.totalRevenue || 0).toFixed(2)}`,
+      description: "From completed sales",
+      icon: PoundSterling,
+    },
+    {
+      title: "Average Rating",
+      value: performanceData && performanceData.averageRating > 0 ? performanceData.averageRating.toFixed(1) : "N/A",
+      description: `${performanceData?.totalReviews || 0} review${(performanceData?.totalReviews || 0) !== 1 ? 's' : ''}`,
+      icon: Users,
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <StripeConnectOnboarding />
+
+      {/* Performance Metrics */}
+      {performanceData && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Performance Metrics</h2>
+            <p className="text-sm text-muted-foreground">
+              Track your listings, sales, and customer satisfaction
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {performanceStats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <Card key={index}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">{stat.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
