@@ -382,17 +382,17 @@ const CreateListing = () => {
 
   // Auto-calculate carbon savings when key fields change (but not on initial load when editing)
   useEffect(() => {
-    // Skip auto-calculation on initial load when editing
-    if (isEditing && !originalListing) return;
+    // Skip auto-calculation when editing and carbon data already exists
+    if (isEditing && carbonCalculation) return;
 
     const timeoutId = setTimeout(async () => {
-      if (formData.title && formData.category_id && formData.condition && formData.quantity) {
+      if (formData.title && formData.category_id && formData.condition && formData.quantity && categories.length > 0) {
         await calculateCarbonSavings();
       }
     }, 1000); // Debounce for 1 second
 
     return () => clearTimeout(timeoutId);
-  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, isEditing, originalListing]);
+  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, isEditing, carbonCalculation, categories.length]);
   const handleMediaFilesChange = useCallback((files: MediaFile[]) => {
     setMediaFiles(files);
   }, []);
