@@ -115,11 +115,7 @@ export const SellerFinancials = () => {
           .from("reviews")
           .select("rating")
           .eq("seller_id", user.id),
-        supabase.functions.invoke("get-seller-financials", {
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-        })
+        supabase.functions.invoke("get-seller-financials")
       ]);
 
       // Set performance data
