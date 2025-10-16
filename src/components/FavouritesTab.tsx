@@ -247,7 +247,9 @@ const FavouritesTab = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => navigate(`/listing/${favourite.listing.id}`)}
+                        onClick={() => navigate(`/listing/${favourite.listing.id}`, { 
+                          state: { fromFavourites: true } 
+                        })}
                         className="text-xs px-3 w-full sm:w-auto"
                       >
                         <Eye className="mr-1 h-3 w-3" />

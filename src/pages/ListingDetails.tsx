@@ -79,6 +79,7 @@ const ListingDetails = () => {
   const location = useLocation();
   const { toast } = useToast();
   const fromDashboard = location.state?.fromDashboard;
+  const fromFavourites = location.state?.fromFavourites;
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
@@ -489,7 +490,7 @@ const ListingDetails = () => {
             className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {fromDashboard ? 'Back to Listings' : 'Back to Browse'}
+            {fromFavourites ? 'Back to Favourites' : fromDashboard ? 'Back to Listings' : 'Back to Browse'}
           </Button>
 
           {/* Image Gallery */}
