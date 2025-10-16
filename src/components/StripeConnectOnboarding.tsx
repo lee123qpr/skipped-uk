@@ -22,6 +22,7 @@ const StripeConnectOnboarding = () => {
   const [status, setStatus] = useState<ConnectStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [onboardingInProgress, setOnboardingInProgress] = useState(false);
 
   const fetchStatus = async () => {
     if (!user) return;
@@ -48,6 +49,20 @@ const StripeConnectOnboarding = () => {
     fetchStatus();
   }, [user]);
 
+  // Auto-refresh status when user returns to tab after starting onboarding
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && onboardingInProgress) {
+        console.log('Tab visible again, refreshing Stripe status...');
+        fetchStatus();
+        setOnboardingInProgress(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [onboardingInProgress]);
+
   const handleConnectAccount = async () => {
     if (!user) return;
 
@@ -61,6 +76,9 @@ const StripeConnectOnboarding = () => {
       if (error) throw error;
 
       if (data?.url) {
+        // Mark that onboarding is in progress
+        setOnboardingInProgress(true);
+        
         if (preOpened) {
           preOpened.location.href = data.url;
         } else {
@@ -70,13 +88,8 @@ const StripeConnectOnboarding = () => {
 
         toast({
           title: 'Opening Stripe setup',
-          description: 'Complete the setup to start receiving payments',
+          description: 'Complete the setup to start receiving payments. Status will refresh when you return.',
         });
-
-        // Refresh status after a few seconds
-        setTimeout(() => {
-          fetchStatus();
-        }, 4000);
       } else {
         // No URL returned
         preOpened?.close();
