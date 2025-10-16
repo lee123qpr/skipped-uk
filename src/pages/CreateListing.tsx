@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MapPin, Truck, Package, Calendar, Leaf, AlertCircle, CheckCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, MapPin, Truck, Package, Calendar, Leaf } from 'lucide-react';
 import { z } from 'zod';
 import SEOHead from '@/components/SEOHead';
 import Navbar from '@/components/Navbar';
@@ -708,43 +707,6 @@ const CreateListing = () => {
                 {isEditing ? 'Update your construction material listing details' : 'List your surplus construction materials and help others while earning money'}
               </p>
             </header>
-
-            {/* Stripe Setup Status */}
-            {stripeOnboarded === null && (
-              <Alert className="mb-6">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertTitle>Checking payment setup...</AlertTitle>
-                <AlertDescription>
-                  Verifying your Stripe account status.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {stripeOnboarded === false && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Payment setup required</AlertTitle>
-                <AlertDescription>
-                  You need to connect your Stripe account before you can receive payments from buyers.{' '}
-                  <a 
-                    href="/dashboard?tab=profile" 
-                    className="underline font-semibold hover:text-destructive-foreground"
-                  >
-                    Set up payments now
-                  </a>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {stripeOnboarded === true && (
-              <Alert className="mb-6 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertTitle className="text-green-800 dark:text-green-200">Payment setup complete</AlertTitle>
-                <AlertDescription className="text-green-700 dark:text-green-300">
-                  Your Stripe account is connected and ready to receive payments.
-                </AlertDescription>
-              </Alert>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Media Upload */}

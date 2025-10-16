@@ -346,25 +346,24 @@ const Dashboard = () => {
             </TabsContent>
             
             <TabsContent value="profile" className="space-y-4 mt-0">
-              {hasListings && (
-                <>
-                  <SellerAnalytics />
-                  <Card className="border-primary/50 bg-primary/5">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Payment Setup
-                      </CardTitle>
-                      <CardDescription>
-                        Required to create listings and receive payments from buyers
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <StripeConnectOnboarding />
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+              {/* Stripe Setup - Always visible at top */}
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Payment Setup
+                  </CardTitle>
+                  <CardDescription>
+                    Required to create listings and receive payments from buyers
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <StripeConnectOnboarding />
+                </CardContent>
+              </Card>
+              
+              {hasListings && <SellerAnalytics />}
+              
               <ProfileEdit />
               
               <Suspense fallback={<Card><CardContent className="py-8 text-center text-muted-foreground">Loading reviews…</CardContent></Card>}>
