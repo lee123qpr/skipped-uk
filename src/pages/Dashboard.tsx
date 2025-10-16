@@ -319,14 +319,11 @@ const Dashboard = () => {
                   <span className="sm:hidden text-xs truncate">Favs</span>
                 </TabsTrigger>
                 
-                {/* Only show Financials tab if user is a seller */}
-                {hasListings && (
-                  <TabsTrigger value="financials" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
-                    <Coins className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline truncate">Financials</span>
-                    <span className="sm:hidden text-xs truncate">Fin</span>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger value="financials" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
+                  <Coins className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Financials</span>
+                  <span className="sm:hidden text-xs truncate">Fin</span>
+                </TabsTrigger>
                 
                 <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-2 py-2 min-w-0">
                   <Settings className="h-4 w-4 flex-shrink-0" />
@@ -357,12 +354,10 @@ const Dashboard = () => {
             </TabsContent>
             
             {/* Financials Tab - Payment Setup & Financial Dashboard */}
-            {hasListings && (
-              <TabsContent value="financials" className="space-y-4 mt-0">
-                <StripeConnectOnboarding />
-                <SellerFinancials />
-              </TabsContent>
-            )}
+            <TabsContent value="financials" className="space-y-4 mt-0">
+              <StripeConnectOnboarding />
+              {hasListings && <SellerFinancials />}
+            </TabsContent>
             
             <TabsContent value="profile" className="space-y-4 mt-0">
               {hasListings && <SellerAnalytics />}
