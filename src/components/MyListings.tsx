@@ -280,7 +280,7 @@ const MyListings = () => {
         sections.refunded.push(listing);
       } else if (hasActiveTransaction) {
         sections.inProgress.push(listing);
-      } else if (listing.status === 'paused') {
+      } else if (listing.available === false) {
         sections.paused.push(listing);
       } else {
         sections.active.push(listing);
