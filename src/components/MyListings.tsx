@@ -441,13 +441,24 @@ const MyListings = () => {
                   {section.listings.map((listing) => (
                     <Card key={listing.id} className="overflow-hidden">
                       <div className="md:flex">
-                        <div className="md:w-48 md:flex-shrink-0 md:h-48">
+                        <div className="md:w-48 md:flex-shrink-0 md:h-48 relative">
                           {listing.images && listing.images.length > 0 ? (
-                            <img
-                              src={listing.images[0]}
-                              alt={listing.title}
-                              className="h-48 w-full object-cover"
-                            />
+                            <>
+                              <img
+                                src={listing.images[0]}
+                                alt={listing.title}
+                                className="h-48 w-full object-cover"
+                              />
+                              {listing.available === false && (
+                                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+                                  <PauseCircle className="h-10 w-10 text-muted-foreground" />
+                                  <div className="text-center px-4">
+                                    <p className="font-semibold text-sm text-foreground">Paused</p>
+                                    <p className="text-xs text-muted-foreground">Not visible to others</p>
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <div className="h-48 w-full bg-muted flex items-center justify-center">
                               <span className="text-muted-foreground">No image</span>
@@ -508,6 +519,12 @@ const MyListings = () => {
                               <div className="flex flex-wrap gap-2">
                                 <Badge variant="outline">{listing.location}</Badge>
                                 <Badge variant="outline">{formatConditionBadge(listing.condition)}</Badge>
+                                {listing.available === false && (
+                                  <Badge variant="secondary" className="bg-muted text-foreground border-border">
+                                    <PauseCircle className="h-3 w-3 mr-1" />
+                                    Paused
+                                  </Badge>
+                                )}
                                 {getEngagementBadge(listing)}
                                 {getTransactionStatusBadge(listing)}
                               </div>

@@ -1,4 +1,4 @@
-import { Heart, MapPin, Calendar, Package, Truck, Leaf } from "lucide-react";
+import { Heart, MapPin, Calendar, Package, Truck, Leaf, PauseCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,8 @@ interface ListingCardProps {
   sellerStripeVerified?: boolean;
   sellerIdentityVerified?: boolean;
   carbonSaved?: number;
+  available?: boolean;
+  isOwnListing?: boolean;
 }
 
 const ListingCard = ({ 
@@ -50,7 +52,9 @@ const ListingCard = ({
   sellerVerified = false,
   sellerStripeVerified = false,
   sellerIdentityVerified = false,
-  carbonSaved = 0
+  carbonSaved = 0,
+  available = true,
+  isOwnListing = false
 }: ListingCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -96,6 +100,17 @@ const ListingCard = ({
       <div 
         className={`relative bg-muted ${variant === "list" ? "w-64 h-40 flex-shrink-0" : "aspect-[4/3]"}`}
       >
+        {/* Paused Overlay */}
+        {isOwnListing && !available && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center gap-2">
+            <PauseCircle className="h-12 w-12 text-muted-foreground" />
+            <div className="text-center px-4">
+              <p className="font-semibold text-foreground">Listing Paused</p>
+              <p className="text-xs text-muted-foreground">Not visible to others</p>
+            </div>
+          </div>
+        )}
+        
         {images && images.length > 0 ? (
           <Carousel 
             className="w-full h-full"

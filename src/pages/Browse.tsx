@@ -139,7 +139,8 @@ const Browse = () => {
             avatar_url
           )
         `)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('available', true);
 
       // Apply search filter - search in title and description only
       if (debouncedSearchTerm) {
