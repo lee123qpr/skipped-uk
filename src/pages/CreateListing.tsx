@@ -155,27 +155,24 @@ const CreateListing = () => {
   useEffect(() => {
     const checkStripeStatus = async () => {
       if (!user) return;
-      
       try {
         // Check actual Stripe status via edge function
-        const { data, error } = await supabase.functions.invoke('check-connect-status');
-        
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('check-connect-status');
         if (error) {
           setStripeOnboarded(false);
           return;
         }
-        
+
         // User must have onboarding complete AND charges enabled
-        const isFullyOnboarded = data?.connected && 
-                                 data?.onboardingComplete && 
-                                 data?.chargesEnabled;
-        
+        const isFullyOnboarded = data?.connected && data?.onboardingComplete && data?.chargesEnabled;
         setStripeOnboarded(isFullyOnboarded);
       } catch (err) {
         setStripeOnboarded(false);
       }
     };
-    
     checkStripeStatus();
   }, [user]);
 
@@ -414,7 +411,7 @@ const CreateListing = () => {
       if (weight !== undefined && isNaN(weight)) {
         throw new Error('Please enter a valid weight');
       }
-      
+
       // Check weight requirement for environmental certification
       if (formData.environmental_assessment_enabled && !weight) {
         throw new Error('Weight per item is required for environmental certification');
@@ -563,16 +560,11 @@ const CreateListing = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Loading state
   if (loading || isLoading || stripeOnboarded === null) {
-    return (
-      <>
-        <SEOHead
-          title={isEditing ? "Edit Listing - Skipped" : "Create Listing - Skipped"}
-          description={isEditing ? "Edit your construction materials listing" : "List your surplus construction materials for sale"}
-          keywords="create listing, sell materials, construction marketplace"
-        />
+    return <>
+        <SEOHead title={isEditing ? "Edit Listing - Skipped" : "Create Listing - Skipped"} description={isEditing ? "Edit your construction materials listing" : "List your surplus construction materials for sale"} keywords="create listing, sell materials, construction marketplace" />
         <div className="min-h-screen bg-background">
           <Navbar />
           <main className="container mx-auto px-4 py-8">
@@ -584,19 +576,13 @@ const CreateListing = () => {
           </main>
           <Footer />
         </div>
-      </>
-    );
+      </>;
   }
 
   // Block listing creation if Stripe onboarding is not complete
   if (!stripeOnboarded && !isEditing) {
-    return (
-      <>
-        <SEOHead
-          title="Payment Setup Required - Skipped"
-          description="Complete payment setup to start selling on Skipped"
-          keywords="payment setup, stripe connect, seller onboarding"
-        />
+    return <>
+        <SEOHead title="Payment Setup Required - Skipped" description="Complete payment setup to start selling on Skipped" keywords="payment setup, stripe connect, seller onboarding" />
         <div className="min-h-screen bg-background">
           <Navbar />
           <main className="container mx-auto px-4 py-8">
@@ -615,7 +601,7 @@ const CreateListing = () => {
                   <p className="text-xs text-muted-foreground mt-2 flex items-center justify-center gap-1.5">
                     <span>Powered by</span>
                     <StripeLogo className="h-3 w-auto text-[#635BFF]" />
-                    <span className="font-semibold text-[#635BFF]">Stripe</span>
+                    
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -648,55 +634,46 @@ const CreateListing = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <Button 
-                      onClick={async () => {
-                        // Pre-open a tab synchronously to avoid popup blocking
-                        const preOpened = window.open('', '_blank');
-                        
-                        try {
-                          const { data, error } = await supabase.functions.invoke('create-connect-account');
-                          if (error) throw error;
-                          
-                          if (data?.url) {
-                            if (preOpened) {
-                              preOpened.location.href = data.url;
-                            } else {
-                              // Fallback if browser blocked the pre-opened tab
-                              window.location.href = data.url;
-                            }
-                            
-                            toast({
-                              title: 'Opening Stripe setup',
-                              description: 'Complete the setup to start receiving payments',
-                            });
-                          } else {
-                            preOpened?.close();
-                            toast({
-                              title: 'Error',
-                              description: 'No setup link returned. Please try again.',
-                              variant: 'destructive',
-                            });
-                          }
-                        } catch (error: any) {
-                          preOpened?.close();
-                          toast({
-                            title: 'Error',
-                            description: 'Failed to initiate payment setup. Please try again.',
-                            variant: 'destructive',
-                          });
+                    <Button onClick={async () => {
+                    // Pre-open a tab synchronously to avoid popup blocking
+                    const preOpened = window.open('', '_blank');
+                    try {
+                      const {
+                        data,
+                        error
+                      } = await supabase.functions.invoke('create-connect-account');
+                      if (error) throw error;
+                      if (data?.url) {
+                        if (preOpened) {
+                          preOpened.location.href = data.url;
+                        } else {
+                          // Fallback if browser blocked the pre-opened tab
+                          window.location.href = data.url;
                         }
-                      }}
-                      className="flex-1"
-                      size="lg"
-                    >
+                        toast({
+                          title: 'Opening Stripe setup',
+                          description: 'Complete the setup to start receiving payments'
+                        });
+                      } else {
+                        preOpened?.close();
+                        toast({
+                          title: 'Error',
+                          description: 'No setup link returned. Please try again.',
+                          variant: 'destructive'
+                        });
+                      }
+                    } catch (error: any) {
+                      preOpened?.close();
+                      toast({
+                        title: 'Error',
+                        description: 'Failed to initiate payment setup. Please try again.',
+                        variant: 'destructive'
+                      });
+                    }
+                  }} className="flex-1" size="lg">
                       Set Up Payments
                     </Button>
-                    <Button 
-                      onClick={() => navigate('/browse')}
-                      variant="outline"
-                      className="flex-1"
-                      size="lg"
-                    >
+                    <Button onClick={() => navigate('/browse')} variant="outline" className="flex-1" size="lg">
                       Browse Listings
                     </Button>
                   </div>
@@ -706,10 +683,8 @@ const CreateListing = () => {
           </main>
           <Footer />
         </div>
-      </>
-    );
+      </>;
   }
-  
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -816,15 +791,7 @@ const CreateListing = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="manufacturer">Manufacturer (optional)</Label>
-                    <Input 
-                      id="manufacturer" 
-                      type="text"
-                      value={formData.manufacturer} 
-                      onChange={e => handleInputChange('manufacturer', e.target.value)} 
-                      placeholder="e.g. Hanson, Ensign, DeWalt, Makita..." 
-                      disabled={isLoading}
-                      maxLength={100}
-                    />
+                    <Input id="manufacturer" type="text" value={formData.manufacturer} onChange={e => handleInputChange('manufacturer', e.target.value)} placeholder="e.g. Hanson, Ensign, DeWalt, Makita..." disabled={isLoading} maxLength={100} />
                     <p className="text-xs text-muted-foreground">
                       Add the manufacturer/brand name to help buyers find your item
                     </p>
@@ -863,27 +830,13 @@ const CreateListing = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="weight">Weight per item (kg) {formData.environmental_assessment_enabled && <span className="text-destructive">*</span>}</Label>
-                      <Input 
-                        id="weight" 
-                        type="number" 
-                        step="0.1" 
-                        min="0" 
-                        value={formData.weight} 
-                        onChange={e => handleInputChange('weight', e.target.value)} 
-                        placeholder="e.g. 25.5" 
-                        disabled={isLoading}
-                        required={formData.environmental_assessment_enabled}
-                      />
-                      {formData.weight && formData.quantity && (
-                        <p className="text-xs text-muted-foreground">
+                      <Input id="weight" type="number" step="0.1" min="0" value={formData.weight} onChange={e => handleInputChange('weight', e.target.value)} placeholder="e.g. 25.5" disabled={isLoading} required={formData.environmental_assessment_enabled} />
+                      {formData.weight && formData.quantity && <p className="text-xs text-muted-foreground">
                           Total weight: <span className="font-medium">{(parseFloat(formData.weight) * parseInt(formData.quantity)).toFixed(1)} kg</span> ({formData.quantity} items × {parseFloat(formData.weight).toFixed(1)} kg each)
-                        </p>
-                      )}
-                      {formData.environmental_assessment_enabled && !formData.weight && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                        </p>}
+                      {formData.environmental_assessment_enabled && !formData.weight && <p className="text-xs text-amber-600 dark:text-amber-400">
                           Required for environmental certification
-                        </p>
-                      )}
+                        </p>}
                     </div>
                   </div>
 
@@ -960,18 +913,13 @@ const CreateListing = () => {
                           <Leaf className="h-5 w-5 text-primary" />
                           <CardTitle className="text-lg">Environmental Impact Certificate</CardTitle>
                         </div>
-                        <Switch 
-                          checked={formData.environmental_assessment_enabled} 
-                          onCheckedChange={(checked) => handleInputChange('environmental_assessment_enabled', checked)} 
-                          disabled={isLoading} 
-                        />
+                        <Switch checked={formData.environmental_assessment_enabled} onCheckedChange={checked => handleInputChange('environmental_assessment_enabled', checked)} disabled={isLoading} />
                       </div>
                       <CardDescription>
                         Generate a verified environmental impact certificate after sale (optional)
                       </CardDescription>
                     </CardHeader>
-                    {formData.environmental_assessment_enabled && (
-                      <CardContent className="space-y-4">
+                    {formData.environmental_assessment_enabled && <CardContent className="space-y-4">
                         <div className="rounded-lg bg-background p-4 space-y-3 border">
                           <div className="flex items-start gap-2">
                             <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
@@ -994,8 +942,7 @@ const CreateListing = () => {
                           </p>
                         </div>
 
-                        {carbonCalculation && (
-                          <div className="rounded-lg bg-background p-4 border space-y-2">
+                        {carbonCalculation && <div className="rounded-lg bg-background p-4 border space-y-2">
                             <h4 className="font-semibold text-sm">Estimated Environmental Impact:</h4>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
@@ -1012,19 +959,15 @@ const CreateListing = () => {
                               {' • '}
                               {carbonCalculation.calculationMethod === 'provided_weight' ? 'Based on provided weight ✓' : 'Estimated from dimensions ~'}
                             </p>
-                          </div>
-                        )}
+                          </div>}
 
-                        {!formData.weight && (
-                          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
+                        {!formData.weight && <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
                             <p className="text-sm text-amber-800 dark:text-amber-200">
                               <strong>Note:</strong> For high-confidence certification, please provide the weight above. 
                               Without weight, we'll estimate from dimensions (medium confidence).
                             </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    )}
+                          </div>}
+                      </CardContent>}
                   </Card>
                 </CardContent>
               </Card>
@@ -1161,15 +1104,12 @@ const CreateListing = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-4">
-                  {isCalculatingCarbon ? (
-                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                  {isCalculatingCarbon ? <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin" />
                         <p className="text-sm">Calculating environmental impact...</p>
                       </div>
-                    </div>
-                  ) : carbonCalculation ? (
-                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
+                    </div> : carbonCalculation ? <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs text-green-600 dark:text-green-400 mb-1">Landfill Diverted</p>
@@ -1187,15 +1127,12 @@ const CreateListing = () => {
                       <p className="text-xs text-green-600 dark:text-green-400 pt-2 border-t border-green-200 dark:border-green-800">
                         {carbonCalculation.explanation}
                       </p>
-                    </div>
-                  ) : (
-                    <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                    </div> : <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Leaf className="h-5 w-5" />
                         <p className="text-sm">Fill in title, category, condition and quantity to see environmental impact</p>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </CardContent>
               </Card>
 
