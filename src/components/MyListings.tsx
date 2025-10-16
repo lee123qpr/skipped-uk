@@ -220,20 +220,22 @@ const MyListings = () => {
       const { error } = await supabase
         .from('listings')
         .update({ status: newStatus })
-        .eq('id', listingId);
+        .eq('id', listingId)
+        .eq('seller_id', user?.id); // Ensure user owns listing
 
       if (error) throw error;
 
       toast({
         title: 'Status updated',
-        description: `Listing marked as ${newStatus}.`,
+        description: `Listing ${newStatus === 'paused' ? 'paused' : 'reactivated'} successfully.`,
       });
 
       refetch();
     } catch (error) {
+      console.error('Error updating listing status:', error);
       toast({
         title: 'Error updating status',
-        description: 'Please try again later.',
+        description: error instanceof Error ? error.message : 'Please try again later.',
         variant: 'destructive',
       });
     }
