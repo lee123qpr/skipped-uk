@@ -161,15 +161,6 @@ const StripeConnectOnboarding = () => {
       <CardContent className="space-y-4">
         {!status?.connected && (
           <>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Payment setup required</AlertTitle>
-              <AlertDescription>
-                To receive payments from buyers, you need to connect your Stripe account. 
-                This is a secure, one-time setup that takes about 5 minutes.
-              </AlertDescription>
-            </Alert>
-            
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <h4 className="font-medium">What you'll need:</h4>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
