@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +147,8 @@ const CreateListing = () => {
   const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
   const [showCalculatingIndicator, setShowCalculatingIndicator] = useState(false);
   const [stripeOnboarded, setStripeOnboarded] = useState<boolean | null>(null);
+  const [lastCalcSignature, setLastCalcSignature] = useState<string | null>(null);
+  const currentSignatureRef = useRef<string | null>(null);
 
   // Use shared categories hook
   const {
@@ -280,7 +282,7 @@ const CreateListing = () => {
         // Set existing carbon calculation if available
         if (listing.carbon_saved && listing.certificate_methodology) {
           const methodology = listing.certificate_methodology as any;
-          setCarbonCalculation({
+          const calc = {
             totalCarbon: listing.carbon_saved,
             carbonPerUnit: methodology.carbonFactor || 0,
             materialType: methodology.materialType || '',
@@ -288,7 +290,23 @@ const CreateListing = () => {
             explanation: methodology.explanation || '',
             landfillDiverted: methodology.weight || 0,
             calculationConfidence: listing.calculation_confidence || 'medium'
-          });
+          };
+          setCarbonCalculation(calc);
+          
+          // Set signature to prevent immediate recalculation
+          const category = categories.find(c => c.id === listing.category_id);
+          if (category) {
+            const initialSignature = buildCarbonSignature({
+              ...formData,
+              title: listing.title || '',
+              description: listing.description || '',
+              condition: listing.condition || '',
+              quantity: listing.quantity?.toString() || '1',
+              category_id: listing.category_id || '',
+              weight: listing.weight?.toString() || '',
+            } as any, category.name);
+            setLastCalcSignature(initialSignature);
+          }
         }
       } catch (error) {
         toast({
@@ -320,19 +338,45 @@ const CreateListing = () => {
       }));
     }
   };
+
+  // Helper to build a stable signature from form data
+  const buildCarbonSignature = (data: typeof formData, categoryName: string) => {
+    return JSON.stringify({
+      cat: categoryName,
+      cond: data.condition,
+      qty: data.quantity,
+      len: data.dimensions.length,
+      w: data.dimensions.width,
+      h: data.dimensions.height,
+      unit: data.dimensions.unit,
+      weight: data.weight,
+      title: data.title,
+      desc: data.description
+    });
+  };
+
   const calculateCarbonSavings = async () => {
     if (!formData.title || !formData.category_id || !formData.condition || !formData.quantity) {
       return 0;
     }
+
+    const category = categories.find(c => c.id === formData.category_id);
+    const currentSignature = buildCarbonSignature(formData, category?.name || '');
+
+    // Skip if we already calculated for this exact input
+    if (currentSignature === lastCalcSignature) {
+      return carbonCalculation?.totalCarbon || 0;
+    }
+
     try {
       setIsCalculatingCarbon(true);
+      currentSignatureRef.current = currentSignature;
       
       // Only show loading indicator if calculation takes longer than 300ms
       const indicatorTimeout = setTimeout(() => {
         setShowCalculatingIndicator(true);
       }, 300);
       
-      const category = categories.find(c => c.id === formData.category_id);
       const requestData = {
         categoryName: category?.name || '',
         condition: formData.condition,
@@ -359,32 +403,41 @@ const CreateListing = () => {
       if (error) {
         throw error;
       }
-      if (data && data.success) {
-        setCarbonCalculation({
-          totalCarbon: data.totalCarbon,
-          carbonPerUnit: data.carbonPerUnit,
-          materialType: data.materialType,
-          calculationMethod: data.calculationMethod,
-          explanation: data.explanation,
-          landfillDiverted: data.landfillDiverted || data.weight,
-          calculationConfidence: data.calculationConfidence
-        });
-        return data.totalCarbon;
+
+      // Only update if this is still the current request
+      if (currentSignatureRef.current === currentSignature) {
+        if (data && data.success) {
+          setCarbonCalculation({
+            totalCarbon: data.totalCarbon,
+            carbonPerUnit: data.carbonPerUnit,
+            materialType: data.materialType,
+            calculationMethod: data.calculationMethod,
+            explanation: data.explanation,
+            landfillDiverted: data.landfillDiverted || data.weight,
+            calculationConfidence: data.calculationConfidence
+          });
+          setLastCalcSignature(currentSignature);
+          return data.totalCarbon;
+        }
       }
       return 0;
     } catch (error) {
-      toast({
-        title: 'Carbon calculation failed',
-        description: 'Using estimated carbon savings. Please check your listing details.',
-        variant: 'destructive'
-      });
+      // Only show error if this is still the current request
+      if (currentSignatureRef.current === currentSignature) {
+        toast({
+          title: 'Carbon calculation failed',
+          description: 'Using estimated carbon savings. Please check your listing details.',
+          variant: 'destructive'
+        });
 
-      // Fallback to simple calculation
-      const category = categories.find(c => c.id === formData.category_id);
-      const categoryName = category?.name.toLowerCase() || '';
-      const baseCarbon = categoryName.includes('timber') || categoryName.includes('wood') ? 500 : categoryName.includes('brick') || categoryName.includes('concrete') ? 200 : categoryName.includes('steel') || categoryName.includes('metal') || categoryName.includes('scaffolding') ? 800 : categoryName.includes('insulation') ? 400 : categoryName.includes('roofing') ? 350 : 300;
-      const quantity = parseInt(formData.quantity) || 1;
-      return Math.round(baseCarbon * Math.log(quantity + 1));
+        // Fallback to simple calculation
+        const category = categories.find(c => c.id === formData.category_id);
+        const categoryName = category?.name.toLowerCase() || '';
+        const baseCarbon = categoryName.includes('timber') || categoryName.includes('wood') ? 500 : categoryName.includes('brick') || categoryName.includes('concrete') ? 200 : categoryName.includes('steel') || categoryName.includes('metal') || categoryName.includes('scaffolding') ? 800 : categoryName.includes('insulation') ? 400 : categoryName.includes('roofing') ? 350 : 300;
+        const quantity = parseInt(formData.quantity) || 1;
+        return Math.round(baseCarbon * Math.log(quantity + 1));
+      }
+      return 0;
     } finally {
       setIsCalculatingCarbon(false);
       setShowCalculatingIndicator(false);
@@ -393,17 +446,26 @@ const CreateListing = () => {
 
   // Auto-calculate carbon savings when key fields change (but not on initial load when editing)
   useEffect(() => {
-    // Skip auto-calculation when editing and carbon data already exists
-    if (isEditing && carbonCalculation) return;
+    // Don't auto-calculate if we don't have the necessary data
+    if (!formData.title || !formData.category_id || !formData.condition || !formData.quantity || categories.length === 0) {
+      return;
+    }
+
+    // Build signature for current inputs
+    const category = categories.find(c => c.id === formData.category_id);
+    const nextSignature = buildCarbonSignature(formData, category?.name || '');
+
+    // Skip if we already calculated this
+    if (nextSignature === lastCalcSignature) {
+      return;
+    }
 
     const timeoutId = setTimeout(async () => {
-      if (formData.title && formData.category_id && formData.condition && formData.quantity && categories.length > 0) {
-        await calculateCarbonSavings();
-      }
-    }, 1500); // Debounce for 1.5 seconds to reduce flickering
+      await calculateCarbonSavings();
+    }, 1500); // Debounce for 1.5 seconds
 
     return () => clearTimeout(timeoutId);
-  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, isEditing, carbonCalculation, categories.length]);
+  }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, lastCalcSignature, categories.length]);
   const handleMediaFilesChange = useCallback((files: MediaFile[]) => {
     setMediaFiles(files);
   }, []);
@@ -919,7 +981,7 @@ const CreateListing = () => {
                             <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            {isCalculatingCarbon ? <div className="flex items-center gap-2">
+                            {showCalculatingIndicator && isCalculatingCarbon ? <div className="flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-green-600 shrink-0" />
                                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                   Calculating environmental impact...
