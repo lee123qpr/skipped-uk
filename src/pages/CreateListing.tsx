@@ -912,19 +912,19 @@ const CreateListing = () => {
                   </div>
 
                   {/* Carbon Impact Display */}
-                  {(carbonCalculation || isCalculatingCarbon) && <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950 transition-all duration-300">
+                  {(carbonCalculation || isCalculatingCarbon) && <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+                          <div className="p-2 rounded-full bg-green-100 dark:bg-green-900 shrink-0">
                             <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
                           </div>
                           <div className="flex-1 min-w-0">
                             {isCalculatingCarbon ? <div className="flex items-center gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+                                <Loader2 className="h-4 w-4 animate-spin text-green-600 shrink-0" />
                                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                   Calculating environmental impact...
                                 </span>
-                              </div> : carbonCalculation ? <div className="space-y-3 animate-in fade-in duration-300">
+                              </div> : carbonCalculation ? <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <p className="text-xs text-green-600 dark:text-green-400 mb-1">Landfill Diverted</p>
