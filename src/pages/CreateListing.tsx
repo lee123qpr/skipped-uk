@@ -462,7 +462,7 @@ const CreateListing = () => {
         pickup_available: formData.pickup_available,
         collection_location: formData.pickup_available && formData.collection_location ? formData.collection_location : undefined,
         collection_notes: formData.pickup_available && formData.collection_notes ? formData.collection_notes : undefined,
-        delivery_radius: formData.delivery_available && formData.delivery_radius ? parseInt(formData.delivery_radius) : undefined,
+        delivery_radius: formData.delivery_available && formData.delivery_radius && parseInt(formData.delivery_radius) > 0 ? parseInt(formData.delivery_radius) : undefined,
         delivery_cost: formData.delivery_cost ? parseFloat(formData.delivery_cost) : undefined,
         delivery_notes: formData.delivery_available && formData.delivery_notes ? formData.delivery_notes : undefined,
         reason_for_selling: formData.reason_for_selling || undefined,
