@@ -24,7 +24,7 @@ export function SellerOtherItems({ sellerId, currentListingId, sellerUsername }:
         .neq('id', currentListingId)
         .eq('status', 'active')
         .eq('available', true)
-        .limit(4);
+        .limit(10);
       
       if (error) throw error;
       return data;
@@ -37,46 +37,51 @@ export function SellerOtherItems({ sellerId, currentListingId, sellerUsername }:
   }
 
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader>
         <CardTitle>Other Items from {sellerUsername || 'this Seller'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
-          {otherItems.map((item) => (
-            <div
-              key={item.id}
-              className="border rounded-lg overflow-hidden hover:shadow-md cursor-pointer transition-all group"
-              onClick={() => navigate(`/listing/${item.id}`)}
-            >
-              <div className="aspect-square bg-muted overflow-hidden">
-                {item.images?.[0] ? (
-                  <img
-                    src={item.images[0]}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-8 w-8 text-muted-foreground" />
+        <div className="relative">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+            {otherItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex-shrink-0 w-40 border rounded-lg overflow-hidden hover:shadow-md cursor-pointer transition-all group"
+                onClick={() => navigate(`/listing/${item.id}`)}
+              >
+                <div className="aspect-square bg-muted overflow-hidden">
+                  {item.images?.[0] ? (
+                    <img
+                      src={item.images[0]}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-2">
+                  <h4 className="font-medium text-xs line-clamp-2 mb-1 min-h-[2.5rem]">{item.title}</h4>
+                  <div className="space-y-1">
+                    <p className="font-bold text-primary text-sm">
+                      {item.price === 0 ? 'Free' : `£${item.price.toLocaleString()}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {item.condition.replace('_', ' ')}
+                    </p>
                   </div>
-                )}
-              </div>
-              <div className="p-2">
-                <h4 className="font-medium text-sm line-clamp-1 mb-1">{item.title}</h4>
-                <div className="flex justify-between items-center gap-1">
-                  <span className="font-bold text-primary text-sm">
-                    {item.price === 0 ? 'Free' : `£${item.price.toLocaleString()}`}
-                  </span>
-                  <span className="text-xs text-muted-foreground capitalize">
-                    {item.condition.replace('_', ' ')}
-                  </span>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          {otherItems.length > 3 && (
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          )}
         </div>
-        {otherItems.length >= 4 && (
+        {otherItems.length >= 10 && (
           <Button
             variant="outline"
             className="w-full mt-4"
