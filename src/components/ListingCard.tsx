@@ -98,7 +98,7 @@ const ListingCard = ({
     >
       {/* Image Carousel */}
       <div 
-        className={`relative bg-muted ${variant === "list" ? "w-28 sm:w-48 h-32 sm:h-36 flex-shrink-0" : "aspect-[4/3]"}`}
+        className={`relative bg-muted ${variant === "list" ? "w-36 sm:w-52 aspect-[4/3] flex-shrink-0 rounded-l-lg overflow-hidden" : "aspect-[4/3]"}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
@@ -122,7 +122,7 @@ const ListingCard = ({
             <CarouselContent>
               {images.map((image, index) => (
                 <CarouselItem key={index}>
-                  <div className={`relative overflow-hidden ${variant === "list" ? "h-full" : "aspect-[4/3]"}`}>
+                  <div className={`relative overflow-hidden ${variant === "list" ? "aspect-[4/3]" : "aspect-[4/3]"}`}>
                     <img 
                       src={image} 
                       alt={`${title} - Image ${index + 1}`}
