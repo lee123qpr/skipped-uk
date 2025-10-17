@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ const FavouritesTab = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: favourites = [], isLoading, refetch } = useQuery({
     queryKey: ['favourites', user?.id],
@@ -98,6 +99,9 @@ const FavouritesTab = () => {
         description: `"${listingTitle}" has been removed from your favourites.`,
       });
 
+      // Invalidate both query keys to update all components
+      queryClient.invalidateQueries({ queryKey: ['favourites', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user-favourites'] });
       refetch();
     } catch (error) {
       toast({
