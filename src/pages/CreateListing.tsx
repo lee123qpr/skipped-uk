@@ -917,6 +917,30 @@ const CreateListing = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
+                      <Label htmlFor="quantity" className="flex items-center gap-2">Quantity *</Label>
+                      <Input id="quantity" type="number" min="1" value={formData.quantity} onChange={e => handleInputChange('quantity', e.target.value)} placeholder="e.g. 12 beams, 1000 bricks" required disabled={isLoading} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <LocationAutocomplete id="location" label="Location" value={formData.location} onChange={locationData => {
+                      handleInputChange('location', locationData.publicLocation);
+                      // Store additional location data if needed
+                      setFormData(prev => ({
+                        ...prev,
+                        fullAddress: locationData.fullAddress,
+                        latitude: locationData.latitude,
+                        longitude: locationData.longitude,
+                        locationBounds: locationData.bounds
+                      }));
+                    }} placeholder="Enter postcode or town/city..." required disabled={isLoading} />
+                    <p className="text-xs text-muted-foreground">
+                      🔒 Only your town/city area is shown publicly, not your full address
+                    </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                       <Label>Dimensions (optional)</Label>
                       <div className="grid grid-cols-4 gap-2">
                         <Input type="number" step="0.1" min="0" placeholder="Length" value={formData.dimensions.length} onChange={e => handleInputChange('dimensions.length', e.target.value)} disabled={isLoading} />
@@ -946,30 +970,6 @@ const CreateListing = () => {
                       {formData.environmental_assessment_enabled && !formData.weight && <p className="text-xs text-amber-600 dark:text-amber-400">
                           Required for environmental certification
                         </p>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity" className="flex items-center gap-2">Quantity *</Label>
-                      <Input id="quantity" type="number" min="1" value={formData.quantity} onChange={e => handleInputChange('quantity', e.target.value)} placeholder="e.g. 12 beams, 1000 bricks" required disabled={isLoading} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <LocationAutocomplete id="location" label="Location" value={formData.location} onChange={locationData => {
-                      handleInputChange('location', locationData.publicLocation);
-                      // Store additional location data if needed
-                      setFormData(prev => ({
-                        ...prev,
-                        fullAddress: locationData.fullAddress,
-                        latitude: locationData.latitude,
-                        longitude: locationData.longitude,
-                        locationBounds: locationData.bounds
-                      }));
-                    }} placeholder="Enter postcode or town/city..." required disabled={isLoading} />
-                    <p className="text-xs text-muted-foreground">
-                      🔒 Only your town/city area is shown publicly, not your full address
-                    </p>
                     </div>
                   </div>
 
