@@ -37,24 +37,24 @@ export function SellerOtherItems({ sellerId, currentListingId, sellerUsername }:
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Other Items from {sellerUsername || 'this Seller'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {otherItems.map((item) => (
             <div
               key={item.id}
-              className="border rounded-lg p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+              className="border rounded-lg overflow-hidden hover:shadow-md cursor-pointer transition-all group"
               onClick={() => navigate(`/listing/${item.id}`)}
             >
-              <div className="aspect-square bg-muted rounded-md mb-2 overflow-hidden">
+              <div className="aspect-square bg-muted overflow-hidden">
                 {item.images?.[0] ? (
                   <img
                     src={item.images[0]}
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -62,12 +62,16 @@ export function SellerOtherItems({ sellerId, currentListingId, sellerUsername }:
                   </div>
                 )}
               </div>
-              <h4 className="font-medium text-sm line-clamp-2 mb-1">{item.title}</h4>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-primary">
-                  {item.price === 0 ? 'Free' : `£${item.price.toLocaleString()}`}
-                </span>
-                <span className="text-xs text-muted-foreground">{item.condition}</span>
+              <div className="p-2">
+                <h4 className="font-medium text-sm line-clamp-1 mb-1">{item.title}</h4>
+                <div className="flex justify-between items-center gap-1">
+                  <span className="font-bold text-primary text-sm">
+                    {item.price === 0 ? 'Free' : `£${item.price.toLocaleString()}`}
+                  </span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {item.condition.replace('_', ' ')}
+                  </span>
+                </div>
               </div>
             </div>
           ))}
@@ -78,7 +82,7 @@ export function SellerOtherItems({ sellerId, currentListingId, sellerUsername }:
             className="w-full mt-4"
             onClick={() => navigate(`/browse?seller=${sellerId}`)}
           >
-            View All Items from {sellerUsername || 'this Seller'}
+            View All Items
           </Button>
         )}
       </CardContent>

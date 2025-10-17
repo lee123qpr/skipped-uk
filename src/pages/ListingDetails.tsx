@@ -850,66 +850,62 @@ const ListingDetails = () => {
           </Card>
 
           {/* Seller Information Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>About the Seller</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16">
-                      <AvatarImage src={listing.public_safe_profiles?.avatar_url} />
-                      <AvatarFallback>
-                        <User className="h-8 w-8" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">
-                          {listing.public_safe_profiles?.username || 'Seller'}
-                        </h3>
-                      </div>
-                      
-                      {/* Verification Badges */}
-                      <div className="mb-3">
-                        <VerificationBadges
-                          emailVerified={listing.public_safe_profiles?.verified || false}
-                          stripeVerified={listing.public_safe_profiles?.stripe_onboarding_complete || false}
-                          identityVerified={listing.public_safe_profiles?.identity_verified || false}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* About the Seller */}
+            <Card>
+              <CardHeader>
+                <CardTitle>About the Seller</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-start gap-4">
+                  <Avatar className="w-16 h-16 flex-shrink-0">
+                    <AvatarImage src={listing.public_safe_profiles?.avatar_url} />
+                    <AvatarFallback>
+                      <User className="h-8 w-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold mb-2">
+                      {listing.public_safe_profiles?.username || 'Seller'}
+                    </h3>
+                    
+                    {/* Verification Badges */}
+                    <div className="mb-3">
+                      <VerificationBadges
+                        emailVerified={listing.public_safe_profiles?.verified || false}
+                        stripeVerified={listing.public_safe_profiles?.stripe_onboarding_complete || false}
+                        identityVerified={listing.public_safe_profiles?.identity_verified || false}
+                        size="sm"
+                        showLabel={true}
+                      />
+                    </div>
+                    
+                    {sellerRating && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <StarRating 
+                          rating={Math.round(sellerRating.averageRating)} 
+                          readonly 
                           size="sm"
-                          showLabel={true}
+                          showCount
+                          count={sellerRating.totalReviews}
                         />
                       </div>
-                      
-                      {sellerRating && (
-                        <div className="flex items-center gap-2 mb-3">
-                          <StarRating 
-                            rating={Math.round(sellerRating.averageRating)} 
-                            readonly 
-                            size="sm"
-                            showCount
-                            count={sellerRating.totalReviews}
-                          />
-                        </div>
-                      )}
-                      
-                      <p className="text-sm text-muted-foreground">
-                        Member since {new Date(listing.public_safe_profiles?.created_at || '').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                      </p>
-                    </div>
+                    )}
+                    
+                    <p className="text-sm text-muted-foreground">
+                      Member since {new Date(listing.public_safe_profiles?.created_at || '').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div>
-              <SellerOtherItems 
-                sellerId={listing.seller_id}
-                currentListingId={listing.id}
-                sellerUsername={listing.public_safe_profiles?.username}
-              />
-            </div>
+            {/* Other Items */}
+            <SellerOtherItems 
+              sellerId={listing.seller_id}
+              currentListingId={listing.id}
+              sellerUsername={listing.public_safe_profiles?.username}
+            />
           </div>
 
           {/* Seller Reviews Section */}
