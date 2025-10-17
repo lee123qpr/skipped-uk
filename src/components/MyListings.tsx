@@ -274,6 +274,9 @@ const MyListings = () => {
         description: `Listing ${isPaused ? 'paused' : 'reactivated'} successfully.`,
       });
 
+      // Invalidate both my listings and browse listings queries
+      queryClient.invalidateQueries({ queryKey: ['myListings'] });
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
       refetch();
     } catch (error) {
       console.error('Error updating listing status:', error);
