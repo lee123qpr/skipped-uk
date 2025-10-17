@@ -851,6 +851,13 @@ const ListingDetails = () => {
 
           {/* Seller Information Section */}
           <div className="space-y-6 mb-8">
+            {/* Other Items */}
+            <SellerOtherItems 
+              sellerId={listing.seller_id}
+              currentListingId={listing.id}
+              sellerUsername={listing.public_safe_profiles?.username}
+            />
+            
             {/* About the Seller */}
             <Card>
               <CardHeader>
@@ -899,13 +906,6 @@ const ListingDetails = () => {
                 </div>
               </CardContent>
             </Card>
-            
-            {/* Other Items */}
-            <SellerOtherItems 
-              sellerId={listing.seller_id}
-              currentListingId={listing.id}
-              sellerUsername={listing.public_safe_profiles?.username}
-            />
           </div>
 
           {/* Seller Reviews Section */}
