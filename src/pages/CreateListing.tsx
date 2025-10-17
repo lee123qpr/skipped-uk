@@ -145,6 +145,7 @@ const CreateListing = () => {
     calculationConfidence?: string;
   } | null>(null);
   const [isCalculatingCarbon, setIsCalculatingCarbon] = useState(false);
+  const [showCalculatingIndicator, setShowCalculatingIndicator] = useState(false);
   const [stripeOnboarded, setStripeOnboarded] = useState<boolean | null>(null);
 
   // Use shared categories hook
@@ -325,6 +326,12 @@ const CreateListing = () => {
     }
     try {
       setIsCalculatingCarbon(true);
+      
+      // Only show loading indicator if calculation takes longer than 300ms
+      const indicatorTimeout = setTimeout(() => {
+        setShowCalculatingIndicator(true);
+      }, 300);
+      
       const category = categories.find(c => c.id === formData.category_id);
       const requestData = {
         categoryName: category?.name || '',
@@ -346,6 +353,9 @@ const CreateListing = () => {
       } = await supabase.functions.invoke('calculate-carbon', {
         body: requestData
       });
+      
+      clearTimeout(indicatorTimeout);
+      
       if (error) {
         throw error;
       }
@@ -377,6 +387,7 @@ const CreateListing = () => {
       return Math.round(baseCarbon * Math.log(quantity + 1));
     } finally {
       setIsCalculatingCarbon(false);
+      setShowCalculatingIndicator(false);
     }
   };
 
@@ -389,7 +400,7 @@ const CreateListing = () => {
       if (formData.title && formData.category_id && formData.condition && formData.quantity && categories.length > 0) {
         await calculateCarbonSavings();
       }
-    }, 1000); // Debounce for 1 second
+    }, 1500); // Debounce for 1.5 seconds to reduce flickering
 
     return () => clearTimeout(timeoutId);
   }, [formData.title, formData.category_id, formData.condition, formData.quantity, formData.dimensions, formData.weight, isEditing, carbonCalculation, categories.length]);
@@ -1140,7 +1151,7 @@ const CreateListing = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 pb-0 space-y-4">
-                  {isCalculatingCarbon ? <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+                  {showCalculatingIndicator ? <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin" />
                         <p className="text-sm">Calculating environmental impact...</p>
