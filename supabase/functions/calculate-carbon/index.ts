@@ -858,7 +858,7 @@ function calculateEmbodiedCarbon(request: CarbonCalculationRequest): CarbonCalcu
   }
   
   return {
-    totalCarbon: Math.round(totalCarbon),
+    totalCarbon: Math.round(totalCarbon * 100) / 100,
     carbonPerUnit: Math.round(carbonPerUnit * 100) / 100,
     materialType,
     calculationMethod: request.weight ? 'provided_weight' : 'estimated',
