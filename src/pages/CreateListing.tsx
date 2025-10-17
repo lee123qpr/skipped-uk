@@ -831,6 +831,43 @@ const CreateListing = () => {
                 </CardContent>
               </Card>
 
+              {/* Environmental Impact Certificate Toggle */}
+              <Card className="p-6 border-2 border-primary/20 bg-primary/5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <Leaf className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">Environmental Impact Certificate</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Track the environmental benefits of your sale</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={formData.environmental_assessment_enabled} 
+                    onCheckedChange={checked => handleInputChange('environmental_assessment_enabled', checked)} 
+                    disabled={isLoading} 
+                  />
+                </div>
+                {formData.environmental_assessment_enabled && (
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <div className="flex items-start gap-2 text-sm">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <p>Verified certificate after sale</p>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm">
+                      <span className="text-amber-600 dark:text-amber-400 mt-0.5">⚠️</span>
+                      <p className="font-medium">Accurate weight required below for certification</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-2 border-t">
+                      Calculations based on ICE Database (University of Bath)
+                    </p>
+                  </div>
+                )}
+              </Card>
+
               {/* Basic Details */}
               <Card className="p-6">
                 <CardHeader className="px-0 pt-0">
@@ -971,7 +1008,7 @@ const CreateListing = () => {
                   </div>
 
                   {/* Carbon Impact Display */}
-                  {(carbonCalculation || isCalculatingCarbon) && <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+                  {formData.environmental_assessment_enabled && (carbonCalculation || isCalculatingCarbon) && <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className="p-2 rounded-full bg-green-100 dark:bg-green-900 shrink-0">
@@ -983,7 +1020,7 @@ const CreateListing = () => {
                                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                   Calculating environmental impact...
                                 </span>
-                              </div> : carbonCalculation ? <div className="space-y-3">
+                              </div> : carbonCalculation ? <div className="space-y-2">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <p className="text-xs text-green-600 dark:text-green-400 mb-1">Landfill Diverted</p>
@@ -998,83 +1035,12 @@ const CreateListing = () => {
                                     </p>
                                   </div>
                                 </div>
-                                <p className="text-xs text-green-600 dark:text-green-400 pt-2 border-t border-green-200 dark:border-green-800">
-                                  {carbonCalculation.explanation?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </p>
-                                <div className="text-xs text-green-600 dark:text-green-400">
-                                  <span className="font-medium">Material:</span> {carbonCalculation.materialType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} • 
-                                  <span className="font-medium">Method:</span> {carbonCalculation.calculationMethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </div>
                               </div> : null}
                           </div>
                         </div>
                       </CardContent>
                     </Card>}
 
-                  {/* Environmental Impact Assessment Opt-In */}
-                  <Card className="border-2 border-primary/20 bg-primary/5">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Leaf className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-lg">Environmental Impact Certificate</CardTitle>
-                        </div>
-                        <Switch checked={formData.environmental_assessment_enabled} onCheckedChange={checked => handleInputChange('environmental_assessment_enabled', checked)} disabled={isLoading} />
-                      </div>
-                      <CardDescription>
-                        Generate a verified environmental impact certificate after sale (optional)
-                      </CardDescription>
-                    </CardHeader>
-                    {formData.environmental_assessment_enabled && <CardContent className="space-y-4">
-                        <div className="rounded-lg bg-background p-4 space-y-3 border">
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                            <p className="text-sm">Receive verified carbon savings certificate after sale</p>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                            <p className="text-sm">Perfect for businesses tracking sustainability goals</p>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                            <p className="text-sm">Contributes to BREEAM, ESG reporting, CSR initiatives</p>
-                          </div>
-                          <div className="flex items-start gap-2 pt-2 border-t">
-                            <span className="text-amber-600 dark:text-amber-400 mt-0.5">⚠️</span>
-                            <p className="text-sm font-medium">Accurate weight required for certification</p>
-                          </div>
-                          <p className="text-xs text-muted-foreground pt-2 border-t">
-                            Calculations based on ICE Database (University of Bath)
-                          </p>
-                        </div>
-
-                        {carbonCalculation && <div className="rounded-lg bg-background p-4 border space-y-2">
-                            <h4 className="font-semibold text-sm">Estimated Environmental Impact:</h4>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-xs text-muted-foreground">Landfill Diverted</p>
-                                <p className="text-lg font-bold text-green-600">{carbonCalculation.landfillDiverted?.toFixed(1) || 0} kg</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">CO₂ Saved</p>
-                                <p className="text-lg font-bold text-green-600">{carbonCalculation.totalCarbon} kg</p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground pt-2">
-                              Confidence: <span className="font-medium capitalize">{carbonCalculation.calculationConfidence || 'medium'}</span>
-                              {' • '}
-                              {carbonCalculation.calculationMethod === 'provided_weight' ? 'Based on provided weight ✓' : 'Estimated from dimensions ~'}
-                            </p>
-                          </div>}
-
-                        {!formData.weight && <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
-                            <p className="text-sm text-amber-800 dark:text-amber-200">
-                              <strong>Note:</strong> For high-confidence certification, please provide the weight above. 
-                              Without weight, we'll estimate from dimensions (medium confidence).
-                            </p>
-                          </div>}
-                      </CardContent>}
-                  </Card>
                 </CardContent>
               </Card>
 
