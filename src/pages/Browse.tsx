@@ -381,7 +381,7 @@ const Browse = () => {
                 {showFilters && <span className="ml-2">×</span>}
               </Button>
 
-              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+              <div className="flex gap-2 items-center">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[140px] sm:w-auto text-sm">
                     <SelectValue />
