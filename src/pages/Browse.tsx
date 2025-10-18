@@ -370,20 +370,20 @@ const Browse = () => {
 
           {/* Filters */}
           <section className="mb-8">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
+            <div className="flex flex-row gap-2 items-center justify-between mb-6">
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 flex-shrink-0"
               >
                 <SlidersHorizontal className="h-4 w-4" />
-                Filters
+                <span className="hidden sm:inline">Filters</span>
                 {showFilters && <span className="ml-2">×</span>}
               </Button>
 
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full sm:w-auto">
+                  <SelectTrigger className="w-[140px] sm:w-auto text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,12 +394,12 @@ const Browse = () => {
                   </SelectContent>
                 </Select>
 
-                <div className="flex border border-border rounded-lg">
+                <div className="flex border border-border rounded-lg hidden sm:flex">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("grid")}
-                    className="rounded-r-none flex-1 sm:flex-none"
+                    className="rounded-r-none"
                   >
                     <Grid3X3 className="h-4 w-4" />
                   </Button>
@@ -407,7 +407,7 @@ const Browse = () => {
                     variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("list")}
-                    className="rounded-none flex-1 sm:flex-none"
+                    className="rounded-none"
                   >
                     <List className="h-4 w-4" />
                   </Button>
@@ -421,7 +421,7 @@ const Browse = () => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }, 100);
                     }}
-                    className="rounded-l-none flex-1 sm:flex-none"
+                    className="rounded-l-none"
                   >
                     <Map className="h-4 w-4" />
                   </Button>
@@ -447,9 +447,44 @@ const Browse = () => {
                     });
                   }}
                   aria-pressed={mapsDebug}
-                  className="sm:ml-2"
+                  className="sm:ml-2 hidden sm:flex"
                 >
                   <Bug className="h-4 w-4 mr-2" /> Debug
+                </Button>
+              </div>
+            </div>
+
+            {/* Mobile View Mode Toggle - Second Row */}
+            <div className="flex sm:hidden gap-2 mb-6 justify-center">
+              <div className="flex border border-border rounded-lg">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className="rounded-r-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="rounded-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "map" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setViewMode("map");
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="rounded-l-none"
+                >
+                  <Map className="h-4 w-4" />
                 </Button>
               </div>
             </div>
