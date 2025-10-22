@@ -1587,11 +1587,13 @@ export type Database = {
           listing_id: string | null
           rating: number | null
           reviewer_avatar: string | null
+          reviewer_id: string | null
           reviewer_name: string | null
           reviewer_type: string | null
           reviewer_username: string | null
           reviewer_verified: boolean | null
           seller_avatar: string | null
+          seller_id: string | null
           seller_name: string | null
           seller_reply: string | null
           seller_reply_created_at: string | null
@@ -1622,6 +1624,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "transactions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_safe_profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
