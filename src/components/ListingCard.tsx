@@ -68,7 +68,7 @@ const ListingCard = ({
     const img = e.currentTarget as HTMLImageElement;
     if (!img?.naturalWidth || !img?.naturalHeight) return;
     const ratio = img.naturalWidth / img.naturalHeight;
-    const shouldZoom = ratio > 1.6 || ratio < 0.7; // ultrawide or very tall
+    const shouldZoom = ratio > 1.4 || ratio < 0.8; // wide or tall - more aggressive
     if (shouldZoom) {
       setZoomMap((prev) => ({ ...prev, [index]: true }));
     }
@@ -139,7 +139,7 @@ const ListingCard = ({
                     <img 
                       src={image} 
                       alt={`${title} - Image ${index + 1}`}
-                      className={`w-full h-full object-cover object-center origin-center transition-smooth ${variant === "list" && zoomMap[index] ? 'scale-[1.15]' : ''} ${zoomMap[index] ? 'group-hover:scale-[1.25]' : 'group-hover:scale-105'}`}
+                      className={`w-full h-full object-cover object-center origin-center transition-smooth ${variant === "list" && zoomMap[index] ? 'scale-[1.35]' : ''} ${zoomMap[index] ? 'group-hover:scale-[1.45]' : 'group-hover:scale-105'}`}
                       loading="lazy"
                       onLoad={handleImageLoad(index)}
                     />
