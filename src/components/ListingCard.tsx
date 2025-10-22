@@ -93,13 +93,12 @@ const ListingCard = ({
 
   return (
     <Card 
-      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${variant === "list" ? "flex flex-row" : ""} ${className}`}
+      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${variant === "list" ? "flex flex-row min-h-[160px] sm:min-h-[192px]" : ""} ${className}`}
       onClick={handleCardClick}
     >
       {/* Image Carousel */}
       <div 
-        className={`relative bg-muted ${variant === "list" ? "w-36 sm:w-52 flex-shrink-0 overflow-hidden" : ""}`}
-        style={variant === "list" ? { aspectRatio: '4/3' } : {}}
+        className={`relative bg-muted ${variant === "list" ? "w-36 sm:w-52 h-40 sm:h-48 flex-shrink-0 overflow-hidden" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
@@ -226,7 +225,7 @@ const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className={`${variant === "list" ? "p-2 sm:p-3 space-y-1 sm:space-y-2 flex-1 min-w-0" : "p-4 space-y-3"}`}>
+      <div className={`${variant === "list" ? "p-2 sm:p-3 flex flex-col justify-between flex-1 min-w-0" : "p-4 space-y-3"}`}>
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-2">
           <h3 className={`font-bold text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1 ${variant === "list" ? "text-sm sm:text-base" : "text-lg"}`}>
