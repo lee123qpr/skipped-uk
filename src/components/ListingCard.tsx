@@ -93,12 +93,12 @@ const ListingCard = ({
 
   return (
     <Card 
-      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${variant === "list" ? "flex flex-row" : ""} ${className}`}
+      className={`group cursor-pointer transition-smooth hover:shadow-medium bg-card border-border overflow-hidden ${variant === "list" ? "flex flex-row items-center" : ""} ${className}`}
       onClick={handleCardClick}
     >
       {/* Image Carousel */}
       <div 
-        className={`relative ${variant === "list" ? "w-32 sm:w-48 h-32 sm:h-36 flex-shrink-0 overflow-hidden rounded-l-lg" : ""}`}
+        className={`relative ${variant === "list" ? "w-32 sm:w-48 h-32 sm:h-36 flex-shrink-0 overflow-hidden rounded-md m-2 border border-border/50" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
