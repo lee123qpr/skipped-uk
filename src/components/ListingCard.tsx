@@ -98,7 +98,7 @@ const ListingCard = ({
     >
       {/* Image Carousel */}
       <div 
-        className={`relative ${variant === "list" ? "w-32 sm:w-48 h-32 sm:h-36 flex-shrink-0 overflow-hidden rounded-md m-2 border border-border/50" : ""}`}
+        className={`relative ${variant === "list" ? "w-32 sm:w-48 h-32 sm:h-36 flex-shrink-0 overflow-hidden rounded-l-md mr-2 sm:mr-3" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
