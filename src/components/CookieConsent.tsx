@@ -52,56 +52,49 @@ const CookieConsent = () => {
   return (
     <>
       {/* Cookie Banner */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-in slide-in-from-bottom-5">
-        <Card className="max-w-5xl mx-auto shadow-strong border-border">
-          <CardHeader className="relative pb-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-2 sm:p-4 animate-in slide-in-from-bottom-5">
+        <Card className="max-w-3xl mx-auto shadow-strong border-border">
+          <CardHeader className="relative pb-2 pt-3 px-3 sm:px-4">
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-2 h-8 w-8"
+              className="absolute right-1 top-1 h-7 w-7"
               onClick={handleCloseBanner}
               aria-label="Close cookie banner"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
-            <div className="flex items-start gap-3">
-              <Cookie className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+            <div className="flex items-start gap-2 pr-6">
+              <Cookie className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
-                <CardTitle className="text-xl">Cookie Preferences</CardTitle>
-                <CardDescription className="mt-1">
-                  We use cookies to enhance your browsing experience and analyse our traffic. 
-                  By clicking "Accept All", you consent to our use of cookies.
+                <CardTitle className="text-base sm:text-lg">Cookie Preferences</CardTitle>
+                <CardDescription className="mt-0.5 text-xs sm:text-sm">
+                  We use cookies to enhance your experience. Essential cookies are always enabled.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pb-3">
-            <p className="text-sm text-muted-foreground">
-              Essential cookies are always enabled. You can customise preferences here or visit our{' '}
-              <Link to="/cookie-policy" className="text-primary hover:underline font-medium">
-                Cookie Policy page
-              </Link>{' '}
-              to manage your settings anytime.
-            </p>
-          </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-3">
+          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-2 pb-3 px-3 sm:px-4">
             <Button
               variant="outline"
               onClick={rejectAll}
-              className="w-full sm:w-auto"
+              size="sm"
+              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9"
             >
               Reject All
             </Button>
             <Button
               variant="secondary"
               onClick={handleCustomize}
-              className="w-full sm:w-auto"
+              size="sm"
+              className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9"
             >
               Customise
             </Button>
             <Button
               onClick={acceptAll}
-              className="w-full sm:w-auto sm:ml-auto"
+              size="sm"
+              className="w-full sm:w-auto sm:ml-auto text-xs sm:text-sm h-8 sm:h-9"
             >
               Accept All
             </Button>
