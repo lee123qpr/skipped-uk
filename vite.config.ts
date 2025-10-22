@@ -32,4 +32,11 @@ export default defineConfig(({ mode }) => ({
       "react/jsx-dev-runtime"
     ],
   },
+  // Ensure dev and build output are compatible with older iOS Safari engines
+  esbuild: {
+    target: "es2019",
+  },
+  build: {
+    target: ["es2019", "safari13"],
+  },
 }));
