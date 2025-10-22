@@ -98,7 +98,7 @@ const ListingCard = ({
     >
       {/* Image Carousel */}
       <div 
-        className={`relative ${variant === "list" ? "w-48 sm:w-64 flex-shrink-0" : ""}`}
+        className={`relative ${variant === "list" ? "w-36 sm:w-44 flex-shrink-0" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
@@ -225,60 +225,60 @@ const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className={`${variant === "list" ? "p-2 sm:p-3 space-y-1 sm:space-y-1.5 flex-1 min-w-0" : "p-4 space-y-3"}`}>
         {/* Title and Price */}
         <div className="flex justify-between items-start gap-2">
-          <h3 className="font-bold text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1 text-lg">
+          <h3 className={`font-bold text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1 ${variant === "list" ? "text-sm sm:text-base" : "text-lg"}`}>
             {title}
           </h3>
-          <div className="font-bold text-[#047857] whitespace-nowrap flex-shrink-0 text-3xl">
+          <div className={`font-bold text-[#047857] whitespace-nowrap flex-shrink-0 ${variant === "list" ? "text-lg sm:text-xl" : "text-3xl"}`}>
             {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
           </div>
         </div>
 
         {/* Badges: Condition, Quantity, Carbon Saved, and Offers */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className={`flex items-center flex-wrap ${variant === "list" ? "gap-1" : "gap-2"}`}>
           <Badge 
             variant="outline" 
-            className={`${conditionDisplay.className} font-bold text-xs tracking-wider rounded-full border-0 px-4 py-1.5`}
+            className={`${conditionDisplay.className} font-bold tracking-wider rounded-full border-0 ${variant === "list" ? "px-2 py-0.5 text-[10px] sm:px-2.5 sm:py-0.5 sm:text-xs" : "text-xs px-4 py-1.5"}`}
           >
             {conditionDisplay.label}
           </Badge>
           {(typeof quantity === 'number' && quantity > 1) && (
-            <Badge variant="outline" className="bg-[#047857] text-white border-0 font-bold text-xs tracking-wider rounded-full shadow-sm flex items-center gap-1.5 px-4 py-1.5">
-              <Package className="h-3.5 w-3.5" />
+            <Badge variant="outline" className={`bg-[#047857] text-white border-0 font-bold tracking-wider rounded-full shadow-sm flex items-center ${variant === "list" ? "gap-0.5 px-2 py-0.5 text-[10px] sm:gap-1 sm:px-2.5 sm:py-0.5 sm:text-xs" : "gap-1.5 text-xs px-4 py-1.5"}`}>
+              <Package className={variant === "list" ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5"} />
               {quantity} UNITS
             </Badge>
           )}
           {carbonSaved > 0 && (
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-bold text-xs tracking-wider rounded-full shadow-sm flex items-center gap-1.5 px-4 py-1.5">
-              <Leaf className="h-3.5 w-3.5" />
+            <Badge variant="outline" className={`bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 font-bold tracking-wider rounded-full shadow-sm flex items-center ${variant === "list" ? "gap-0.5 px-2 py-0.5 text-[10px] sm:gap-1 sm:px-2.5 sm:py-0.5 sm:text-xs" : "gap-1.5 text-xs px-4 py-1.5"}`}>
+              <Leaf className={variant === "list" ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3.5 w-3.5"} />
               {carbonSaved.toFixed(0)} kg CO₂
             </Badge>
           )}
           {allowOffers && (
-            <Badge variant="outline" className="bg-[#8B5CF6] text-white border-0 font-bold text-xs tracking-wider rounded-full shadow-sm px-4 py-1.5">
+            <Badge variant="outline" className={`bg-[#8B5CF6] text-white border-0 font-bold tracking-wider rounded-full shadow-sm ${variant === "list" ? "px-2 py-0.5 text-[10px] sm:px-2.5 sm:py-0.5 sm:text-xs" : "text-xs px-4 py-1.5"}`}>
               OPEN TO OFFERS
             </Badge>
           )}
         </div>
 
         {/* Location and Date */}
-        <div className="flex items-center justify-between text-muted-foreground text-sm">
+        <div className={`flex items-center justify-between text-muted-foreground ${variant === "list" ? "text-xs" : "text-sm"}`}>
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+            <MapPin className={variant === "list" ? "h-3 w-3 flex-shrink-0" : "h-3.5 w-3.5 flex-shrink-0"} />
             <span className="truncate">{location}</span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className={variant === "list" ? "h-3 w-3" : "h-3.5 w-3.5"} />
             <span className="whitespace-nowrap">{getRelativeDate(postedDate)}</span>
           </div>
         </div>
         
         {/* Delivery/Pickup Icons */}
         {(deliveryAvailable || pickupAvailable) && (
-          <div className="flex items-center gap-1.5 text-muted-foreground text-sm pt-1">
-            <Truck className="h-3.5 w-3.5" />
+          <div className={`flex items-center gap-1 text-muted-foreground ${variant === "list" ? "text-xs" : "text-sm pt-1"}`}>
+            <Truck className={variant === "list" ? "h-3 w-3" : "h-3.5 w-3.5"} />
             <span>
               {deliveryAvailable && pickupAvailable 
                 ? 'Pickup & Delivery'
@@ -292,7 +292,7 @@ const ListingCard = ({
         
         {/* Seller Verification Badges */}
         {(sellerVerified || sellerStripeVerified || sellerIdentityVerified) && (
-          <div className="pt-2 border-t">
+          <div className={`${variant === "list" ? "pt-1 border-t" : "pt-2 border-t"}`}>
             <VerificationBadges
               emailVerified={sellerVerified}
               stripeVerified={sellerStripeVerified}
