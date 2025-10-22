@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { VerificationBadges } from "@/components/VerificationBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface ListingCardProps {
   id: string;
@@ -60,6 +61,18 @@ const ListingCard = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Detect extreme aspect ratios and apply a gentle zoom to fill thumbnails in list view
+  const [zoomMap, setZoomMap] = useState<Record<number, boolean>>({});
+  const handleImageLoad = (index: number) => (e: any) => {
+    const img = e.currentTarget as HTMLImageElement;
+    if (!img?.naturalWidth || !img?.naturalHeight) return;
+    const ratio = img.naturalWidth / img.naturalHeight;
+    const shouldZoom = ratio > 1.6 || ratio < 0.7; // ultrawide or very tall
+    if (shouldZoom) {
+      setZoomMap((prev) => ({ ...prev, [index]: true }));
+    }
+  };
   
   const conditionConfig = {
     new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
@@ -126,8 +139,9 @@ const ListingCard = ({
                     <img 
                       src={image} 
                       alt={`${title} - Image ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+                      className={`w-full h-full object-cover object-center origin-center transition-smooth ${variant === "list" && zoomMap[index] ? 'scale-[1.15]' : ''} ${zoomMap[index] ? 'group-hover:scale-[1.25]' : 'group-hover:scale-105'}`}
                       loading="lazy"
+                      onLoad={handleImageLoad(index)}
                     />
                   </div>
                 </CarouselItem>
