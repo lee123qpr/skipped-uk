@@ -91,19 +91,70 @@ serve(async (req) => {
 
     console.log("[RAISE-DISPUTE] Dispute created", { disputeId: dispute.id });
 
-    // Upload evidence if provided
+    // Upload evidence if provided with validation
     if (evidence && evidence.length > 0) {
+      // Validation constants
+      const MAX_FILES = 5;
+      const MAX_FILE_SIZE_MB = 10;
+      const ALLOWED_TYPES = ["photo", "document"];
+      const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "pdf"];
+
+      // Validate evidence array
+      if (evidence.length > MAX_FILES) {
+        throw new Error(`Maximum ${MAX_FILES} evidence files allowed`);
+      }
+
+      // Validate each evidence item
+      for (const item of evidence) {
+        if (!item.url || typeof item.url !== 'string') {
+          throw new Error('Invalid evidence URL');
+        }
+
+        // Validate evidence type
+        const evidenceType = item.type || "photo";
+        if (!ALLOWED_TYPES.includes(evidenceType)) {
+          throw new Error(`Invalid evidence type: ${evidenceType}`);
+        }
+
+        // Validate URL is from our storage
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        if (!item.url.startsWith(supabaseUrl)) {
+          throw new Error('Evidence must be uploaded to our storage');
+        }
+
+        // Validate file extension from URL
+        const urlLower = item.url.toLowerCase();
+        const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => 
+          urlLower.includes(`.${ext}`)
+        );
+        if (!hasValidExtension) {
+          throw new Error(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`);
+        }
+
+        // Validate description length if provided
+        if (item.description && item.description.length > 500) {
+          throw new Error('Evidence description too long (max 500 characters)');
+        }
+      }
+
       const evidenceRecords = evidence.map((item: any) => ({
         dispute_id: dispute.id,
         uploaded_by_id: user.id,
         evidence_type: item.type || "photo",
         file_url: item.url,
-        description: item.description
+        description: item.description || null
       }));
 
-      await supabaseClient
+      const { error: evidenceError } = await supabaseClient
         .from("dispute_evidence")
         .insert(evidenceRecords);
+
+      if (evidenceError) {
+        console.error("[RAISE-DISPUTE] Failed to insert evidence", evidenceError);
+        throw new Error("Failed to save evidence");
+      }
+
+      console.log("[RAISE-DISPUTE] Evidence uploaded successfully", { count: evidence.length });
     }
 
     // Update transaction status to disputed
