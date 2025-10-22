@@ -111,7 +111,7 @@ const ListingCard = ({
     >
       {/* Image Carousel */}
       <div 
-        className={`relative bg-muted ${variant === "list" ? "w-36 sm:w-52 aspect-[4/3] flex-shrink-0 overflow-hidden" : ""}`}
+        className={`relative ${variant === "list" ? "w-36 sm:w-52 aspect-[4/3] flex-shrink-0 overflow-hidden" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
