@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { VerificationBadges } from "@/components/VerificationBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
 interface ListingCardProps {
   id: string;
@@ -62,18 +61,6 @@ const ListingCard = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Detect extreme aspect ratios and apply a gentle zoom to fill thumbnails in list view
-  const [zoomMap, setZoomMap] = useState<Record<number, boolean>>({});
-  const handleImageLoad = (index: number) => (e: any) => {
-    const img = e.currentTarget as HTMLImageElement;
-    if (!img?.naturalWidth || !img?.naturalHeight) return;
-    const ratio = img.naturalWidth / img.naturalHeight;
-    const shouldZoom = ratio > 1.4 || ratio < 0.8; // wide or tall - more aggressive
-    if (shouldZoom) {
-      setZoomMap((prev) => ({ ...prev, [index]: true }));
-    }
-  };
-  
   const conditionConfig = {
     new: { label: "NEW", className: "bg-[#22C55E] text-white border-0 shadow-sm" },
     like_new: { label: "LIKE NEW", className: "bg-[#10B981] text-white border-0 shadow-sm" },
@@ -111,7 +98,7 @@ const ListingCard = ({
     >
       {/* Image Carousel */}
       <div 
-        className={`relative ${variant === "list" ? "w-36 sm:w-52 h-full flex-shrink-0 overflow-hidden" : ""}`}
+        className={`relative ${variant === "list" ? "w-32 sm:w-48 h-32 sm:h-36 flex-shrink-0 overflow-hidden rounded-l-lg" : ""}`}
       >
         {/* Paused Overlay */}
         {isOwnListing && !available && (
@@ -139,9 +126,8 @@ const ListingCard = ({
                     <img 
                       src={image} 
                       alt={`${title} - Image ${index + 1}`}
-                      className={`w-full h-full object-cover object-center origin-center transition-smooth ${variant === "list" && zoomMap[index] ? 'scale-[1.35]' : ''} ${zoomMap[index] ? 'group-hover:scale-[1.45]' : 'group-hover:scale-105'}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
                       loading="lazy"
-                      onLoad={handleImageLoad(index)}
                     />
                   </div>
                 </CarouselItem>
