@@ -30,9 +30,41 @@ if (typeof window !== 'undefined') {
   // Register service worker for PWA only in production to avoid dev caching issues
   // Skip service worker on preview builds to prevent caching issues
   const isPreview = window.location.hostname.includes('lovable.app');
+
+  // On Lovable preview domains, forcibly unregister any existing service workers and clear caches
+  // to avoid stale bundles causing blank pages
+  if (isPreview && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => {
+          regs.forEach((reg) => reg.unregister());
+        })
+        .finally(() => {
+          const reloadOnce = () => {
+            if (!sessionStorage.getItem('preview_sw_cleared')) {
+              sessionStorage.setItem('preview_sw_cleared', '1');
+              window.location.reload();
+            }
+          };
+
+          if ('caches' in window) {
+            caches
+              .keys()
+              .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+              .then(reloadOnce)
+              .catch(reloadOnce);
+          } else {
+            reloadOnce();
+          }
+        });
+    });
+  }
+
   if (import.meta.env.PROD && !isPreview && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
+      navigator.serviceWorker
+        .register('/service-worker.js')
         .then((registration) => {
           if (import.meta.env.DEV) {
             console.log('SW registered:', registration);
