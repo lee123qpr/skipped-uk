@@ -414,13 +414,7 @@ const Browse = () => {
                   <Button
                     variant={viewMode === "map" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => {
-                      setViewMode("map");
-                      // Scroll to top of page after a brief delay to allow map to render
-                      setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }, 100);
-                    }}
+                    onClick={() => setViewMode("map")}
                     className="rounded-l-none"
                   >
                     <Map className="h-4 w-4" />
