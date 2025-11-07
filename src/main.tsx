@@ -28,7 +28,9 @@ if (typeof window !== 'undefined') {
   }
   
   // Register service worker for PWA only in production to avoid dev caching issues
-  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // Skip service worker on preview builds to prevent caching issues
+  const isPreview = window.location.hostname.includes('lovable.app');
+  if (import.meta.env.PROD && !isPreview && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
         .then((registration) => {
