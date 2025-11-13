@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthContext';
+import { compressImage } from '@/utils/fileUtils';
 
 interface MediaFile {
   id: string;
@@ -109,8 +110,9 @@ const MediaUpload = ({
       return 'Only image and video files are allowed';
     }
 
-    if (isImage && file.size > maxImageSize * 1024 * 1024) {
-      return `Image size must be less than ${maxImageSize}MB`;
+    // Allow larger files for images since we'll compress them
+    if (isImage && file.size > maxImageSize * 1024 * 1024 * 2) {
+      return `Image size must be less than ${maxImageSize * 2}MB (will be compressed)`;
     }
 
     if (isVideo && file.size > maxVideoSize * 1024 * 1024) {
@@ -173,11 +175,23 @@ const MediaUpload = ({
       }
 
       try {
+        // Compress images before processing
+        let processedFile = file;
+        const isImage = file.type.startsWith('image/');
+        
+        if (isImage) {
+          toast({
+            title: 'Compressing image',
+            description: `Optimising ${file.name}...`,
+          });
+          processedFile = await compressImage(file);
+        }
+
         const mediaFile: MediaFile = {
           id: Math.random().toString(36).substr(2, 9),
-          file,
-          preview: URL.createObjectURL(file),
-          type: file.type.startsWith('image/') ? 'image' : 'video',
+          file: processedFile,
+          preview: URL.createObjectURL(processedFile),
+          type: isImage ? 'image' : 'video',
           uploading: false,
           uploaded: false,
           order: files.length + newFiles.length,
@@ -186,7 +200,7 @@ const MediaUpload = ({
         // Generate video thumbnail
         if (mediaFile.type === 'video') {
           try {
-            mediaFile.thumbnail = await generateVideoThumbnail(file);
+            mediaFile.thumbnail = await generateVideoThumbnail(processedFile);
           } catch (error) {
             // Continue without thumbnail - will show video icon instead
           }
