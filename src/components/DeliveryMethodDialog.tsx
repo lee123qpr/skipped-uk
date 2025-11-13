@@ -11,6 +11,8 @@ interface DeliveryMethodDialogProps {
   deliveryAvailable: boolean;
   pickupAvailable: boolean;
   deliveryCost: number;
+  deliveryRadius?: number;
+  sellerLocation?: string;
   onConfirm: (method: 'delivery' | 'pickup') => void;
 }
 
@@ -20,6 +22,8 @@ export function DeliveryMethodDialog({
   deliveryAvailable,
   pickupAvailable,
   deliveryCost,
+  deliveryRadius,
+  sellerLocation,
   onConfirm
 }: DeliveryMethodDialogProps) {
   const [selectedMethod, setSelectedMethod] = useState<'delivery' | 'pickup'>(
@@ -62,13 +66,19 @@ export function DeliveryMethodDialog({
               <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
                 <RadioGroupItem value="delivery" id="delivery" />
                 <Label htmlFor="delivery" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" />
-                    <div>
+                  <div className="flex items-start gap-2">
+                    <Truck className="h-5 w-5 mt-0.5" />
+                    <div className="flex-1">
                       <p className="font-medium">Delivery</p>
                       <p className="text-sm text-muted-foreground">
                         {deliveryCost > 0 ? `£${deliveryCost.toFixed(2)} delivery charge` : 'Free delivery'}
                       </p>
+                      {deliveryRadius && (
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          Available within {deliveryRadius} miles{sellerLocation ? ` of ${sellerLocation}` : ''}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Label>

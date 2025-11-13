@@ -949,6 +949,8 @@ const ListingDetails = () => {
           deliveryAvailable={listing.delivery_available}
           pickupAvailable={listing.pickup_available}
           deliveryCost={listing.delivery_cost || 0}
+          deliveryRadius={listing.delivery_radius}
+          sellerLocation={listing.location}
           onConfirm={handleDeliveryMethodConfirmed}
         />
 
