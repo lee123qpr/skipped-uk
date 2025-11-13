@@ -117,7 +117,7 @@ serve(async (req) => {
         });
       } catch (transferError: any) {
         // In test mode, insufficient balance is common - log but continue
-        console.error("[CONFIRM-DELIVERY] Transfer failed (continuing anyway):", {
+        console.log("[CONFIRM-DELIVERY] Transfer failed (continuing anyway):", {
           error: transferError.message,
           code: transferError.code,
           transactionId: transaction.id
@@ -125,16 +125,22 @@ serve(async (req) => {
         
         // Only throw if it's not an insufficient balance error in test mode
         if (transferError.code !== 'balance_insufficient') {
+          console.error("[CONFIRM-DELIVERY] Non-balance error, throwing:", transferError);
           throw transferError;
         }
         
-        console.log("[CONFIRM-DELIVERY] Skipping transfer due to test mode insufficient balance");
+        console.log("[CONFIRM-DELIVERY] Skipping transfer due to test mode insufficient balance - transaction will complete without Stripe transfer");
       }
     } else {
       console.log("[CONFIRM-DELIVERY] No payment intent - completing without Stripe transfer");
     }
 
     // Update transaction status to completed with transfer ID (if exists)
+    console.log("[CONFIRM-DELIVERY] Updating transaction to completed", {
+      transactionId,
+      transferId: transferId || "none"
+    });
+    
     const { error: updateError } = await supabaseClient
       .from("transactions")
       .update({
@@ -146,18 +152,35 @@ serve(async (req) => {
       .eq("id", transactionId);
 
     if (updateError) {
-      console.error("[CONFIRM-DELIVERY] Failed to update transaction", updateError);
-      throw new Error("Failed to update transaction");
+      console.error("[CONFIRM-DELIVERY] Failed to update transaction", {
+        error: updateError,
+        transactionId
+      });
+      throw new Error(`Failed to update transaction: ${updateError.message}`);
     }
 
+    console.log("[CONFIRM-DELIVERY] Transaction updated successfully");
+
     // Mark listing as sold
-    await supabaseClient
+    console.log("[CONFIRM-DELIVERY] Marking listing as sold", {
+      listingId: transaction.listing_id
+    });
+    
+    const { error: listingError } = await supabaseClient
       .from("listings")
       .update({ 
         status: "sold",
         available: false 
       })
       .eq("id", transaction.listing_id);
+
+    if (listingError) {
+      console.error("[CONFIRM-DELIVERY] Failed to update listing", {
+        error: listingError,
+        listingId: transaction.listing_id
+      });
+      // Continue anyway - listing update is not critical
+    }
 
     // Get listing title
     const { data: listing } = await supabaseClient
@@ -169,8 +192,10 @@ serve(async (req) => {
     const listingTitle = listing?.title || "item";
 
     // Create system messages for both parties with role-specific content
+    console.log("[CONFIRM-DELIVERY] Creating system messages");
+    
     const hasPayment = !!transaction.stripe_payment_intent_id;
-    await supabaseClient
+    const { error: messageError } = await supabaseClient
       .from("messages")
       .insert([
         {
@@ -195,8 +220,19 @@ serve(async (req) => {
         }
       ]);
 
+    if (messageError) {
+      console.error("[CONFIRM-DELIVERY] Failed to create messages", {
+        error: messageError
+      });
+      // Continue anyway - messages are not critical
+    } else {
+      console.log("[CONFIRM-DELIVERY] System messages created");
+    }
+
     // Create notifications for both parties
-    await supabaseClient
+    console.log("[CONFIRM-DELIVERY] Creating notifications");
+    
+    const { error: notificationError } = await supabaseClient
       .from("notifications")
       .insert([
         {
@@ -224,6 +260,15 @@ serve(async (req) => {
           metadata: { listing_id: transaction.listing_id }
         }
       ]);
+
+    if (notificationError) {
+      console.error("[CONFIRM-DELIVERY] Failed to create notifications", {
+        error: notificationError
+      });
+      // Continue anyway - notifications are not critical
+    } else {
+      console.log("[CONFIRM-DELIVERY] Notifications created successfully");
+    }
 
     console.log("[CONFIRM-DELIVERY] Delivery confirmed, funds transferred, and review notifications sent");
 
