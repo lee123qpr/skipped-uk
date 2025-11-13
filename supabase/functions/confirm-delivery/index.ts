@@ -85,10 +85,16 @@ serve(async (req) => {
 
       // Payment was already captured to platform at purchase time
       // Now create Transfer to seller's Connect account
-      itemAmount = parseFloat(paymentIntent.metadata.item_amount) * 100;
+      // Use transaction.amount which is now stored as item cost in pounds
+      const itemAmountPence = Math.round(transaction.amount * 100);
+      
+      console.log("[CONFIRM-DELIVERY] Calculating transfer amount", {
+        transactionAmountPounds: transaction.amount,
+        itemAmountPence
+      });
       
       const transfer = await stripe.transfers.create({
-        amount: itemAmount, // Transfer item price only (platform keeps protection fee)
+        amount: itemAmountPence, // Transfer item price only (platform keeps protection fee)
         currency: "gbp",
         destination: paymentIntent.transfer_data.destination,
         transfer_group: transaction.id,
