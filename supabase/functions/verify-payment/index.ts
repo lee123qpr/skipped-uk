@@ -192,10 +192,16 @@ serve(async (req) => {
       .insert(messages);
 
     if (messagesError) {
-      logStep("WARNING: Failed to create messages", { error: messagesError });
-    } else {
-      logStep("System messages created");
+      logStep("ERROR: Failed to create messages", { error: messagesError });
+      // Critical: Messages must be created for transaction visibility
+      // Rollback transaction status to allow retry
+      await supabaseClient
+        .from('transactions')
+        .update({ status: 'pending_payment' })
+        .eq('id', newTransaction.id);
+      throw new Error(`Failed to create system messages: ${messagesError.message}`);
     }
+    logStep("System messages created");
 
     // Create notifications
     const notifications = [

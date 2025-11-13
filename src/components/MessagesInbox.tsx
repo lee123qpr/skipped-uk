@@ -540,6 +540,43 @@ const MessagesInbox = () => {
     enabled: !!user,
   });
 
+  // Fetch all user transactions to detect orphaned ones (transactions without messages)
+  const { data: allTransactionsData = [], refetch: refetchTransactions } = useQuery({
+    queryKey: ['allTransactions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data: transactions, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          listings:listing_id (
+            id,
+            title,
+            price,
+            images,
+            seller_id
+          )
+        `)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .in('status', ['paid', 'dispatched', 'delivered', 'disputed', 'disputed_pending_review'])
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return transactions || [];
+    },
+    enabled: !!user,
+  });
+
+  // Find orphaned transactions (transactions without associated messages)
+  const orphanedTransactions = allTransactionsData.filter(transaction => {
+    // Check if this transaction has messages in any conversation
+    const hasMessages = conversationsList.some(conv => 
+      conv.transaction?.id === transaction.id
+    );
+    return !hasMessages;
+  });
+
   // Fetch offers (made) with seller profile
   const { data: madeOffersData = [] } = useQuery({
     queryKey: ['madeOffers', user?.id],
@@ -652,6 +689,7 @@ const MessagesInbox = () => {
         },
         (payload) => {
           refetchMessages();
+          refetchTransactions();
           refreshCounts(); // Update notification counts
         }
       )
@@ -665,6 +703,7 @@ const MessagesInbox = () => {
         },
         (payload) => {
           refetchMessages();
+          refetchTransactions();
           refreshCounts(); // Update notification counts
         }
       )
@@ -673,7 +712,7 @@ const MessagesInbox = () => {
     return () => {
       supabase.removeChannel(transactionChannel);
     };
-  }, [user, refetchMessages, refreshCounts]);
+  }, [user, refetchMessages, refetchTransactions, refreshCounts]);
 
   // Realtime subscription for instant message updates
   useEffect(() => {
@@ -823,8 +862,70 @@ const MessagesInbox = () => {
         </div>
       </div>
 
-      <div className="space-y-4">
-          {conversationsList.length === 0 ? (
+      {/* Orphaned Transactions Section - Transactions without messages */}
+      {orphanedTransactions.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-900/10">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              Active Transactions
+            </CardTitle>
+            <CardDescription>
+              These transactions need your attention
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {orphanedTransactions.map((transaction) => {
+              const isSellerView = transaction.seller_id === user?.id;
+              const otherUserId = isSellerView ? transaction.buyer_id : transaction.seller_id;
+              
+              return (
+                <Card
+                  key={transaction.id}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => {
+                    // Navigate to create a conversation for this transaction
+                    navigate(`/dashboard?tab=messages&conversation=transaction-${transaction.id}`);
+                    // Force a refresh to load the transaction
+                    refetchMessages();
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        {transaction.status === 'paid' && <CreditCard className="h-5 w-5 text-blue-600" />}
+                        {transaction.status === 'dispatched' && <Truck className="h-5 w-5 text-purple-600" />}
+                        {transaction.status === 'delivered' && <Package className="h-5 w-5 text-green-600" />}
+                        {(transaction.status === 'disputed' || transaction.status === 'disputed_pending_review') && 
+                          <AlertTriangle className="h-5 w-5 text-red-600" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">
+                          {transaction.listings?.title || 'Item'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {isSellerView ? 'Order received' : 'Purchase made'} • £{transaction.amount.toFixed(2)}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {transaction.status === 'paid' && 'Awaiting Dispatch'}
+                            {transaction.status === 'dispatched' && 'In Transit'}
+                            {transaction.status === 'delivered' && 'Delivered'}
+                            {transaction.status === 'disputed' && 'Disputed'}
+                            {transaction.status === 'disputed_pending_review' && 'Under Review'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-4">{conversationsList.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
