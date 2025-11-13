@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { validateUUID, validateString, validateEnum, validateOptional, ValidationException } from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,13 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const { transactionId, reason, description, disputeType, evidence } = await req.json();
+    // Parse and validate request body
+    const body = await req.json();
+    const transactionId = validateUUID(body.transactionId, 'transactionId');
+    const reason = validateString(body.reason, 'reason', 10, 500);
+    const description = validateOptional(body.description, (v) => validateString(v, 'description', 0, 2000));
+    const disputeType = validateOptional(
+      body.disputeType, 
+      (v) => validateEnum(v, 'disputeType', ['buyer_item_issue', 'buyer_not_received', 'seller_non_payment', 'seller_item_damaged', 'other'])
+    );
+    const evidence = body.evidence;
     
-    console.log("[RAISE-DISPUTE] Request received", { transactionId, reason, disputeType });
-
-    if (!transactionId || !reason) {
-      throw new Error("Missing required fields: transactionId and reason");
-    }
+    console.log("[RAISE-DISPUTE] Request validated", { transactionId, reason, disputeType });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -255,6 +261,21 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("[RAISE-DISPUTE] Error:", error);
+    
+    // Handle validation errors with 400 status
+    if (error instanceof ValidationException) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed',
+          details: error.errors
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       {
