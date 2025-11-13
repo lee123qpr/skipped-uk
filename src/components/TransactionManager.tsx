@@ -199,12 +199,12 @@ export const TransactionManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Item Price:</span>
-              <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
-            </div>
             {userRole === "buyer" && (
               <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Item Price:</span>
+                  <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
+                </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Buyer Protection (5%):</span>
                   <span className="font-semibold">£{(transaction.buyer_protection_fee || 0).toFixed(2)}</span>
