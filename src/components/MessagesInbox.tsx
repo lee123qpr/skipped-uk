@@ -990,14 +990,6 @@ const MessagesInbox = () => {
                     >
                       {selectedConversation.listing?.title}
                     </button>
-                    {selectedConversation.transaction && (() => {
-                      const breakdown = formatTransactionBreakdown(selectedConversation.transaction);
-                      return (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Total paid £{breakdown.total} • Item £{breakdown.item} • Buyer protection £{breakdown.buyerProtection} • {breakdown.deliveryMethod}{breakdown.hasDeliveryCost ? ` £${breakdown.delivery}` : ''}
-                        </p>
-                      );
-                    })()}
                   </div>
                 </div>
               </CardHeader>
