@@ -150,7 +150,7 @@ serve(async (req) => {
           price_data: {
             currency: 'gbp',
             product_data: {
-              name: 'Buyer Protection',
+              name: 'Buyer Protection (5%)',
               description: 'Secure payment processing and dispute resolution',
             },
             unit_amount: buyerProtectionFeePence,
@@ -161,8 +161,8 @@ serve(async (req) => {
           price_data: {
             currency: 'gbp',
             product_data: {
-              name: 'Delivery',
-              description: `${deliveryMethod} delivery`,
+              name: deliveryMethod === 'collection' ? 'Collection' : 'Delivery Service',
+              description: deliveryMethod === 'collection' ? 'Collection from seller' : `Delivery to your location`,
             },
             unit_amount: deliveryCostPence,
           },
