@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { 
+  validateUUID, 
+  validateAmount, 
+  validateURL, 
+  validateEnum,
+  validateOptional,
+  ValidationException 
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,27 +45,18 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id });
 
-    // Parse request body - now takes listing details directly
-    const { 
-      listingId, 
-      amount, 
-      buyerProtectionFee = 0,
-      deliveryMethod = 'collection',
-      deliveryCost = 0,
-      offerId = null,
-      returnUrl 
-    } = await req.json();
+    // Parse and validate request body
+    const body = await req.json();
+    
+    const listingId = validateUUID(body.listingId, 'listingId');
+    const amount = validateAmount(body.amount, 'amount');
+    const buyerProtectionFee = validateOptional(body.buyerProtectionFee, (v) => validateAmount(v, 'buyerProtectionFee')) ?? 0;
+    const deliveryMethod = validateEnum(body.deliveryMethod ?? 'collection', 'deliveryMethod', ['collection', 'delivery']);
+    const deliveryCost = validateOptional(body.deliveryCost, (v) => validateAmount(v, 'deliveryCost')) ?? 0;
+    const offerId = validateOptional(body.offerId, (v) => validateUUID(v, 'offerId'));
+    const returnUrl = validateURL(body.returnUrl, 'returnUrl');
 
-    logStep("Request parsed", { listingId, amount, buyerProtectionFee, deliveryMethod, deliveryCost, offerId });
-
-    if (!listingId || !amount || !returnUrl) {
-      throw new Error('Missing required parameters: listingId, amount, returnUrl');
-    }
-
-    // Validate amount
-    if (amount <= 0) {
-      throw new Error('Invalid amount');
-    }
+    logStep("Request validated", { listingId, amount, buyerProtectionFee, deliveryMethod, deliveryCost, offerId });
 
     // Fetch listing details
     const { data: listing, error: listingError } = await supabaseClient
@@ -211,6 +210,21 @@ serve(async (req) => {
     );
   } catch (error: any) {
     logStep("ERROR", { message: error.message, stack: error.stack });
+    
+    // Handle validation errors with 400 status
+    if (error instanceof ValidationException) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed',
+          details: error.errors
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

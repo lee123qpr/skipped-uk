@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateString, ValidationException } from "../_shared/validation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,11 +38,11 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id });
 
-    const { sessionId } = await req.json();
-    if (!sessionId) {
-      throw new Error('Missing sessionId');
-    }
-    logStep("Session ID received", { sessionId });
+    // Parse and validate request body
+    const body = await req.json();
+    const sessionId = validateString(body.sessionId, 'sessionId', 10, 500);
+    
+    logStep("Session ID validated", { sessionId });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -243,6 +244,21 @@ serve(async (req) => {
     );
   } catch (error: any) {
     logStep("ERROR", { message: error.message, stack: error.stack });
+    
+    // Handle validation errors with 400 status
+    if (error instanceof ValidationException) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Validation failed',
+          details: error.errors
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false,
