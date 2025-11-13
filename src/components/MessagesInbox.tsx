@@ -148,6 +148,24 @@ interface Offer {
   };
 }
 
+// Helper function to format transaction breakdown
+const formatTransactionBreakdown = (transaction: any) => {
+  const item = transaction.amount || 0;
+  const buyerProtection = transaction.buyer_protection_fee || 0;
+  const delivery = transaction.delivery_cost || 0;
+  const total = item + buyerProtection + delivery;
+  const deliveryMethod = transaction.delivery_method === 'delivery' ? 'Delivery' : 'Collection';
+  
+  return {
+    item: item.toFixed(2),
+    buyerProtection: buyerProtection.toFixed(2),
+    delivery: delivery.toFixed(2),
+    total: total.toFixed(2),
+    deliveryMethod,
+    hasDeliveryCost: delivery > 0
+  };
+};
+
 const MessagesInbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -906,9 +924,19 @@ const MessagesInbox = () => {
                         <p className="font-medium text-sm">
                           {transaction.listings?.title || 'Item'}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {isSellerView ? 'Order received' : 'Purchase made'} • £{transaction.amount.toFixed(2)}
-                        </p>
+                        {(() => {
+                          const breakdown = formatTransactionBreakdown(transaction);
+                          return (
+                            <>
+                              <p className="text-xs font-medium">
+                                {isSellerView ? 'Order received' : 'Purchase made'} • Total paid £{breakdown.total}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Item £{breakdown.item} • Buyer protection £{breakdown.buyerProtection} • {breakdown.deliveryMethod}{breakdown.hasDeliveryCost ? ` £${breakdown.delivery}` : ''}
+                              </p>
+                            </>
+                          );
+                        })()}
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">
                             {transaction.status === 'paid' && 'Awaiting Dispatch'}
@@ -962,6 +990,14 @@ const MessagesInbox = () => {
                     >
                       {selectedConversation.listing?.title}
                     </button>
+                    {selectedConversation.transaction && (() => {
+                      const breakdown = formatTransactionBreakdown(selectedConversation.transaction);
+                      return (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Total paid £{breakdown.total} • Item £{breakdown.item} • Buyer protection £{breakdown.buyerProtection} • {breakdown.deliveryMethod}{breakdown.hasDeliveryCost ? ` £${breakdown.delivery}` : ''}
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
               </CardHeader>
