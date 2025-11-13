@@ -31,16 +31,19 @@ import { EmptyState } from "./EmptyState";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDistanceToNow } from "date-fns";
-import { getStatusConfig, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
+import { getStatusConfig } from "@/utils/transactionStatus";
 import { DisputeDialog } from "./DisputeDialog";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionTimeline } from "./TransactionTimeline";
+import { TransactionManager } from "./TransactionManager";
 
 interface Purchase {
   id: string;
   status: string;
   amount: number;
+  buyer_id: string;
+  stripe_payment_intent_id: string | null;
   created_at: string;
   updated_at: string;
   paid_at: string | null;
@@ -48,6 +51,7 @@ interface Purchase {
   delivery_confirmed_at: string | null;
   completed_at: string | null;
   disputed_at: string | null;
+  dispute_reason: string | null;
   refunded_at: string | null;
   seller_id: string;
   listing_id: string;
@@ -92,7 +96,6 @@ const MyPurchases = () => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Purchase | null>(null);
-  const [confirmingDelivery, setConfirmingDelivery] = useState<string | null>(null);
 
   const { data: purchases, isLoading, refetch, error } = useQuery({
     queryKey: ['myPurchases', user?.id],
@@ -138,32 +141,6 @@ const MyPurchases = () => {
     },
     enabled: !!user,
   });
-
-  const handleConfirmDelivery = async (transactionId: string) => {
-    setConfirmingDelivery(transactionId);
-    try {
-      const { error } = await supabaseClient.functions.invoke('confirm-delivery', {
-        body: { transactionId },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Delivery confirmed',
-        description: 'Payment has been released to the seller.',
-      });
-
-      refetch();
-    } catch (error) {
-      toast({
-        title: 'Error confirming delivery',
-        description: 'Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setConfirmingDelivery(null);
-    }
-  };
 
   const handleRaiseDispute = (purchase: Purchase) => {
     setSelectedTransaction(purchase);
@@ -473,34 +450,15 @@ const MyPurchases = () => {
                                 </div>
                               </div>
 
-                              {/* Transaction Timeline */}
-                              <TransactionTimeline transaction={purchase} userRole="buyer" />
+                              {/* Transaction Manager - handles all transaction actions consistently */}
+                              <TransactionManager 
+                                transaction={purchase}
+                                userRole="buyer"
+                                onUpdate={refetch}
+                              />
 
-                              {/* Action Buttons */}
-                              <div className="flex flex-wrap gap-2">
-                                {canBuyerConfirmDelivery(purchase.status) && (
-                                  <>
-                                    <Button
-                                      onClick={() => handleConfirmDelivery(purchase.id)}
-                                      disabled={confirmingDelivery === purchase.id}
-                                      size="sm"
-                                    >
-                                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                                      Confirm Delivery
-                                    </Button>
-                                    {canRaiseDispute(purchase.status) && (
-                                      <Button
-                                        variant="outline"
-                                        onClick={() => handleRaiseDispute(purchase)}
-                                        size="sm"
-                                      >
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Raise Dispute
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-                                
+                              {/* Additional Quick Actions */}
+                              <div className="flex flex-wrap gap-2 mt-2">
                                 <Button
                                   variant="outline"
                                   onClick={() => navigate(`/dashboard?tab=messages&conversation=${purchase.seller ? purchase.listing?.seller_id : purchase.seller_id}&listing=${purchase.listing?.id || ''}`)}
