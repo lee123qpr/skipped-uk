@@ -42,6 +42,9 @@ interface Purchase {
   id: string;
   status: string;
   amount: number;
+  buyer_protection_fee?: number | null;
+  delivery_cost?: number | null;
+  delivery_method?: string | null;
   buyer_id: string;
   stripe_payment_intent_id: string | null;
   created_at: string;
@@ -88,6 +91,23 @@ interface PurchaseSection {
   variant: "default" | "destructive" | "outline" | "secondary";
   defaultOpen?: boolean;
 }
+
+// Helper function to format transaction breakdown for display
+const formatPurchaseBreakdown = (p: Purchase) => {
+  const item = Number(p.amount) || 0;
+  const buyerProtection = Number(p.buyer_protection_fee || 0);
+  const delivery = Number(p.delivery_cost || 0);
+  const total = item + buyerProtection + delivery;
+  const deliveryMethod = p.delivery_method === 'delivery' ? 'Delivery' : 'Collection';
+  return {
+    item: item.toFixed(2),
+    buyerProtection: buyerProtection.toFixed(2),
+    delivery: delivery.toFixed(2),
+    total: total.toFixed(2),
+    deliveryMethod,
+    hasDeliveryCost: delivery > 0,
+  };
+};
 
 const MyPurchases = () => {
   const { user } = useAuth();
@@ -417,9 +437,17 @@ const MyPurchases = () => {
                               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-lg">{purchase.listing?.title || 'Listing'}</h3>
-                                  <p className="text-2xl font-bold text-primary mt-1">
-                                    £{Number(purchase.amount).toLocaleString()}
-                                  </p>
+                                  {(() => {
+                                    const breakdown = formatPurchaseBreakdown(purchase);
+                                    return (
+                                      <>
+                                        <p className="text-2xl font-bold text-primary mt-1">Total paid £{breakdown.total}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                          Item £{breakdown.item} • Buyer protection £{breakdown.buyerProtection} • {breakdown.deliveryMethod}{breakdown.hasDeliveryCost ? ` £${breakdown.delivery}` : ''}
+                                        </p>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                                 
                                 <div className="flex flex-col gap-2">
