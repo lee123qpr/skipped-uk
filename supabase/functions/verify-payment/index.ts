@@ -103,21 +103,28 @@ serve(async (req) => {
       );
     }
 
-    // Calculate total amount
-    const itemAmountPounds = parseFloat(item_amount) / 100;
-    const buyerProtectionFeePounds = buyer_protection_fee ? parseFloat(buyer_protection_fee) / 100 : 0;
-    const deliveryCostPounds = delivery_cost ? parseFloat(delivery_cost) / 100 : 0;
-    const totalAmount = itemAmountPounds + buyerProtectionFeePounds + deliveryCostPounds;
+    // Calculate amounts in pence for Stripe
+    const itemAmountPence = parseInt(item_amount);
+    const buyerProtectionFeePence = buyer_protection_fee ? parseInt(buyer_protection_fee) : 0;
+    const deliveryCostPence = delivery_cost ? parseInt(delivery_cost) : 0;
+
+    // Convert to pounds for database storage (store separately, not as total)
+    const itemAmountPounds = itemAmountPence / 100;
+    const buyerProtectionFeePounds = buyerProtectionFeePence / 100;
+    const deliveryCostPounds = deliveryCostPence / 100;
 
     logStep("Creating new transaction", {
       listing_id,
       buyer_id,
       seller_id,
-      amount: totalAmount,
+      itemAmountPounds,
+      buyerProtectionFeePounds,
+      deliveryCostPounds,
+      deliveryMethod: delivery_method,
       paymentIntentId: paymentIntent.id
     });
 
-    // Create new transaction with status 'paid'
+    // Create new transaction with status 'paid' - store costs separately
     const { data: newTransaction, error: transactionError } = await supabaseClient
       .from('transactions')
       .insert({
@@ -125,8 +132,10 @@ serve(async (req) => {
         buyer_id,
         seller_id,
         offer_id: offer_id || null,
-        amount: totalAmount,
+        amount: itemAmountPounds, // Just the item cost
         buyer_protection_fee: buyerProtectionFeePounds,
+        delivery_cost: deliveryCostPounds,
+        delivery_method: delivery_method || 'collection',
         status: 'paid',
         stripe_payment_intent_id: paymentIntent.id,
         paid_at: new Date().toISOString(),

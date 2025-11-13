@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, 
@@ -38,6 +39,8 @@ interface Transaction {
   seller_id: string;
   amount: number;
   buyer_protection_fee?: number | null;
+  delivery_cost?: number | null;
+  delivery_method?: string | null;
   status: string;
   stripe_payment_intent_id: string | null;
   created_at: string;
@@ -196,22 +199,37 @@ export const TransactionManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Amount:</span>
-            <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
-          </div>
-          {userRole === "buyer" && (
-            <>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Buyer Protection:</span>
-                <span className="font-semibold">£{(transaction.buyer_protection_fee || transaction.amount * 0.05).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm border-t pt-2">
-                <span className="font-medium">Total:</span>
-                <span className="font-bold">£{(transaction.amount + (transaction.buyer_protection_fee || transaction.amount * 0.05)).toFixed(2)}</span>
-              </div>
-            </>
-          )}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Item Price:</span>
+              <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
+            </div>
+            {userRole === "buyer" && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Buyer Protection (5%):</span>
+                  <span className="font-semibold">£{(transaction.buyer_protection_fee || 0).toFixed(2)}</span>
+                </div>
+                {transaction.delivery_cost && transaction.delivery_cost > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {transaction.delivery_method === 'delivery' ? 'Delivery' : 'Collection'}:
+                    </span>
+                    <span className="font-semibold">£{transaction.delivery_cost.toFixed(2)}</span>
+                  </div>
+                )}
+                <Separator className="my-2" />
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Total Paid:</span>
+                  <span className="font-bold">
+                    £{(
+                      transaction.amount + 
+                      (transaction.buyer_protection_fee || 0) + 
+                      (transaction.delivery_cost || 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              </>
+            )}
         </div>
 
         {/* Buyer Actions */}
