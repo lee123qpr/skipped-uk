@@ -99,6 +99,9 @@ interface Conversation {
     buyer_id: string;
     seller_id: string;
     amount: number;
+    buyer_protection_fee?: number | null;
+    delivery_cost?: number | null;
+    delivery_method?: string | null;
     status: string;
     stripe_payment_intent_id: string | null;
     created_at: string;
