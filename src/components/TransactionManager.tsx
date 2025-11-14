@@ -388,8 +388,8 @@ export const TransactionManager = ({
             
             <Button
               onClick={() => {
-                // Navigate to Dashboard profile tab where TransactionReviews is displayed
-                window.location.href = "/dashboard?tab=profile#reviews";
+                // Navigate to Settings page where UnifiedReviews is displayed
+                window.location.href = "/settings";
               }}
               className="w-full"
               size="sm"

@@ -499,7 +499,7 @@ const MyPurchases = () => {
                                 {purchase.status === 'completed' && !purchase.review && (
                                   <Button
                                     variant="default"
-                                    onClick={() => navigate(`/dashboard?tab=profile&review=${purchase.id}`)}
+                                    onClick={() => navigate('/settings')}
                                     size="sm"
                                   >
                                     <Star className="mr-2 h-4 w-4" />
