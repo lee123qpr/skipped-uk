@@ -160,7 +160,19 @@ export const TransactionManager = ({
         body: { transactionId: transaction.id },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's already completed
+        if (error.message?.includes("must be dispatched")) {
+          // Refresh to get latest status
+          onUpdate();
+          toast({
+            title: "Already Confirmed",
+            description: "This delivery has already been confirmed. Refreshing...",
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Check if listing has environmental assessment enabled
       if (transaction.listings?.environmental_assessment_enabled) {
