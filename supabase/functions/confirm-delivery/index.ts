@@ -57,95 +57,48 @@ serve(async (req) => {
       hasPaymentIntent: !!transaction.stripe_payment_intent_id 
     });
 
-    let transferId = null;
+    // Note: When payment intent is created with transfer_data.destination,
+    // Stripe automatically transfers funds to the seller's connected account upon payment capture.
+    // The funds go directly to the seller, with the platform keeping any application_fee.
+    // No manual transfer is needed here - we just verify payment was successful.
+    
     let itemAmount = transaction.amount;
 
-    // Only process Stripe payment if payment intent exists
     if (transaction.stripe_payment_intent_id) {
-      // Initialize Stripe
       const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
         apiVersion: "2024-06-20",
       });
 
-      // Get payment intent to retrieve seller account ID from metadata
       const paymentIntent = await stripe.paymentIntents.retrieve(
         transaction.stripe_payment_intent_id
       );
 
-      if (!paymentIntent.transfer_data?.destination) {
-        throw new Error("No destination account found for transfer");
-      }
-
-      console.log("[CONFIRM-DELIVERY] Payment intent retrieved", {
+      console.log("[CONFIRM-DELIVERY] Payment intent verified", {
         paymentIntentId: paymentIntent.id,
         status: paymentIntent.status,
         amount: paymentIntent.amount,
-        destination: paymentIntent.transfer_data.destination
+        destination: paymentIntent.transfer_data?.destination
       });
 
-      // Payment was already captured to platform at purchase time
-      // Now create Transfer to seller's Connect account
-      // Use transaction.amount which is now stored as item cost in pounds
-      const itemAmountPence = Math.round(transaction.amount * 100);
-      
-      console.log("[CONFIRM-DELIVERY] Calculating transfer amount", {
-        transactionAmountPounds: transaction.amount,
-        itemAmountPence
-      });
-      
-      try {
-        const transfer = await stripe.transfers.create({
-          amount: itemAmountPence, // Transfer item price only (platform keeps protection fee)
-          currency: "gbp",
-          destination: paymentIntent.transfer_data.destination,
-          transfer_group: transaction.id,
-          metadata: {
-            transaction_id: transaction.id,
-            listing_id: transaction.listing_id,
-            buyer_id: transaction.buyer_id,
-            seller_id: transaction.seller_id,
-          },
-          description: `Payout for transaction ${transaction.id}`,
-        });
-
-        transferId = transfer.id;
-
-        console.log("[CONFIRM-DELIVERY] Transfer created", {
-          transferId: transfer.id,
-          amount: transfer.amount / 100,
-          destination: transfer.destination
-        });
-      } catch (transferError: any) {
-        // In test mode, insufficient balance is common - log but continue
-        console.log("[CONFIRM-DELIVERY] Transfer failed (continuing anyway):", {
-          error: transferError.message,
-          code: transferError.code,
-          transactionId: transaction.id
-        });
-        
-        // Only throw if it's not an insufficient balance error in test mode
-        if (transferError.code !== 'balance_insufficient') {
-          console.error("[CONFIRM-DELIVERY] Non-balance error, throwing:", transferError);
-          throw transferError;
-        }
-        
-        console.log("[CONFIRM-DELIVERY] Skipping transfer due to test mode insufficient balance - transaction will complete without Stripe transfer");
+      if (paymentIntent.status !== "succeeded") {
+        throw new Error("Payment not yet completed");
       }
+
+      // Funds already transferred automatically via transfer_data.destination
+      console.log("[CONFIRM-DELIVERY] Funds automatically transferred to seller via transfer_data");
     } else {
-      console.log("[CONFIRM-DELIVERY] No payment intent - completing without Stripe transfer");
+      console.log("[CONFIRM-DELIVERY] No payment intent - completing without payment verification");
     }
 
-    // Update transaction status to completed with transfer ID (if exists)
+    // Update transaction status to completed
     console.log("[CONFIRM-DELIVERY] Updating transaction to completed", {
-      transactionId,
-      transferId: transferId || "none"
+      transactionId
     });
     
     const { error: updateError } = await supabaseClient
       .from("transactions")
       .update({
         status: "completed",
-        stripe_transfer_id: transferId,
         delivery_confirmed_at: new Date().toISOString(),
         completed_at: new Date().toISOString(),
       })
@@ -204,7 +157,7 @@ serve(async (req) => {
           listing_id: transaction.listing_id,
           transaction_id: transactionId,
           content: hasPayment 
-            ? `✅ Delivery confirmed by buyer! Funds of £${(itemAmount / 100).toFixed(2)} have been released to your account. You can now leave a review for the buyer.`
+            ? `✅ Delivery confirmed by buyer! Funds of £${itemAmount.toFixed(2)} have been released to your account. You can now leave a review for the buyer.`
             : `✅ Delivery confirmed by buyer! Transaction complete. You can now leave a review for the buyer.`,
           message_type: "system",
           read: false,
@@ -240,14 +193,14 @@ serve(async (req) => {
           type: "transaction",
           title: hasPayment ? "Funds Released to Your Account" : "Transaction Completed",
           description: hasPayment 
-            ? `Delivery confirmed! £${(itemAmount / 100).toFixed(2)} transferred to your Stripe account for "${listingTitle}".`
+            ? `Delivery confirmed! £${itemAmount.toFixed(2)} transferred to your Stripe account for "${listingTitle}".`
             : `Delivery confirmed! Transaction for "${listingTitle}" is complete. Leave a review!`,
           action_url: `/dashboard?tab=reviews`,
           related_id: transactionId,
           metadata: { 
             listing_id: transaction.listing_id, 
-            amount: itemAmount / 100,
-            transfer_id: transferId 
+            amount: itemAmount,
+            transfer_id: null 
           }
         },
         {
