@@ -229,8 +229,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         status: "completed",
-        transferCompleted: !!transferId,
-        transferId: transferId
+        fundsTransferred: !!transaction.stripe_payment_intent_id
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
