@@ -437,24 +437,6 @@ const MyPurchases = () => {
                               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-lg">{purchase.listing?.title || 'Listing'}</h3>
-                                  {(() => {
-                                    const breakdown = formatPurchaseBreakdown(purchase);
-                                    return (
-                                      <>
-                                        <p className="text-2xl font-bold text-primary mt-1">Total paid £{breakdown.total}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                          Item £{breakdown.item} • Buyer protection £{breakdown.buyerProtection} • {breakdown.deliveryMethod}{breakdown.hasDeliveryCost ? ` £${breakdown.delivery}` : ''}
-                                        </p>
-                                      </>
-                                    );
-                                  })()}
-                                </div>
-                                
-                                <div className="flex flex-col gap-2">
-                                  <Badge variant={statusConfig.variant} className={statusConfig.className}>
-                                    <StatusIcon className="mr-1 h-3 w-3" />
-                                    {statusConfig.label}
-                                  </Badge>
                                 </div>
                               </div>
 
