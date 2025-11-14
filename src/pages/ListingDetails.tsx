@@ -239,6 +239,24 @@ const ListingDetails = () => {
         return;
       }
       
+      // Validate payment data before creating intent
+      if (!listing.price || listing.price < 0) {
+        throw new Error('Invalid listing price');
+      }
+
+      if (!deliveryMethod) {
+        throw new Error('Delivery method is required');
+      }
+
+      // Log payment data for debugging
+      console.log('Creating payment with:', {
+        listingPrice: listing.price,
+        buyerProtectionFee,
+        deliveryCost,
+        deliveryMethod,
+        total: listing.price + buyerProtectionFee + deliveryCost
+      });
+
       // Call payment intent edge function directly - transaction will be created after payment
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {

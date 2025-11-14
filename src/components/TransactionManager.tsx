@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const stripePromise = loadStripe("pk_test_51QqxZjCZoEP5gSXQv8c5gj7jnQUqGqQCQDGQChzw3vTMrIxXpjIWhJUW4mEDRe0gQRNXGWCNB7NZ5Qr1hWRQkb5P00hIjXSHVl");
 
@@ -74,6 +75,26 @@ export const TransactionManager = ({
   const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const { toast } = useToast();
+
+  // Defensive logic to handle legacy transactions with NULL delivery data
+  const getActualItemPrice = () => {
+    // If delivery_cost is null and we have buyer_protection_fee, reverse-calculate
+    if ((transaction.delivery_cost === null || transaction.delivery_cost === undefined) && transaction.buyer_protection_fee) {
+      // Buyer protection is 5% of true item price
+      const calculatedItemPrice = transaction.buyer_protection_fee / 0.05;
+      return calculatedItemPrice;
+    }
+    return transaction.amount;
+  };
+
+  const actualItemPrice = getActualItemPrice();
+  const actualDeliveryCost = transaction.delivery_cost ?? 0;
+  const actualBuyerProtection = transaction.buyer_protection_fee || 0;
+  const actualTotal = actualItemPrice + actualBuyerProtection + actualDeliveryCost;
+  const hasLegacyData = transaction.delivery_cost === null || transaction.delivery_cost === undefined;
+  
+  const statusConfig = getStatusConfig(transaction.status);
+  const StatusIcon = statusConfig.icon;
 
   // Fetch certificate if transaction is completed and environmental assessment is enabled
   useEffect(() => {
@@ -179,9 +200,6 @@ export const TransactionManager = ({
   // Get the other user's ID for the dispute dialog
   const otherUserId = userRole === "buyer" ? transaction.seller_id : transaction.buyer_id;
 
-  const statusConfig = getStatusConfig(transaction.status);
-  const StatusIcon = statusConfig.icon;
-
   const getStatusBadge = () => {
     return <Badge variant={statusConfig.variant} className={statusConfig.className}>{statusConfig.label}</Badge>;
   };
@@ -198,35 +216,40 @@ export const TransactionManager = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Warning banner for legacy transactions */}
+        {hasLegacyData && transaction.status !== 'completed' && (
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Transaction Data Notice</AlertTitle>
+            <AlertDescription>
+              This transaction was created before our updated system. The cost breakdown shown is calculated based on available data.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-2">
             {userRole === "buyer" && (
               <>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Item Price:</span>
-                  <span className="font-semibold">£{transaction.amount.toFixed(2)}</span>
+                  <span className="font-semibold">£{actualItemPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Buyer Protection (5%):</span>
-                  <span className="font-semibold">£{(transaction.buyer_protection_fee || 0).toFixed(2)}</span>
+                  <span className="font-semibold">£{actualBuyerProtection.toFixed(2)}</span>
                 </div>
-                {transaction.delivery_cost && transaction.delivery_cost > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {transaction.delivery_method === 'delivery' ? 'Delivery' : 'Collection'}:
-                    </span>
-                    <span className="font-semibold">£{transaction.delivery_cost.toFixed(2)}</span>
-                  </div>
-                )}
-                <Separator className="my-2" />
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">Total Paid:</span>
-                  <span className="font-bold">
-                    £{(
-                      transaction.amount + 
-                      (transaction.buyer_protection_fee || 0) + 
-                      (transaction.delivery_cost || 0)
-                    ).toFixed(2)}
+                  <span className="text-muted-foreground">
+                    {transaction.delivery_method === 'delivery' ? 'Delivery:' : 'Collection:'}
                   </span>
+                  <span className="font-semibold">
+                    {actualDeliveryCost > 0 ? `£${actualDeliveryCost.toFixed(2)}` : 'Free'}
+                  </span>
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between text-sm font-bold">
+                  <span>Total Paid:</span>
+                  <span>£{actualTotal.toFixed(2)}</span>
                 </div>
               </>
             )}
