@@ -301,18 +301,21 @@ const MyPurchases = () => {
   const getTotalStats = () => {
     if (!purchases) return { count: 0, spent: 0, carbonSaved: 0 };
     
-    // Use deduplicated purchases for stats
+    // Use deduplicated purchases for stats, but only count paid transactions
     const dedupedPurchases = dedupeLatestByListing(purchases);
+    const paidPurchases = dedupedPurchases.filter(p => 
+      p.status !== 'pending' && p.status !== 'refunded'
+    );
     
     return {
-      count: dedupedPurchases.length,
-      spent: dedupedPurchases.reduce((sum, p) => {
+      count: paidPurchases.length,
+      spent: paidPurchases.reduce((sum, p) => {
         const item = Number(p.amount) || 0;
         const buyerProtection = Number(p.buyer_protection_fee || 0);
         const delivery = Number(p.delivery_cost || 0);
         return sum + item + buyerProtection + delivery;
       }, 0),
-      carbonSaved: dedupedPurchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
+      carbonSaved: paidPurchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
     };
   };
 
