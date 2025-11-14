@@ -306,7 +306,12 @@ const MyPurchases = () => {
     
     return {
       count: dedupedPurchases.length,
-      spent: dedupedPurchases.reduce((sum, p) => sum + Number(p.amount), 0),
+      spent: dedupedPurchases.reduce((sum, p) => {
+        const item = Number(p.amount) || 0;
+        const buyerProtection = Number(p.buyer_protection_fee || 0);
+        const delivery = Number(p.delivery_cost || 0);
+        return sum + item + buyerProtection + delivery;
+      }, 0),
       carbonSaved: dedupedPurchases.reduce((sum, p) => sum + (p.certificate?.carbon_saved_kg || 0), 0),
     };
   };
