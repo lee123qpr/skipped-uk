@@ -54,10 +54,10 @@ export function validatePositiveNumber(value: unknown, fieldName: string, min = 
 }
 
 /**
- * Validates an amount in pounds (max £100,000)
+ * Validates an amount in pounds (max £100,000, min £0 for free items)
  */
 export function validateAmount(value: unknown, fieldName: string): number {
-  const amount = validatePositiveNumber(value, fieldName, 0.01);
+  const amount = validatePositiveNumber(value, fieldName, 0);
   
   const MAX_AMOUNT = 100000;
   if (amount > MAX_AMOUNT) {

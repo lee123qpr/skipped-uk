@@ -240,7 +240,7 @@ const ListingDetails = () => {
       }
       
       // Validate payment data before creating intent
-      if (!listing.price || listing.price < 0) {
+      if (listing.price === null || listing.price === undefined || listing.price < 0) {
         throw new Error('Invalid listing price');
       }
 
@@ -256,6 +256,86 @@ const ListingDetails = () => {
         deliveryMethod,
         total: listing.price + buyerProtectionFee + deliveryCost
       });
+
+      // Handle free items (£0) - create transaction directly without payment
+      if (listing.price === 0 && deliveryCost === 0) {
+        const { data: transaction, error: transactionError } = await supabase
+          .from('transactions')
+          .insert({
+            listing_id: listing.id,
+            buyer_id: user.id,
+            seller_id: listing.seller_id,
+            amount: 0,
+            buyer_protection_fee: 0,
+            delivery_cost: 0,
+            delivery_method: deliveryMethod,
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            offer_id: selectedOffer?.id
+          })
+          .select()
+          .single();
+
+        if (transactionError) {
+          throw transactionError;
+        }
+
+        // Mark listing as unavailable
+        await supabase
+          .from('listings')
+          .update({ available: false })
+          .eq('id', listing.id);
+
+        // Create system messages for both parties
+        const messageContent = `Free item claimed! ${deliveryMethod === 'delivery' ? 'Arrange delivery details.' : 'Arrange collection details.'}`;
+        
+        await supabase.from('messages').insert([
+          {
+            sender_id: user.id,
+            receiver_id: listing.seller_id,
+            listing_id: listing.id,
+            transaction_id: transaction.id,
+            content: messageContent,
+            message_type: 'system'
+          },
+          {
+            sender_id: listing.seller_id,
+            receiver_id: user.id,
+            listing_id: listing.id,
+            transaction_id: transaction.id,
+            content: messageContent,
+            message_type: 'system'
+          }
+        ]);
+
+        // Create notifications
+        await supabase.from('notifications').insert([
+          {
+            user_id: user.id,
+            title: 'Free Item Claimed',
+            description: `You've successfully claimed ${listing.title}`,
+            type: 'transaction',
+            related_id: transaction.id,
+            action_url: '/dashboard/purchases'
+          },
+          {
+            user_id: listing.seller_id,
+            title: 'Free Item Claimed',
+            description: `${listing.title} has been claimed`,
+            type: 'transaction',
+            related_id: transaction.id,
+            action_url: '/dashboard/sales'
+          }
+        ]);
+
+        setIsProcessingPayment(false);
+        toast({
+          title: "Success!",
+          description: "Free item claimed successfully. Check your messages to arrange collection/delivery.",
+        });
+        navigate('/dashboard/purchases');
+        return;
+      }
 
       // Call payment intent edge function directly - transaction will be created after payment
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
