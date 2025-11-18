@@ -65,6 +65,7 @@ interface Purchase {
     images: string[];
     location: string;
     seller_id: string;
+    environmental_assessment_enabled?: boolean;
   } | null;
   seller: {
     display_name: string;
@@ -130,7 +131,7 @@ const MyPurchases = () => {
         .from('transactions')
         .select(`
           *,
-          listing:listings(id, title, images, location, seller_id),
+          listing:listings(id, title, images, location, seller_id, environmental_assessment_enabled),
           certificate:environmental_certificates!environmental_certificates_transaction_id_fkey(id, certificate_reference, carbon_saved_kg, buyer_certificate_url),
           review:reviews!transaction_id(id, rating, comment, reviewer_id)
         `)
