@@ -33,6 +33,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { formatDistanceToNow } from "date-fns";
 import { getStatusConfig } from "@/utils/transactionStatus";
 import { DisputeDialog } from "./DisputeDialog";
+import { ReviewDialog } from "./ReviewDialog";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionTimeline } from "./TransactionTimeline";
@@ -116,6 +117,8 @@ const MyPurchases = () => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Purchase | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedReviewPurchase, setSelectedReviewPurchase] = useState<Purchase | null>(null);
 
   const { data: purchases, isLoading, refetch, error } = useQuery({
     queryKey: ['myPurchases', user?.id],
@@ -499,7 +502,10 @@ const MyPurchases = () => {
                                 {purchase.status === 'completed' && !purchase.review && (
                                   <Button
                                     variant="default"
-                                    onClick={() => navigate('/settings')}
+                                    onClick={() => {
+                                      setSelectedReviewPurchase(purchase);
+                                      setReviewDialogOpen(true);
+                                    }}
                                     size="sm"
                                   >
                                     <Star className="mr-2 h-4 w-4" />
@@ -560,6 +566,22 @@ const MyPurchases = () => {
             refetch();
             setDisputeDialogOpen(false);
             setSelectedTransaction(null);
+          }}
+        />
+      )}
+
+      {/* Review Dialog */}
+      {selectedReviewPurchase && (
+        <ReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          transactionId={selectedReviewPurchase.id}
+          listingId={selectedReviewPurchase.listing_id}
+          sellerId={selectedReviewPurchase.seller_id}
+          listingTitle={selectedReviewPurchase.listing?.title || "this item"}
+          sellerName={selectedReviewPurchase.seller?.display_name}
+          onSuccess={() => {
+            refetch();
           }}
         />
       )}

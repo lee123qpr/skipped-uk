@@ -16,6 +16,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { TransactionTimeline } from "./TransactionTimeline";
 import ErrorBoundary from "./ErrorBoundary";
 import { DisputeDialog } from "./DisputeDialog";
+import { ReviewDialog } from "./ReviewDialog";
 import { getStatusConfig, canSellerDispatch, canBuyerConfirmDelivery, canRaiseDispute } from "@/utils/transactionStatus";
 import {
   AlertDialog,
@@ -74,6 +75,7 @@ export const TransactionManager = ({
   const [showConfirmDeliveryDialog, setShowConfirmDeliveryDialog] = useState(false);
   const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Defensive logic to handle legacy transactions with NULL delivery data
@@ -387,10 +389,7 @@ export const TransactionManager = ({
             )}
             
             <Button
-              onClick={() => {
-                // Navigate to Settings page where UnifiedReviews is displayed
-                window.location.href = "/settings";
-              }}
+              onClick={() => setReviewDialogOpen(true)}
               className="w-full"
               size="sm"
             >
@@ -478,6 +477,19 @@ export const TransactionManager = ({
         userRole={userRole}
         otherUserId={otherUserId}
         onSuccess={onUpdate}
+      />
+
+      {/* Review Dialog */}
+      <ReviewDialog
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        transactionId={transaction.id}
+        listingId={transaction.listing_id}
+        sellerId={userRole === 'buyer' ? transaction.seller_id : transaction.buyer_id}
+        listingTitle={transaction.listings?.title || "this item"}
+        onSuccess={() => {
+          onUpdate();
+        }}
       />
     </Card>
   );
