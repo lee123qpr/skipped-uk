@@ -240,12 +240,24 @@ const ListingDetails = () => {
       }
       
       // Validate payment data before creating intent
-      if (!listing.price || listing.price < 0) {
+      if (listing.price < 0) {
         throw new Error('Invalid listing price');
       }
 
       if (!deliveryMethod) {
         throw new Error('Delivery method is required');
+      }
+
+      // Check if it's a free item with no delivery charges
+      const totalAmount = listing.price + buyerProtectionFee + deliveryCost;
+      if (totalAmount === 0) {
+        setIsProcessingPayment(false);
+        toast({
+          title: "Contact Seller Directly",
+          description: "This is a free item with no delivery charges. Please contact the seller to arrange collection.",
+        });
+        setShowMessageDialog(true);
+        return;
       }
 
       // Log payment data for debugging
@@ -254,7 +266,7 @@ const ListingDetails = () => {
         buyerProtectionFee,
         deliveryCost,
         deliveryMethod,
-        total: listing.price + buyerProtectionFee + deliveryCost
+        total: totalAmount
       });
 
       // Call payment intent edge function directly - transaction will be created after payment
