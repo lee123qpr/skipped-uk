@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/components/NotificationProvider';
 import { TransactionManager } from '@/components/TransactionManager';
 import CounterOfferDialog from '@/components/CounterOfferDialog';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   MessageCircle, 
   PoundSterling, 
@@ -177,6 +178,7 @@ const MessagesInbox = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { refreshCounts } = useNotifications();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [replyContent, setReplyContent] = useState('');
@@ -812,7 +814,36 @@ const MessagesInbox = () => {
   const handleSendReply = async () => {
     if (!selectedConversation || !user || !replyContent.trim()) return;
     
+    const messageContent = replyContent.trim();
+    const tempId = `temp-${Date.now()}`;
+    
+    // Optimistic update: immediately add message to UI
+    const optimisticMessage = {
+      id: tempId,
+      content: messageContent,
+      created_at: new Date().toISOString(),
+      read: false,
+      sender_id: user.id,
+      receiver_id: selectedConversation.otherUserId,
+      listing_id: selectedConversation.listingId,
+      transaction_id: selectedConversation.transaction?.id || null,
+      message_type: 'message' as const,
+      offer_id: null,
+      sender_profile: {
+        username: user.user_metadata?.username || '',
+        avatar_url: user.user_metadata?.avatar_url || '',
+        display_name: user.user_metadata?.display_name || '',
+      },
+    };
+
+    // Update UI immediately
+    queryClient.setQueryData(['allMessages', user.id], (old: any) => {
+      return [...(old || []), optimisticMessage];
+    });
+
+    setReplyContent('');
     setIsSending(true);
+    
     try {
       const { error } = await supabase
         .from('messages')
@@ -821,20 +852,22 @@ const MessagesInbox = () => {
           receiver_id: selectedConversation.otherUserId,
           listing_id: selectedConversation.listingId,
           transaction_id: selectedConversation.transaction?.id || null,
-          content: replyContent.trim(),
+          content: messageContent,
           read: false
         });
 
       if (error) throw error;
 
-      setReplyContent('');
-      await refetchMessages();
-      
-      toast({
-        title: 'Message sent',
-        description: 'Your reply has been sent successfully.',
-      });
+      // Real-time subscription will handle the final update
+      // No need to manually refetch here
     } catch (error) {
+      // Rollback optimistic update on error
+      queryClient.setQueryData(['allMessages', user.id], (old: any) => {
+        return (old || []).filter((msg: any) => msg.id !== tempId);
+      });
+      
+      setReplyContent(messageContent); // Restore message content
+      
       toast({
         title: 'Error sending message',
         description: 'Please try again later.',
