@@ -57,6 +57,12 @@ interface Transaction {
     images: string[];
     environmental_assessment_enabled?: boolean;
   };
+  review?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    reviewer_id?: string;
+  } | null;
 }
 
 interface TransactionManagerProps {
@@ -353,7 +359,7 @@ export const TransactionManager = ({
         )}
 
         {/* Completed Transaction - Review Prompt */}
-        {transaction.status === "completed" && (
+        {transaction.status === "completed" && !transaction.review && (
           <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md space-y-3">
             <div className="flex items-start gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />

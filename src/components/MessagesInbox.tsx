@@ -111,6 +111,12 @@ interface Conversation {
     completed_at: string | null;
     disputed_at: string | null;
     dispute_reason: string | null;
+    review?: {
+      id: string;
+      rating: number;
+      comment: string | null;
+      reviewer_id: string;
+    } | null;
   };
 }
 
@@ -437,7 +443,10 @@ const MessagesInbox = () => {
       if (transactionIds.length > 0) {
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('transactions')
-          .select('*')
+          .select(`
+            *,
+            review:reviews!transaction_id(id, rating, comment, reviewer_id)
+          `)
           .in('id', transactionIds);
         
         transactions = transactionsData || [];
