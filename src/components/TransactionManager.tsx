@@ -82,6 +82,8 @@ export const TransactionManager = ({
   const [confirmationChecked, setConfirmationChecked] = useState(false);
   const [certificate, setCertificate] = useState<{ buyer_certificate_url: string | null; seller_certificate_url: string | null } | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [dispatchConfirmedLocally, setDispatchConfirmedLocally] = useState(false);
+  const [deliveryConfirmedLocally, setDeliveryConfirmedLocally] = useState(false);
   const { toast } = useToast();
 
   // Defensive logic to handle legacy transactions with NULL delivery data
@@ -137,6 +139,8 @@ export const TransactionManager = ({
         description: "Buyer has been notified that item has been sent.",
       });
 
+      setDispatchConfirmedLocally(true);
+
       // Force immediate UI update by calling onUpdate multiple times with small delays
       onUpdate();
       setTimeout(() => onUpdate(), 500);
@@ -191,6 +195,8 @@ export const TransactionManager = ({
           ? "Funds have been released! Your environmental certificate will be available shortly."
           : "Funds have been released to the seller!",
       });
+
+      setDeliveryConfirmedLocally(true);
 
       // Force immediate UI update by calling onUpdate multiple times with small delays
       // This ensures the parent component refetches the updated transaction status
@@ -269,7 +275,7 @@ export const TransactionManager = ({
         {/* Buyer Actions */}
         {userRole === "buyer" && (
           <div className="space-y-2">
-            {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && !transaction.delivery_confirmed_at && (
+            {canBuyerConfirmDelivery(transaction.status) && !transaction.status.includes('disputed') && !transaction.delivery_confirmed_at && !deliveryConfirmedLocally && (
               <>
                 <Button 
                   onClick={() => setShowConfirmDeliveryDialog(true)}
@@ -317,15 +323,15 @@ export const TransactionManager = ({
               </div>
             )}
             
-            {transaction.status === "paid" && !transaction.dispatch_confirmed_at && (
-              <Button 
-                onClick={handleConfirmDispatch}
-                disabled={isLoading}
-                className="w-full"
-              >
-                📦 {isLoading ? "Confirming..." : "Mark as Dispatched"}
-              </Button>
-            )}
+            {transaction.status === "paid" && !transaction.dispatch_confirmed_at && !dispatchConfirmedLocally && (
+               <Button 
+                 onClick={handleConfirmDispatch}
+                 disabled={isLoading}
+                 className="w-full"
+               >
+                 📦 {isLoading ? "Confirming..." : "Mark as Dispatched"}
+               </Button>
+             )}
 
             {transaction.status === "dispatched" && (
               <div className="p-3 bg-muted rounded-md">
