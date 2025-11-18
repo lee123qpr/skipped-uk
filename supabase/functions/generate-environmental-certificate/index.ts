@@ -43,26 +43,6 @@ serve(async (req) => {
           weight,
           quantity,
           categories(name)
-        ),
-        buyer:profiles!transactions_buyer_id_fkey(
-          display_name,
-          username,
-          company_name,
-          business_logo_url,
-          location,
-          verified,
-          identity_verified,
-          created_at
-        ),
-        seller:profiles!transactions_seller_id_fkey(
-          display_name,
-          username,
-          company_name,
-          business_logo_url,
-          location,
-          verified,
-          identity_verified,
-          created_at
         )
       `)
       .eq('id', transactionId)
@@ -77,17 +57,37 @@ serve(async (req) => {
       );
     }
 
-    if (!transaction.listings?.environmental_assessment_enabled) {
+    // Fetch buyer and seller profiles separately
+    const { data: buyerProfile } = await supabase
+      .from('profiles')
+      .select('display_name, username, company_name, business_logo_url, location, verified, identity_verified, created_at')
+      .eq('user_id', transaction.buyer_id)
+      .single();
+
+    const { data: sellerProfile } = await supabase
+      .from('profiles')
+      .select('display_name, username, company_name, business_logo_url, location, verified, identity_verified, created_at')
+      .eq('user_id', transaction.seller_id)
+      .single();
+
+    // Add profiles to transaction object
+    const transactionWithProfiles = {
+      ...transaction,
+      buyer: buyerProfile,
+      seller: sellerProfile
+    };
+
+    if (!transactionWithProfiles.listings?.environmental_assessment_enabled) {
       return new Response(
         JSON.stringify({ error: 'Environmental assessment not enabled for this listing' }), 
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const methodology = transaction.listings.certificate_methodology || {};
-    const materialWeight = methodology.weight || transaction.listings.weight || 0;
-    const carbonSaved = transaction.listings.carbon_saved || 0;
-    const categoryName = transaction.listings.categories?.name || 'Construction Material';
+    const methodology = transactionWithProfiles.listings.certificate_methodology || {};
+    const materialWeight = methodology.weight || transactionWithProfiles.listings.weight || 0;
+    const carbonSaved = transactionWithProfiles.listings.carbon_saved || 0;
+    const categoryName = transactionWithProfiles.listings.categories?.name || 'Construction Material';
     
     // Check if certificate already exists
     const { data: existingCert } = await supabase
@@ -115,8 +115,8 @@ serve(async (req) => {
     // Helper function to generate PDF certificate
     const generatePDF = (recipientType: 'buyer' | 'seller') => {
       const doc = new jsPDF();
-      const recipient = recipientType === 'buyer' ? transaction.buyer : transaction.seller;
-      const otherParty = recipientType === 'buyer' ? transaction.seller : transaction.buyer;
+      const recipient = recipientType === 'buyer' ? transactionWithProfiles.buyer : transactionWithProfiles.seller;
+      const otherParty = recipientType === 'buyer' ? transactionWithProfiles.seller : transactionWithProfiles.buyer;
       
       // Header
       doc.setFontSize(20);
@@ -188,13 +188,13 @@ serve(async (req) => {
       yPos += 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Transaction Date: ${new Date(transaction.completed_at).toLocaleDateString('en-GB')}`, 20, yPos);
+      doc.text(`Transaction Date: ${new Date(transactionWithProfiles.completed_at).toLocaleDateString('en-GB')}`, 20, yPos);
       yPos += 6;
-      doc.text(`Material: ${transaction.listings.title}`, 20, yPos);
+      doc.text(`Material: ${transactionWithProfiles.listings.title}`, 20, yPos);
       yPos += 6;
       doc.text(`Category: ${categoryName}`, 20, yPos);
       yPos += 6;
-      doc.text(`Quantity: ${transaction.listings.quantity} units`, 20, yPos);
+      doc.text(`Quantity: ${transactionWithProfiles.listings.quantity} units`, 20, yPos);
       yPos += 6;
       doc.text(`Total Weight: ${materialWeight.toFixed(2)} kg`, 20, yPos);
       
@@ -234,7 +234,7 @@ serve(async (req) => {
       yPos += 5;
       doc.text(`Calculation Method: ${methodology.calculationMethod === 'provided_weight' ? 'Based on provided weight ✓' : 'Estimated from dimensions'}`, 20, yPos);
       yPos += 5;
-      doc.text(`Confidence Level: ${transaction.listings.calculation_confidence || 'Medium'}`, 20, yPos);
+      doc.text(`Confidence Level: ${transactionWithProfiles.listings.calculation_confidence || 'Medium'}`, 20, yPos);
       
       // Disclaimers
       yPos += 12;
@@ -271,8 +271,8 @@ serve(async (req) => {
     const sellerPDF = generatePDF('seller');
     
     // Upload PDFs to storage
-    const buyerPath = `${transaction.buyer_id}-${transaction.seller_id}/buyer-${certificateReference}.pdf`;
-    const sellerPath = `${transaction.buyer_id}-${transaction.seller_id}/seller-${certificateReference}.pdf`;
+    const buyerPath = `${transactionWithProfiles.buyer_id}-${transactionWithProfiles.seller_id}/buyer-${certificateReference}.pdf`;
+    const sellerPath = `${transactionWithProfiles.buyer_id}-${transactionWithProfiles.seller_id}/seller-${certificateReference}.pdf`;
     
     const { error: buyerUploadError } = await supabase.storage
       .from('environmental-certificates')
@@ -306,10 +306,10 @@ serve(async (req) => {
       .from('environmental_certificates')
       .insert({
         transaction_id: transactionId,
-        listing_id: transaction.listing_id,
+        listing_id: transactionWithProfiles.listing_id,
         certificate_reference: certificateReference,
-        buyer_id: transaction.buyer_id,
-        seller_id: transaction.seller_id,
+        buyer_id: transactionWithProfiles.buyer_id,
+        seller_id: transactionWithProfiles.seller_id,
         material_type: methodology.materialType || categoryName,
         material_weight_kg: materialWeight,
         carbon_saved_kg: carbonSaved,
