@@ -576,9 +576,18 @@ const ListingDetails = () => {
                   {listing.categories.name}
                 </Badge>
               )}
-              <div className="text-4xl font-bold text-primary mb-4">
-                {listing.price === 0 ? 'Free' : `£${listing.price.toLocaleString()}`}
-              </div>
+              {listing.price === 0 ? (
+                <div className="mb-4">
+                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-xl font-bold text-3xl px-8 py-4 animate-pulse">
+                    FREE
+                  </Badge>
+                  <p className="text-muted-foreground mt-2 text-sm">This item is listed for free. Delivery charges may apply.</p>
+                </div>
+              ) : (
+                <div className="text-4xl font-bold text-primary mb-4">
+                  £{listing.price.toLocaleString()}
+                </div>
+              )}
             </div>
             
             {/* Action Buttons */}
