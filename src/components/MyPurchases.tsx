@@ -132,7 +132,7 @@ const MyPurchases = () => {
           *,
           listing:listings(id, title, images, location, seller_id),
           certificate:environmental_certificates!environmental_certificates_transaction_id_fkey(id, certificate_reference, carbon_saved_kg, buyer_certificate_url),
-          review:reviews!transaction_id(id, rating, comment)
+          review:reviews!transaction_id(id, rating, comment, reviewer_id)
         `)
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
