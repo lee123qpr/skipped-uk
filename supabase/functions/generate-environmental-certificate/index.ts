@@ -1,11 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import jsPDF from "https://esm.sh/jspdf@2.5.1"
+import QRCode from "https://esm.sh/qrcode@1.5.3"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Skipped logo as base64 (embedded)
+const SKIPPED_LOGO_BASE64 = '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';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -117,151 +121,238 @@ serve(async (req) => {
       const doc = new jsPDF();
       const recipient = recipientType === 'buyer' ? transactionWithProfiles.buyer : transactionWithProfiles.seller;
       const otherParty = recipientType === 'buyer' ? transactionWithProfiles.seller : transactionWithProfiles.buyer;
+      const recipientLogo = recipientType === 'buyer' ? buyerLogo : sellerLogo;
+      const otherPartyLogo = recipientType === 'buyer' ? sellerLogo : buyerLogo;
       
-      // Header
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text('ENVIRONMENTAL IMPACT CERTIFICATE', 105, 20, { align: 'center' });
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Reused Construction Materials', 105, 28, { align: 'center' });
-      
-      // Reference and Date
-      doc.setFontSize(9);
-      doc.text(`Reference: ${certificateReference}`, 20, 40);
-      doc.text(`Issue Date: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 20, 45);
-      
-      // Recipient Information
-      let yPos = 58;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Issued to: ${recipientType === 'buyer' ? 'Buyer' : 'Seller'}`, 20, yPos);
-      
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Name: ${recipient.display_name || recipient.username || 'N/A'}`, 20, yPos);
-      
-      if (recipient.company_name) {
-        yPos += 6;
-        doc.text(`Company: ${recipient.company_name}`, 20, yPos);
-      }
-      
-      if (recipient.location) {
-        yPos += 6;
-        doc.text(`Location: ${recipient.location}`, 20, yPos);
-      }
-      
-      yPos += 6;
-      doc.text(`Member Since: ${new Date(recipient.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`, 20, yPos);
-      
-      if (recipient.verified || recipient.identity_verified) {
-        yPos += 6;
-        doc.setTextColor(0, 128, 0);
-        doc.text(`✓ Verified ${recipient.identity_verified ? 'Identity' : 'Account'}`, 20, yPos);
-        doc.setTextColor(0, 0, 0);
-      }
-      
-      // Other Party Information
-      yPos += 12;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${recipientType === 'buyer' ? 'Seller' : 'Buyer'} Information:`, 20, yPos);
-      
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Name: ${otherParty.display_name || otherParty.username || 'N/A'}`, 20, yPos);
-      
-      if (otherParty.company_name) {
-        yPos += 6;
-        doc.text(`Company: ${otherParty.company_name}`, 20, yPos);
-      }
-      
-      // Transaction Details
-      yPos += 12;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Transaction Details', 20, yPos);
-      
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Transaction Date: ${new Date(transactionWithProfiles.completed_at).toLocaleDateString('en-GB')}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Material: ${transactionWithProfiles.listings.title}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Category: ${categoryName}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Quantity: ${transactionWithProfiles.listings.quantity} units`, 20, yPos);
-      yPos += 6;
-      doc.text(`Total Weight: ${materialWeight.toFixed(2)} kg`, 20, yPos);
-      
-      // Environmental Impact Box
-      yPos += 12;
+      // Add decorative border
       doc.setDrawColor(76, 175, 80);
-      doc.setFillColor(232, 245, 233);
-      doc.rect(20, yPos, 170, 35, 'FD');
+      doc.setLineWidth(2);
+      doc.rect(5, 5, 200, 287);
       
-      doc.setFontSize(14);
+      // Add subtle watermark
+      if (SKIPPED_LOGO_BASE64) {
+        doc.addImage(SKIPPED_LOGO_BASE64, 'JPEG', 60, 130, 90, 30, undefined, 'NONE', 0);
+        doc.setGState(new doc.GState({ opacity: 0.05 }));
+        doc.addImage(SKIPPED_LOGO_BASE64, 'JPEG', 60, 130, 90, 30);
+        doc.setGState(new doc.GState({ opacity: 1 }));
+      }
+      
+      // Header with logos
+      if (SKIPPED_LOGO_BASE64) {
+        doc.addImage(SKIPPED_LOGO_BASE64, 'JPEG', 15, 12, 45, 15);
+      }
+      
+      if (recipientLogo) {
+        doc.addImage(recipientLogo, 'JPEG', 165, 12, 25, 25);
+      }
+      
+      // Title
+      doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(27, 94, 32);
-      doc.text('ENVIRONMENTAL IMPACT', 105, yPos + 8, { align: 'center' });
+      doc.text('ENVIRONMENTAL IMPACT', 105, 35, { align: 'center' });
+      doc.text('CERTIFICATE', 105, 43, { align: 'center' });
       
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      doc.text(`🌱 Material Diverted from Landfill: ${materialWeight.toFixed(1)} kg`, 30, yPos + 18);
-      doc.text(`💨 Carbon Emissions Saved: ${carbonSaved.toFixed(1)} kg CO₂e`, 30, yPos + 26);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Reused Construction Materials', 105, 51, { align: 'center' });
       
+      // Certificate reference with border
+      doc.setFillColor(76, 175, 80);
+      doc.rect(15, 57, 180, 10, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`Certificate Reference: ${certificateReference}`, 105, 63, { align: 'center' });
       doc.setTextColor(0, 0, 0);
       
-      // Methodology
-      yPos += 42;
+      // Issue Date
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Issued: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, 72, { align: 'center' });
+      
+      // Two-column layout for parties
+      const leftCol = 20;
+      const rightCol = 110;
+      let yPos = 85;
+      
+      // Recipient column (left)
+      doc.setFillColor(232, 245, 233);
+      doc.rect(15, yPos - 5, 85, 50, 'F');
+      
       doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(27, 94, 32);
+      doc.text(`ISSUED TO: ${recipientType.toUpperCase()}`, leftCol, yPos);
+      
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(recipient.display_name || recipient.username || 'N/A', leftCol, yPos);
+      
+      if (recipient.company_name) {
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Company: ${recipient.company_name}`, leftCol, yPos);
+      }
+      
+      if (recipient.location) {
+        yPos += 5;
+        doc.setFontSize(9);
+        doc.text(`📍 ${recipient.location}`, leftCol, yPos);
+      }
+      
+      if (recipient.verified || recipient.identity_verified) {
+        yPos += 5;
+        doc.setTextColor(0, 128, 0);
+        doc.text(`✓ Verified ${recipient.identity_verified ? 'Identity' : 'Account'}`, leftCol, yPos);
+        doc.setTextColor(0, 0, 0);
+      }
+      
+      // Other party column (right) with logo
+      yPos = 85;
+      doc.setFillColor(245, 245, 245);
+      doc.rect(105, yPos - 5, 85, 50, 'F');
+      
+      if (otherPartyLogo) {
+        doc.addImage(otherPartyLogo, 'JPEG', rightCol, yPos - 3, 15, 15);
+      }
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(60, 60, 60);
+      doc.text(`${recipientType === 'buyer' ? 'SELLER' : 'BUYER'}:`, rightCol + (otherPartyLogo ? 18 : 0), yPos);
+      
+      yPos += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(otherParty.display_name || otherParty.username || 'N/A', rightCol, yPos);
+      
+      if (otherParty.company_name) {
+        yPos += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.text(otherParty.company_name, rightCol, yPos);
+      }
+      
+      // Environmental Impact - Large prominent box
+      yPos = 145;
+      doc.setDrawColor(76, 175, 80);
+      doc.setFillColor(232, 245, 233);
+      doc.setLineWidth(3);
+      doc.rect(15, yPos, 180, 55, 'FD');
+      
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(27, 94, 32);
+      doc.text('ENVIRONMENTAL IMPACT', 105, yPos + 12, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      
+      // Impact metrics in two columns
+      const impactLeftCol = 25;
+      const impactRightCol = 115;
+      let impactYPos = yPos + 25;
+      
+      doc.text(`🌱 Landfill Diverted:`, impactLeftCol, impactYPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${materialWeight.toFixed(1)} kg`, impactLeftCol + 5, impactYPos + 6);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.text(`💨 Carbon Saved:`, impactRightCol, impactYPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${carbonSaved.toFixed(1)} kg CO₂e`, impactRightCol + 5, impactYPos + 6);
+      
+      // Comparison metrics
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(80, 80, 80);
+      const treesEquivalent = (carbonSaved / 21).toFixed(1);
+      doc.text(`≈ ${treesEquivalent} trees planted for 1 year`, 105, yPos + 48, { align: 'center' });
+      
+      // Transaction Details
+      yPos = 210;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('TRANSACTION DETAILS', 20, yPos);
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      
+      yPos += 8;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Date: ${new Date(transactionWithProfiles.completed_at).toLocaleDateString('en-GB')}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Material: ${transactionWithProfiles.listings.title}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Category: ${categoryName}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Quantity: ${transactionWithProfiles.listings.quantity} units`, 20, yPos);
+      yPos += 5;
+      doc.text(`Transaction Value: £${transaction.amount.toFixed(2)}`, 20, yPos);
+      
+      // Methodology
+      yPos += 10;
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.text('CALCULATION METHODOLOGY', 20, yPos);
       
       doc.setDrawColor(200, 200, 200);
-      doc.line(20, yPos + 2, 190, yPos + 2);
+      doc.line(20, yPos + 1, 190, yPos + 1);
       
-      yPos += 8;
-      doc.setFontSize(9);
+      yPos += 6;
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Material Classification: ${methodology.materialType || 'Construction Material'}`, 20, yPos);
-      yPos += 5;
-      doc.text(`Carbon Factor Source: ICE Database v3.0 (University of Bath)`, 20, yPos);
-      yPos += 5;
-      doc.text(`Calculation Method: ${methodology.calculationMethod === 'provided_weight' ? 'Based on provided weight ✓' : 'Estimated from dimensions'}`, 20, yPos);
-      yPos += 5;
-      doc.text(`Confidence Level: ${transactionWithProfiles.listings.calculation_confidence || 'Medium'}`, 20, yPos);
+      doc.text(`Material: ${methodology.materialType || 'Construction Material'}`, 20, yPos);
+      yPos += 4;
+      doc.text(`Carbon Factor: ICE Database v3.0 (University of Bath)`, 20, yPos);
+      yPos += 4;
+      doc.text(`Method: ${methodology.calculationMethod === 'provided_weight' ? 'Provided weight ✓' : 'Estimated'}`, 20, yPos);
+      yPos += 4;
+      doc.text(`Confidence: ${transactionWithProfiles.listings.calculation_confidence || 'Medium'}`, 20, yPos);
       
-      // Disclaimers
-      yPos += 12;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('IMPORTANT INFORMATION', 20, yPos);
+      // QR Code and seal
+      doc.addImage(qrCodeUrl, 'PNG', 165, 215, 25, 25);
       
-      doc.setDrawColor(200, 200, 200);
-      doc.line(20, yPos + 2, 190, yPos + 2);
-      
-      yPos += 8;
       doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      const disclaimerLines = doc.splitTextToSize(
-        '• Calculations based on industry-standard embodied carbon factors from the Inventory of Carbon & Energy (ICE) Database, University of Bath\n' +
-        '• Values represent estimated environmental impact of reusing construction materials versus new production\n' +
-        '• Actual values may vary based on specific circumstances, manufacturing processes, and transportation\n' +
-        '• This certificate is intended for informational and sustainability reporting purposes\n' +
-        '• For official BREEAM/ESG submissions, consult with your accreditation body regarding documentation requirements',
-        170
-      );
-      doc.text(disclaimerLines, 20, yPos);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Scan to verify', 177.5, 242, { align: 'center' });
+      
+      // Certificate seal
+      doc.setDrawColor(0, 128, 0);
+      doc.setFillColor(232, 245, 233);
+      doc.setLineWidth(2);
+      doc.circle(177.5, 225, 10, 'FD');
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 128, 0);
+      doc.text('VERIFIED', 177.5, 224, { align: 'center' });
+      doc.text('SKIPPED', 177.5, 228, { align: 'center' });
       
       // Footer
+      yPos = 260;
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      const disclaimerText = doc.splitTextToSize(
+        'Calculations based on industry-standard embodied carbon factors from the ICE Database. ' +
+        'Values represent estimated impact of reusing materials versus new production. ' +
+        'Actual values may vary based on specific circumstances.',
+        170
+      );
+      doc.text(disclaimerText, 20, yPos);
+      
+      yPos = 277;
       doc.setFontSize(8);
-      doc.text(`Verification URL: skipped.co.uk/verify-certificate/${certificateReference}`, 105, 280, { align: 'center' });
-      doc.text('This certificate has been electronically verified and signed', 105, 285, { align: 'center' });
+      doc.text('SKIPPED - Sustainable Construction Materials Marketplace', 105, yPos, { align: 'center' });
+      doc.text('skipped.co.uk', 105, yPos + 4, { align: 'center' });
       
       return doc.output('arraybuffer');
     };
