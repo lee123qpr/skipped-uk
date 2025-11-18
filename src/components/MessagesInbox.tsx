@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/components/NotificationProvider';
 import { TransactionManager } from '@/components/TransactionManager';
@@ -176,6 +176,7 @@ const formatTransactionBreakdown = (transaction: any) => {
 const MessagesInbox = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { refreshCounts } = useNotifications();
   const queryClient = useQueryClient();
@@ -661,6 +662,20 @@ const MessagesInbox = () => {
   useEffect(() => {
     if (conversationsList.length === 0 || selectedConversation) return;
 
+    // Priority 0: Transaction ID from navigation state (for "Message Buyer" from completed sales)
+    const stateTransactionId = (location.state as any)?.openConversationId;
+    if (stateTransactionId) {
+      const conversation = conversationsList.find(conv => 
+        conv.transaction?.id === stateTransactionId
+      );
+      if (conversation) {
+        setSelectedConversation(conversation);
+        // Clear the state to prevent auto-opening again on refresh
+        navigate(location.pathname, { replace: true, state: {} });
+        return;
+      }
+    }
+
     // Priority 1: Direct conversation key (transaction-X or listing-X-Y)
     const conversationKey = searchParams.get('conversation');
     if (conversationKey) {
@@ -703,7 +718,7 @@ const MessagesInbox = () => {
         setSearchParams(searchParams, { replace: true });
       }
     }
-  }, [conversationsList, selectedConversation, searchParams, setSearchParams, conversations]);
+  }, [conversationsList, selectedConversation, searchParams, setSearchParams, conversations, location.state, location.pathname, navigate]);
 
   // Realtime subscription for transaction updates
   useEffect(() => {
