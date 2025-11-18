@@ -43,7 +43,11 @@ import {
   Package,
   Clock,
   Leaf,
-  FileCheck
+  FileCheck,
+  User,
+  Download,
+  Copy,
+  RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { MyListingSkeleton } from "./LoadingSkeletons";
@@ -53,7 +57,6 @@ import { useState, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDistanceToNow } from "date-fns";
 import { formatConditionBadge } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
 import { HolidayBanner } from "@/components/HolidayBanner";
 
 interface Listing {
@@ -531,35 +534,131 @@ const MyListings = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
-                                      <Eye className="mr-2 h-4 w-4" />
-                                      View Listing
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}/edit`)}>
-                                      <Pencil className="mr-2 h-4 w-4" />
-                                      Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    {listing.available !== false && (
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, true)}>
-                                        <PauseCircle className="mr-2 h-4 w-4" />
-                                        Pause Listing
-                                      </DropdownMenuItem>
-                                    )}
-                                    {listing.available === false && (
-                                      <DropdownMenuItem onClick={() => handleStatusChange(listing.id, false)}>
-                                        <PlayCircle className="mr-2 h-4 w-4" />
-                                        Reactivate
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      onClick={() => setDeleteListingId(listing.id)}
-                                      className="text-destructive"
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete
-                                    </DropdownMenuItem>
+                                    {(() => {
+                                      const transactions = listing.transactions || [];
+                                      const hasCompleted = transactions.some(t => t.status === 'completed');
+                                      const hasDispute = transactions.some(t => 
+                                        t.status === 'disputed' || t.status === 'disputed_pending_review'
+                                      );
+                                      const hasRefunded = transactions.some(t => t.status === 'refunded');
+                                      const hasActiveTransaction = transactions.some(t => 
+                                        ['paid', 'dispatched', 'delivered'].includes(t.status)
+                                      );
+                                      const completedTransaction = transactions.find(t => t.status === 'completed');
+                                      const activeTransaction = transactions.find(t => 
+                                        ['paid', 'dispatched', 'delivered', 'disputed', 'disputed_pending_review'].includes(t.status)
+                                      );
+                                      const certificate = listing.certificate;
+
+                                      // Completed Sales - Show read-only actions
+                                      if (hasCompleted) {
+                                        return (
+                                          <>
+                                            <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
+                                              <Eye className="mr-2 h-4 w-4" />
+                                              View Listing
+                                            </DropdownMenuItem>
+                                            {completedTransaction && (
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                                <MessageCircle className="mr-2 h-4 w-4" />
+                                                View Transaction
+                                              </DropdownMenuItem>
+                                            )}
+                                            {completedTransaction?.buyer_id && (
+                                              <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
+                                                <User className="mr-2 h-4 w-4" />
+                                                View Buyer Profile
+                                              </DropdownMenuItem>
+                                            )}
+                                            {certificate && (
+                                              <>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => window.open(certificate.seller_certificate_url, '_blank')}>
+                                                  <Download className="mr-2 h-4 w-4" />
+                                                  Download Certificate
+                                                </DropdownMenuItem>
+                                              </>
+                                            )}
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => navigate(`/create-listing?duplicate=${listing.id}`)}>
+                                              <Copy className="mr-2 h-4 w-4" />
+                                              Duplicate Listing
+                                            </DropdownMenuItem>
+                                          </>
+                                        );
+                                      }
+
+                                      // Disputed/Refunded - Limited actions
+                                      if (hasDispute || hasRefunded) {
+                                        return (
+                                          <>
+                                            <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
+                                              <Eye className="mr-2 h-4 w-4" />
+                                              View Listing
+                                            </DropdownMenuItem>
+                                            {activeTransaction && (
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                                <MessageCircle className="mr-2 h-4 w-4" />
+                                                View Transaction
+                                              </DropdownMenuItem>
+                                            )}
+                                          </>
+                                        );
+                                      }
+
+                                      // In Progress - View only
+                                      if (hasActiveTransaction) {
+                                        return (
+                                          <>
+                                            <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
+                                              <Eye className="mr-2 h-4 w-4" />
+                                              View Listing
+                                            </DropdownMenuItem>
+                                            {activeTransaction && (
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                                <MessageCircle className="mr-2 h-4 w-4" />
+                                                View Transaction
+                                              </DropdownMenuItem>
+                                            )}
+                                          </>
+                                        );
+                                      }
+
+                                      // Active or Paused - Full editing capabilities
+                                      return (
+                                        <>
+                                          <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            View Listing
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}/edit`)}>
+                                            <Pencil className="mr-2 h-4 w-4" />
+                                            Edit
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          {listing.available !== false && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange(listing.id, true)}>
+                                              <PauseCircle className="mr-2 h-4 w-4" />
+                                              Pause Listing
+                                            </DropdownMenuItem>
+                                          )}
+                                          {listing.available === false && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange(listing.id, false)}>
+                                              <PlayCircle className="mr-2 h-4 w-4" />
+                                              Reactivate
+                                            </DropdownMenuItem>
+                                          )}
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            onClick={() => setDeleteListingId(listing.id)}
+                                            className="text-destructive"
+                                          >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </>
+                                      );
+                                    })()}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
