@@ -495,7 +495,9 @@ const MyListings = () => {
                                 alt={listing.title}
                                 className="h-48 w-full object-cover"
                               />
-                              {listing.available === false && (
+                              {listing.available === false && !(listing.transactions || []).some(t => 
+                                ['paid', 'dispatched', 'delivered', 'completed', 'refunded', 'disputed', 'disputed_pending_review'].includes(t.status)
+                              ) && (
                                 <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
                                   <PauseCircle className="h-10 w-10 text-muted-foreground" />
                                   <div className="text-center px-4">
@@ -565,7 +567,9 @@ const MyListings = () => {
                               <div className="flex flex-wrap gap-2">
                                 <Badge variant="outline">{listing.location}</Badge>
                                 <Badge variant="outline">{formatConditionBadge(listing.condition)}</Badge>
-                                {listing.available === false && (
+                                {listing.available === false && !(listing.transactions || []).some(t => 
+                                  ['paid', 'dispatched', 'delivered', 'completed', 'refunded', 'disputed', 'disputed_pending_review'].includes(t.status)
+                                ) && (
                                   <Badge variant="secondary" className="bg-muted text-foreground border-border">
                                     <PauseCircle className="h-3 w-3 mr-1" />
                                     Paused
