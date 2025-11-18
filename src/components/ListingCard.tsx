@@ -158,6 +158,15 @@ const ListingCard = ({
           </div>
         )}
         
+        {/* FREE Badge Overlay */}
+        {price === 0 && (
+          <div className="absolute bottom-3 right-3 z-10">
+            <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-xl font-bold text-lg px-4 py-2 animate-pulse">
+              FREE
+            </Badge>
+          </div>
+        )}
+        
         {/* Favorite Button */}
         <Button 
           size="icon" 
@@ -231,15 +240,9 @@ const ListingCard = ({
           <h3 className={`font-bold text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1 ${variant === "list" ? "text-sm sm:text-base leading-tight" : "text-lg"}`}>
             {title}
           </h3>
-          {price === 0 ? (
-            <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-lg font-bold text-lg px-4 py-2 whitespace-nowrap flex-shrink-0 animate-pulse">
-              FREE
-            </Badge>
-          ) : (
-            <div className={`font-bold text-[#047857] whitespace-nowrap flex-shrink-0 ${variant === "list" ? "text-xl sm:text-2xl" : "text-3xl"}`}>
-              £{price.toLocaleString()}
-            </div>
-          )}
+          <div className={`font-bold text-[#047857] whitespace-nowrap flex-shrink-0 ${variant === "list" ? "text-xl sm:text-2xl" : "text-3xl"}`}>
+            {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
+          </div>
         </div>
 
         {/* Badges: Condition, Quantity, Carbon Saved, and Offers */}
