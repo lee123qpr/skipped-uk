@@ -251,12 +251,80 @@ const ListingDetails = () => {
       // Check if it's a free item with no delivery charges
       const totalAmount = listing.price + buyerProtectionFee + deliveryCost;
       if (totalAmount === 0) {
+        // Create transaction directly for free items
+        const { data: transaction, error: transactionError } = await supabase
+          .from('transactions')
+          .insert({
+            listing_id: listing.id,
+            buyer_id: user.id,
+            seller_id: listing.seller_id,
+            amount: 0,
+            delivery_cost: 0,
+            buyer_protection_fee: 0,
+            delivery_method: deliveryMethod,
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (transactionError) throw transactionError;
+
+        // Mark listing as unavailable
+        await supabase
+          .from('listings')
+          .update({ available: false })
+          .eq('id', listing.id);
+
+        // Create system messages for both parties
+        const buyerMessage = {
+          sender_id: user.id,
+          receiver_id: listing.seller_id,
+          listing_id: listing.id,
+          transaction_id: transaction.id,
+          content: `You have successfully claimed the free item: ${listing.title}. The seller will be notified.`,
+          message_type: 'system' as const,
+          read: false
+        };
+
+        const sellerMessage = {
+          sender_id: listing.seller_id,
+          receiver_id: user.id,
+          listing_id: listing.id,
+          transaction_id: transaction.id,
+          content: `Your free item "${listing.title}" has been claimed. Please arrange ${deliveryMethod === 'delivery' ? 'delivery' : 'collection'} with the buyer.`,
+          message_type: 'system' as const,
+          read: false
+        };
+
+        await supabase.from('messages').insert([buyerMessage, sellerMessage]);
+
+        // Create notifications
+        await supabase.from('notifications').insert([
+          {
+            user_id: user.id,
+            title: 'Free Item Claimed',
+            description: `You have claimed: ${listing.title}`,
+            type: 'transaction',
+            related_id: transaction.id,
+            action_url: '/dashboard?tab=purchases'
+          },
+          {
+            user_id: listing.seller_id,
+            title: 'Free Item Claimed',
+            description: `Your free item "${listing.title}" has been claimed`,
+            type: 'transaction',
+            related_id: transaction.id,
+            action_url: '/dashboard?tab=listings'
+          }
+        ]);
+
         setIsProcessingPayment(false);
         toast({
-          title: "Contact Seller Directly",
-          description: "This is a free item with no delivery charges. Please contact the seller to arrange collection.",
+          title: "Free Item Claimed!",
+          description: "You've successfully claimed this free item. Check your messages for details.",
         });
-        setShowMessageDialog(true);
+        navigate('/dashboard?tab=messages');
         return;
       }
 
