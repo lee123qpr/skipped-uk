@@ -137,7 +137,10 @@ export const TransactionManager = ({
         description: "Buyer has been notified that item has been sent.",
       });
 
+      // Force immediate UI update by calling onUpdate multiple times with small delays
       onUpdate();
+      setTimeout(() => onUpdate(), 500);
+      setTimeout(() => onUpdate(), 1500);
     } catch (error: any) {
       toast({
         title: "Error",
