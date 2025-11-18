@@ -365,10 +365,10 @@ export const TransactionManager = ({
             </div>
             
             {/* Environmental Certificate Download */}
-            {certificate && (
+            {transaction.listings?.environmental_assessment_enabled && (
               <Button
                 onClick={() => {
-                  const url = userRole === "buyer" ? certificate.buyer_certificate_url : certificate.seller_certificate_url;
+                  const url = userRole === "buyer" ? certificate?.buyer_certificate_url : certificate?.seller_certificate_url;
                   if (url) {
                     window.open(url, '_blank');
                   }
@@ -376,9 +376,10 @@ export const TransactionManager = ({
                 variant="outline"
                 className="w-full"
                 size="sm"
+                disabled={!certificate}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download Environmental Certificate
+                {certificate ? "Download Environmental Certificate" : "Certificate will appear here shortly"}
               </Button>
             )}
             

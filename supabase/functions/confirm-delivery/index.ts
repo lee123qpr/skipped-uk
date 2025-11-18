@@ -237,7 +237,10 @@ serve(async (req) => {
         const { data: certData, error: certError } = await supabaseClient.functions.invoke(
           "generate-environmental-certificate",
           {
-            body: { transactionId }
+            body: { transactionId },
+            headers: {
+              Authorization: authHeader || ""
+            }
           }
         );
 
