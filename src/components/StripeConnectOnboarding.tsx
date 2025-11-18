@@ -24,7 +24,7 @@ const StripeConnectOnboarding = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [onboardingInProgress, setOnboardingInProgress] = useState(false);
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (showSuccessToast = false) => {
     if (!user) return;
 
     try {
@@ -33,7 +33,20 @@ const StripeConnectOnboarding = () => {
 
       if (error) throw error;
 
+      // Check if onboarding just completed
+      const wasOnboarding = onboardingInProgress;
+      const nowComplete = data?.onboardingComplete && data?.chargesEnabled && data?.payoutsEnabled;
+      
       setStatus(data);
+
+      // Show success message if onboarding was just completed
+      if (showSuccessToast && wasOnboarding && nowComplete) {
+        toast({
+          title: '🎉 Onboarding Successful!',
+          description: 'Your Stripe account is now fully set up. You can start receiving payments from buyers.',
+          duration: 6000,
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -46,7 +59,7 @@ const StripeConnectOnboarding = () => {
   };
 
   useEffect(() => {
-    fetchStatus();
+    fetchStatus(false);
   }, [user]);
 
   // Auto-refresh status when user returns to tab after starting onboarding
@@ -54,7 +67,7 @@ const StripeConnectOnboarding = () => {
     const handleVisibilityChange = () => {
       if (!document.hidden && onboardingInProgress) {
         console.log('Tab visible again, refreshing Stripe status...');
-        fetchStatus();
+        fetchStatus(true); // Pass true to show success toast if completed
         setOnboardingInProgress(false);
       }
     };
@@ -281,7 +294,7 @@ const StripeConnectOnboarding = () => {
 
         <div className="pt-4 border-t">
           <Button 
-            onClick={fetchStatus}
+            onClick={() => fetchStatus(false)}
             variant="ghost"
             size="sm"
             className="w-full"
