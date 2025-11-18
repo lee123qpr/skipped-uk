@@ -559,15 +559,11 @@ const MyListings = () => {
                                               View Listing
                                             </DropdownMenuItem>
                                             {completedTransaction && (
-                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages', {
+                                                state: { openConversationId: completedTransaction.id }
+                                              })}>
                                                 <MessageCircle className="mr-2 h-4 w-4" />
-                                                View Transaction
-                                              </DropdownMenuItem>
-                                            )}
-                                            {completedTransaction?.buyer_id && (
-                                              <DropdownMenuItem onClick={() => navigate(`/listing/${listing.id}`, { state: { fromDashboard: true } })}>
-                                                <User className="mr-2 h-4 w-4" />
-                                                View Buyer Profile
+                                                Message Buyer
                                               </DropdownMenuItem>
                                             )}
                                             {certificate && (
@@ -597,7 +593,9 @@ const MyListings = () => {
                                               View Listing
                                             </DropdownMenuItem>
                                             {activeTransaction && (
-                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages', {
+                                                state: { openConversationId: activeTransaction.id }
+                                              })}>
                                                 <MessageCircle className="mr-2 h-4 w-4" />
                                                 View Transaction
                                               </DropdownMenuItem>
@@ -615,7 +613,9 @@ const MyListings = () => {
                                               View Listing
                                             </DropdownMenuItem>
                                             {activeTransaction && (
-                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages')}>
+                                              <DropdownMenuItem onClick={() => navigate('/dashboard/messages', {
+                                                state: { openConversationId: activeTransaction.id }
+                                              })}>
                                                 <MessageCircle className="mr-2 h-4 w-4" />
                                                 View Transaction
                                               </DropdownMenuItem>
