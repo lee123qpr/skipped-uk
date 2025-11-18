@@ -231,13 +231,24 @@ const ListingCard = ({
           <h3 className={`font-bold text-[#047857] group-hover:text-[#059669] transition-smooth line-clamp-2 flex-1 ${variant === "list" ? "text-sm sm:text-base leading-tight" : "text-lg"}`}>
             {title}
           </h3>
-          <div className={`font-bold text-[#047857] whitespace-nowrap flex-shrink-0 ${variant === "list" ? "text-xl sm:text-2xl" : "text-3xl"}`}>
-            {price === 0 ? 'Free' : `£${price.toLocaleString()}`}
-          </div>
+          {price === 0 ? (
+            <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-lg font-bold text-lg px-4 py-2 whitespace-nowrap flex-shrink-0 animate-pulse">
+              FREE
+            </Badge>
+          ) : (
+            <div className={`font-bold text-[#047857] whitespace-nowrap flex-shrink-0 ${variant === "list" ? "text-xl sm:text-2xl" : "text-3xl"}`}>
+              £{price.toLocaleString()}
+            </div>
+          )}
         </div>
 
         {/* Badges: Condition, Quantity, Carbon Saved, and Offers */}
         <div className={`flex items-center flex-wrap ${variant === "list" ? "gap-1.5" : "gap-2"}`}>
+          {price === 0 && (
+            <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-md font-bold tracking-wider rounded-full px-3 py-1 text-xs">
+              FREE ITEM
+            </Badge>
+          )}
           <Badge 
             variant="outline" 
             className={`${conditionDisplay.className} font-bold tracking-wider rounded-full border-0 ${variant === "list" ? "px-2.5 py-1 text-xs" : "text-xs px-4 py-1.5"}`}
