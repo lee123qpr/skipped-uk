@@ -291,7 +291,7 @@ export type Database = {
           meta_keywords: string | null
           published_at: string | null
           reading_time_minutes: number | null
-          search_vector: unknown | null
+          search_vector: unknown
           slug: string
           status: Database["public"]["Enums"]["blog_post_status"]
           title: string
@@ -309,7 +309,7 @@ export type Database = {
           meta_keywords?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           slug: string
           status?: Database["public"]["Enums"]["blog_post_status"]
           title: string
@@ -327,7 +327,7 @@ export type Database = {
           meta_keywords?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           slug?: string
           status?: Database["public"]["Enums"]["blog_post_status"]
           title?: string
@@ -661,7 +661,7 @@ export type Database = {
           public_location: string | null
           quantity: number | null
           reason_for_selling: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           seller_id: string
           status: string | null
           title: string
@@ -701,7 +701,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           seller_id: string
           status?: string | null
           title: string
@@ -741,7 +741,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           seller_id?: string
           status?: string | null
           title?: string
@@ -1340,6 +1340,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           delivery_confirmed_at: string | null
+          delivery_cost: number | null
+          delivery_method: string | null
           dispatch_confirmed_at: string | null
           dispute_id: string | null
           dispute_reason: string | null
@@ -1365,6 +1367,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           delivery_confirmed_at?: string | null
+          delivery_cost?: number | null
+          delivery_method?: string | null
           dispatch_confirmed_at?: string | null
           dispute_id?: string | null
           dispute_reason?: string | null
@@ -1390,6 +1394,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           delivery_confirmed_at?: string | null
+          delivery_cost?: number | null
+          delivery_method?: string | null
           dispatch_confirmed_at?: string | null
           dispute_id?: string | null
           dispute_reason?: string | null
@@ -1481,7 +1487,7 @@ export type Database = {
           public_location: string | null
           quantity: number | null
           reason_for_selling: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           seller_id: string | null
           status: string | null
           title: string | null
@@ -1514,7 +1520,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           seller_id?: string | null
           status?: string | null
           title?: string | null
@@ -1547,7 +1553,7 @@ export type Database = {
           public_location?: string | null
           quantity?: number | null
           reason_for_selling?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           seller_id?: string | null
           status?: string | null
           title?: string | null
@@ -1720,14 +1726,8 @@ export type Database = {
       }
     }
     Functions: {
-      calculate_reading_time: {
-        Args: { content: string }
-        Returns: number
-      }
-      generate_blog_slug: {
-        Args: { title: string }
-        Returns: string
-      }
+      calculate_reading_time: { Args: { content: string }; Returns: number }
+      generate_blog_slug: { Args: { title: string }; Returns: string }
       generate_username_suggestions: {
         Args: { base_username: string }
         Returns: string[]
@@ -1750,14 +1750,8 @@ export type Database = {
         Args: { listing_id: string }
         Returns: undefined
       }
-      is_user_on_holiday: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      send_review_reminders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      is_user_on_holiday: { Args: { user_id: string }; Returns: boolean }
+      send_review_reminders: { Args: never; Returns: undefined }
       validate_refund_amount: {
         Args: { refund_amount: number; transaction_amount: number }
         Returns: boolean
