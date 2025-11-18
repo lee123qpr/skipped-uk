@@ -148,6 +148,44 @@ export function validateString(
 }
 
 /**
+ * Validates a listing amount (allows £0 for free items)
+ */
+export function validateListingAmount(value: unknown, fieldName: string): number {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  
+  if (typeof num !== 'number' || isNaN(num)) {
+    throw new ValidationException([{ field: fieldName, message: 'Must be a number' }]);
+  }
+  
+  if (num < 0) {
+    throw new ValidationException([{ field: fieldName, message: 'Must be at least £0' }]);
+  }
+  
+  if (!isFinite(num)) {
+    throw new ValidationException([{ field: fieldName, message: 'Must be a finite number' }]);
+  }
+  
+  const MAX_AMOUNT = 100000;
+  if (num > MAX_AMOUNT) {
+    throw new ValidationException([{ 
+      field: fieldName, 
+      message: `Amount cannot exceed £${MAX_AMOUNT.toLocaleString()}` 
+    }]);
+  }
+  
+  // Validate reasonable precision (max 2 decimal places)
+  const decimalPlaces = (num.toString().split('.')[1] || '').length;
+  if (decimalPlaces > 2) {
+    throw new ValidationException([{ 
+      field: fieldName, 
+      message: 'Amount cannot have more than 2 decimal places' 
+    }]);
+  }
+  
+  return num;
+}
+
+/**
  * Validates an optional field
  */
 export function validateOptional<T>(

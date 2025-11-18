@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { 
   validateUUID, 
   validateAmount, 
+  validateListingAmount,
   validateURL, 
   validateEnum,
   validateOptional,
@@ -49,7 +50,7 @@ serve(async (req) => {
     const body = await req.json();
     
     const listingId = validateUUID(body.listingId, 'listingId');
-    const amount = validateAmount(body.amount, 'amount');
+    const amount = validateListingAmount(body.amount, 'amount'); // Allow £0 for free items
     const buyerProtectionFee = validateOptional(body.buyerProtectionFee, (v) => validateAmount(v, 'buyerProtectionFee')) ?? 0;
     const deliveryMethod = validateEnum(body.deliveryMethod ?? 'collection', 'deliveryMethod', ['collection', 'delivery']);
     const deliveryCost = validateOptional(body.deliveryCost, (v) => validateAmount(v, 'deliveryCost')) ?? 0;
@@ -98,8 +99,13 @@ serve(async (req) => {
     const deliveryCostPence = Math.round(deliveryCost * 100);
     const totalAmount = itemAmountPence + buyerProtectionFeePence + deliveryCostPence;
 
-    // Platform fee (5% of item amount + full buyer protection fee)
-    const platformFeeAmount = Math.round(itemAmountPence * 0.05) + buyerProtectionFeePence;
+    // Block checkout for free items with no delivery
+    if (totalAmount === 0) {
+      throw new Error('Cannot process payment with £0 total. Please contact the seller directly to arrange collection.');
+    }
+
+    // Platform fee (5% of item amount + full buyer protection fee) - no fee for free items
+    const platformFeeAmount = itemAmountPence === 0 ? 0 : Math.round(itemAmountPence * 0.05) + buyerProtectionFeePence;
     logStep("Amounts calculated", { 
       itemAmountPence, 
       buyerProtectionFeePence, 
@@ -173,7 +179,7 @@ serve(async (req) => {
       success_url: `${returnUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${returnUrl}?payment=cancelled`,
       payment_intent_data: {
-        application_fee_amount: platformFeeAmount,
+        ...(platformFeeAmount > 0 ? { application_fee_amount: platformFeeAmount } : {}),
         transfer_data: {
           destination: listing.seller.stripe_account_id,
         },
