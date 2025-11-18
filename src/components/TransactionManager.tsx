@@ -182,22 +182,10 @@ export const TransactionManager = ({
         throw error;
       }
 
-      // Check if listing has environmental assessment enabled
-      if (transaction.listings?.environmental_assessment_enabled) {
-        // Generate certificates
-        const { error: certError } = await supabase.functions.invoke("generate-environmental-certificate", {
-          body: { transactionId: transaction.id },
-        });
-
-        if (certError) {
-          // Don't fail the delivery confirmation if certificate generation fails
-        }
-      }
-
       toast({
         title: "Delivery Confirmed",
         description: transaction.listings?.environmental_assessment_enabled 
-          ? "Funds have been released! Your environmental certificate is being generated."
+          ? "Funds have been released! Your environmental certificate will be available shortly."
           : "Funds have been released to the seller!",
       });
 
