@@ -223,6 +223,40 @@ serve(async (req) => {
       console.log("[CONFIRM-DELIVERY] Notifications created successfully");
     }
 
+    // Generate environmental certificate if enabled
+    const { data: listingData } = await supabaseClient
+      .from("listings")
+      .select("environmental_assessment_enabled")
+      .eq("id", transaction.listing_id)
+      .single();
+
+    if (listingData?.environmental_assessment_enabled) {
+      console.log("[CONFIRM-DELIVERY] Generating environmental certificate");
+      
+      try {
+        const { data: certData, error: certError } = await supabaseClient.functions.invoke(
+          "generate-environmental-certificate",
+          {
+            body: { transactionId }
+          }
+        );
+
+        if (certError) {
+          console.error("[CONFIRM-DELIVERY] Certificate generation failed", {
+            error: certError
+          });
+          // Don't fail the delivery confirmation if certificate generation fails
+        } else {
+          console.log("[CONFIRM-DELIVERY] Certificate generated successfully", certData);
+        }
+      } catch (certError) {
+        console.error("[CONFIRM-DELIVERY] Certificate generation error", {
+          error: certError
+        });
+        // Continue anyway
+      }
+    }
+
     console.log("[CONFIRM-DELIVERY] Delivery confirmed, funds transferred, and review notifications sent");
 
     return new Response(
