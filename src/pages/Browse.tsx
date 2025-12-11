@@ -285,8 +285,8 @@ const Browse = () => {
     images: listing.images || [],
     carbonSaved: listing.carbon_saved || 0,
     seller: {
-      username: listing.profiles?.username || 'Anonymous',
-      verified: listing.profiles?.verified || false,
+      username: listing.public_safe_profiles?.username || 'Anonymous',
+      verified: listing.public_safe_profiles?.verified || false,
       rating: 0, // No ratings yet - will be calculated from reviews later
       reviewCount: 0 // No reviews yet
     },
@@ -294,9 +294,9 @@ const Browse = () => {
     quantity: listing.quantity,
     deliveryAvailable: listing.delivery_available,
     pickupAvailable: listing.pickup_available,
-    sellerVerified: listing.profiles?.verified || false,
-    sellerStripeVerified: listing.profiles?.stripe_onboarding_complete || false,
-    sellerIdentityVerified: listing.profiles?.identity_verified || false,
+    sellerVerified: listing.public_safe_profiles?.verified || false,
+    sellerStripeVerified: listing.public_safe_profiles?.stripe_onboarding_complete || false,
+    sellerIdentityVerified: listing.public_safe_profiles?.identity_verified || false,
     weight: listing.weight,
     dimensions: listing.dimensions,
     isFavorited: userFavourites.includes(listing.id)
