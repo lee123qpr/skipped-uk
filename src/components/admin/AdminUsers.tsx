@@ -204,7 +204,7 @@ export function AdminUsers() {
   const handleMessage = (user: UserProfile) => {
     setMessageDialog({
       open: true,
-      userId: user.id,
+      userId: user.user_id,
       userName: user.display_name || user.username || 'User'
     });
   };
