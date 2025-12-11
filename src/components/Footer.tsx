@@ -1,12 +1,65 @@
-import { Leaf, Mail, Phone, MapPin } from "lucide-react";
+import { useState } from "react";
+import { Leaf, Mail, Phone, MapPin, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import skippedLogo from "@/assets/skipped-logo.jpeg";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const { toast } = useToast();
+  const currentYear = new Date().getFullYear();
 
-  return <footer className="bg-card border-t border-border">
+  const handleNewsletterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const { error } = await supabase
+        .from("newsletter_subscribers")
+        .insert({ email: email.toLowerCase().trim() });
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Already subscribed",
+            description: "This email is already subscribed to our newsletter.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Subscribed!",
+          description: "Thank you for subscribing to our newsletter.",
+        });
+        setEmail("");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Subscription failed",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  return (
+    <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
@@ -55,12 +108,19 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground">
               Get notified about new materials and sustainability tips
             </p>
-            <div className="flex space-x-2">
-              <Input placeholder="Enter email" className="flex-1 bg-input border-border" />
-              <Button variant="default" size="sm">
-                Subscribe
+            <form onSubmit={handleNewsletterSubscribe} className="flex space-x-2">
+              <Input 
+                type="email"
+                placeholder="Enter email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 bg-input border-border" 
+                disabled={isSubscribing}
+              />
+              <Button type="submit" variant="default" size="sm" disabled={isSubscribing}>
+                {isSubscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Subscribe"}
               </Button>
-            </div>
+            </form>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -79,7 +139,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground">© 2026 Skipped. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {currentYear} Skipped. All rights reserved.</p>
           <div className="flex space-x-6 text-sm text-muted-foreground mt-4 md:mt-0">
             <Link to="/privacy-policy" className="hover:text-primary transition-smooth">Privacy Policy</Link>
             <Link to="/terms-of-service" className="hover:text-primary transition-smooth">Terms of Service</Link>
@@ -87,6 +147,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;
