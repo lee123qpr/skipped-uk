@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Leaf, Mail, Phone, MapPin, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,28 @@ import skippedLogo from "@/assets/skipped-logo.jpeg";
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [totalCarbonSaved, setTotalCarbonSaved] = useState<number | null>(null);
   const { toast } = useToast();
   const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    const fetchCarbonStats = async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("listing_id, listings(carbon_saved)")
+        .eq("status", "completed");
+
+      if (!error && data) {
+        const total = data.reduce((sum, transaction) => {
+          const carbonSaved = (transaction.listings as any)?.carbon_saved || 0;
+          return sum + Number(carbonSaved);
+        }, 0);
+        setTotalCarbonSaved(total);
+      }
+    };
+
+    fetchCarbonStats();
+  }, []);
 
   const handleNewsletterSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +93,11 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-sm text-accent">
               <Leaf className="h-4 w-4" />
-              <span className="font-medium">2.4M kg CO₂ saved to date</span>
+              <span className="font-medium">
+                {totalCarbonSaved !== null 
+                  ? `${totalCarbonSaved >= 1000 ? `${(totalCarbonSaved / 1000).toFixed(1)}k` : totalCarbonSaved.toFixed(0)} kg CO₂ saved to date`
+                  : "Loading CO₂ stats..."}
+              </span>
             </div>
           </div>
 
