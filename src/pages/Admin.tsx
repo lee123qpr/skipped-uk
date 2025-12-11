@@ -46,7 +46,7 @@ export default function Admin() {
       
       if (!user) {
         toast.error("Please log in to access admin panel");
-        navigate("/signin");
+        navigate("/sign-in");
         return;
       }
 
