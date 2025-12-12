@@ -21,10 +21,10 @@ import { ProfileSkeleton, MyListingSkeleton } from "@/components/LoadingSkeleton
 import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import { SellerAnalytics } from "@/components/SellerAnalytics";
 import { SellerFinancials } from "@/components/SellerFinancials";
-
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const UnifiedReviews = React.lazy(() => import("@/components/UnifiedReviews"));
 
