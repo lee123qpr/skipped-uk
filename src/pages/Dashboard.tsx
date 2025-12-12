@@ -25,8 +25,6 @@ import { SellerFinancials } from "@/components/SellerFinancials";
 import { StarRating } from "@/components/StarRating";
 import { useSellerRating } from "@/hooks/useSellerRating";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
-import ErrorBoundary from "@/components/ErrorBoundary";
 
 const UnifiedReviews = React.lazy(() => import("@/components/UnifiedReviews"));
 
@@ -50,7 +48,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [hasListings, setHasListings] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
   // Get seller rating for current user
   const { data: sellerRating } = useSellerRating(user?.id);
@@ -96,7 +93,7 @@ const Dashboard = () => {
     const stripeSuccess = searchParams.get('success');
     
     if (paymentStatus === 'success' && sessionId && user) {
-      verifyPayment(sessionId);
+      return;
     } else if (paymentStatus === 'cancelled') {
       toast({
         title: "Payment Cancelled",
@@ -116,43 +113,6 @@ const Dashboard = () => {
       setTimeout(() => window.location.reload(), 1000);
     }
   }, [searchParams, user]);
-
-  const verifyPayment = async (sessionId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: { sessionId }
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "Payment Successful!",
-          description: "Your payment has been confirmed. The seller has been notified.",
-        });
-        // Invalidate queries to refresh data without page reload
-        await queryClient.invalidateQueries({ queryKey: ['myPurchases', user?.id] });
-        await queryClient.invalidateQueries({ queryKey: ['messages'] });
-        await queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        // Switch to messages tab and clean up URL
-        setSearchParams({ tab: 'messages' });
-      } else {
-        toast({
-          title: "Payment Verification",
-          description: data?.message || "Payment status could not be verified.",
-          variant: "destructive",
-        });
-        setSearchParams({ tab: activeTab });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Verification Error",
-        description: error.message || "Failed to verify payment status.",
-        variant: "destructive",
-      });
-      setSearchParams({ tab: activeTab });
-    }
-  };
 
   const fetchProfile = async () => {
     if (!user) return;
