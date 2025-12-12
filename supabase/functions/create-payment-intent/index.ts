@@ -51,9 +51,9 @@ serve(async (req) => {
     
     const listingId = validateUUID(body.listingId, 'listingId');
     const amount = validateListingAmount(body.amount, 'amount'); // Allow £0 for free items
-    const buyerProtectionFee = validateOptional(body.buyerProtectionFee, (v) => validateAmount(v, 'buyerProtectionFee')) ?? 0;
+    const buyerProtectionFee = validateOptional(body.buyerProtectionFee, (v) => validateListingAmount(v, 'buyerProtectionFee')) ?? 0;
     const deliveryMethod = validateEnum(body.deliveryMethod ?? 'pickup', 'deliveryMethod', ['pickup', 'delivery']);
-    const deliveryCost = validateOptional(body.deliveryCost, (v) => validateAmount(v, 'deliveryCost')) ?? 0;
+    const deliveryCost = validateOptional(body.deliveryCost, (v) => validateListingAmount(v, 'deliveryCost')) ?? 0;
     const offerId = validateOptional(body.offerId, (v) => validateUUID(v, 'offerId'));
     const returnUrl = validateURL(body.returnUrl, 'returnUrl');
 
