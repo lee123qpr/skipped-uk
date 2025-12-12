@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PaymentVerifier = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const verifyingRef = useRef(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -29,6 +31,9 @@ const PaymentVerifier = () => {
               title: "Payment Successful",
               description: "Your payment has been confirmed.",
             });
+            queryClient.invalidateQueries({ queryKey: ["myPurchases"] });
+            queryClient.invalidateQueries({ queryKey: ["messages"] });
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
           } else {
             toast({
               title: "Payment Verification",

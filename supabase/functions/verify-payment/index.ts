@@ -112,6 +112,7 @@ serve(async (req) => {
     const itemAmountPounds = itemAmountPence / 100;
     const buyerProtectionFeePounds = buyerProtectionFeePence / 100;
     const deliveryCostPounds = deliveryCostPence / 100;
+    const totalAmount = itemAmountPounds + buyerProtectionFeePounds + deliveryCostPounds;
 
     logStep("Creating new transaction", {
       listing_id,
@@ -135,7 +136,7 @@ serve(async (req) => {
         amount: itemAmountPounds, // Just the item cost
         buyer_protection_fee: buyerProtectionFeePounds,
         delivery_cost: deliveryCostPounds,
-        delivery_method: delivery_method || 'collection',
+        delivery_method: delivery_method || 'pickup',
         status: 'paid',
         stripe_payment_intent_id: paymentIntent.id,
         paid_at: new Date().toISOString(),

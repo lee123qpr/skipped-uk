@@ -52,7 +52,7 @@ serve(async (req) => {
     const listingId = validateUUID(body.listingId, 'listingId');
     const amount = validateListingAmount(body.amount, 'amount'); // Allow £0 for free items
     const buyerProtectionFee = validateOptional(body.buyerProtectionFee, (v) => validateAmount(v, 'buyerProtectionFee')) ?? 0;
-    const deliveryMethod = validateEnum(body.deliveryMethod ?? 'collection', 'deliveryMethod', ['collection', 'delivery']);
+    const deliveryMethod = validateEnum(body.deliveryMethod ?? 'pickup', 'deliveryMethod', ['pickup', 'delivery']);
     const deliveryCost = validateOptional(body.deliveryCost, (v) => validateAmount(v, 'deliveryCost')) ?? 0;
     const offerId = validateOptional(body.offerId, (v) => validateUUID(v, 'offerId'));
     const returnUrl = validateURL(body.returnUrl, 'returnUrl');
@@ -167,8 +167,8 @@ serve(async (req) => {
           price_data: {
             currency: 'gbp',
             product_data: {
-              name: deliveryMethod === 'collection' ? 'Collection' : 'Delivery Service',
-              description: deliveryMethod === 'collection' ? 'Collection from seller' : `Delivery to your location`,
+              name: deliveryMethod === 'pickup' ? 'Collection' : 'Delivery Service',
+              description: deliveryMethod === 'pickup' ? 'Collection from seller' : `Delivery to your location`,
             },
             unit_amount: deliveryCostPence,
           },
