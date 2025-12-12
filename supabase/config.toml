@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.request-account-deletion]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
