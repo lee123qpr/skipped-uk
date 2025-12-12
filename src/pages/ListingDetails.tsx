@@ -216,10 +216,17 @@ const ListingDetails = () => {
   const handleDeliveryMethodConfirmed = async (deliveryMethod: 'delivery' | 'pickup') => {
     try {
       setIsProcessingPayment(true);
+      const roundToPennies = (value: number) => Math.round(value * 100) / 100;
+      const listingPrice = typeof listing.price === 'string' ? parseFloat(listing.price) : listing.price;
+      if (!Number.isFinite(listingPrice)) {
+        throw new Error('Invalid listing price');
+      }
       
       // Calculate costs - buyer protection fee only applies to item price, not delivery
-      const deliveryCost = deliveryMethod === 'delivery' && listing.delivery_cost ? listing.delivery_cost : 0;
-      const buyerProtectionFee = listing.price * 0.05; // 5% of item price only
+      const deliveryCost = roundToPennies(
+        deliveryMethod === 'delivery' && listing.delivery_cost ? Number(listing.delivery_cost) : 0
+      );
+      const buyerProtectionFee = roundToPennies(listingPrice * 0.05); // 5% of item price only
       
       // Check if listing already has active transaction
       const { data: activeTransactions } = await supabase
@@ -240,7 +247,7 @@ const ListingDetails = () => {
       }
       
       // Validate payment data before creating intent
-      if (listing.price < 0) {
+      if (listingPrice < 0) {
         throw new Error('Invalid listing price');
       }
 
@@ -249,7 +256,7 @@ const ListingDetails = () => {
       }
 
       // Check if it's a free item with no delivery charges
-      const totalAmount = listing.price + buyerProtectionFee + deliveryCost;
+      const totalAmount = roundToPennies(listingPrice + buyerProtectionFee + deliveryCost);
       if (totalAmount === 0) {
         // Create transaction directly for free items
         const { data: transaction, error: transactionError } = await supabase
@@ -330,7 +337,7 @@ const ListingDetails = () => {
 
       // Log payment data for debugging
       console.log('Creating payment with:', {
-        listingPrice: listing.price,
+        listingPrice: listingPrice,
         buyerProtectionFee,
         deliveryCost,
         deliveryMethod,
@@ -341,9 +348,9 @@ const ListingDetails = () => {
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           listingId: listing.id,
-          amount: listing.price,
-          buyerProtectionFee: buyerProtectionFee,
-          deliveryCost: deliveryCost,
+          amount: listingPrice,
+          buyerProtectionFee,
+          deliveryCost,
           deliveryMethod: deliveryMethod,
           returnUrl: `${window.location.origin}/listing/${listing.id}`
         }
