@@ -782,19 +782,18 @@ const MessagesInbox = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Split into two channels - one for sent messages, one for received
     const senderChannel = supabase
       .channel('messages-sender')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'messages',
           filter: `sender_id=eq.${user.id}`
         },
         (payload) => {
-          refetchMessages();
+          queryClient.invalidateQueries({ queryKey: ['allMessages', user.id] });
         }
       )
       .subscribe();
@@ -804,13 +803,13 @@ const MessagesInbox = () => {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'messages',
           filter: `receiver_id=eq.${user.id}`
         },
         (payload) => {
-          refetchMessages();
+          queryClient.invalidateQueries({ queryKey: ['allMessages', user.id] });
           refreshCounts(); // Update notification badge
         }
       )
@@ -820,7 +819,7 @@ const MessagesInbox = () => {
       supabase.removeChannel(senderChannel);
       supabase.removeChannel(receiverChannel);
     };
-  }, [user, refetchMessages, refreshCounts]);
+  }, [user, queryClient, refreshCounts]);
 
   // Mark all messages in conversation as read
   useEffect(() => {
