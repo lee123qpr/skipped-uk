@@ -529,6 +529,29 @@ const MessagesInbox = () => {
     new Date(b.lastMessage.created_at).getTime() - new Date(a.lastMessage.created_at).getTime()
   );
 
+  useEffect(() => {
+    if (!user || !selectedConversation) return;
+
+    const currentKey = selectedConversation.transaction?.id
+      ? `transaction-${selectedConversation.transaction.id}`
+      : selectedConversation.listingId === 'admin'
+        ? (conversations[`admin-${user.id}-${selectedConversation.otherUserId}`]
+            ? `admin-${user.id}-${selectedConversation.otherUserId}`
+            : `admin-${selectedConversation.otherUserId}-${user.id}`)
+        : `listing-${selectedConversation.listingId}-${selectedConversation.otherUserId}`;
+
+    const updated = conversations[currentKey];
+    if (!updated) return;
+
+    if (
+      updated.lastMessage?.id !== selectedConversation.lastMessage?.id ||
+      updated.messages.length !== selectedConversation.messages.length ||
+      updated.unreadCount !== selectedConversation.unreadCount
+    ) {
+      setSelectedConversation(updated);
+    }
+  }, [conversations, selectedConversation, user]);
+
   // Fetch offers (received) with buyer profile
   const { data: receivedOffersData = [], isLoading: offersLoading, refetch: refetchOffers } = useQuery({
     queryKey: ['receivedOffers', user?.id],
@@ -872,6 +895,19 @@ const MessagesInbox = () => {
       return [...(old || []), optimisticMessage];
     });
 
+    setSelectedConversation((prev) => {
+      if (!prev) return prev;
+      if (prev.otherUserId !== selectedConversation.otherUserId) return prev;
+      if (prev.listingId !== selectedConversation.listingId) return prev;
+      if ((prev.transaction?.id || null) !== (selectedConversation.transaction?.id || null)) return prev;
+
+      return {
+        ...prev,
+        messages: [...prev.messages, optimisticMessage as any],
+        lastMessage: optimisticMessage as any,
+      };
+    });
+
     setReplyContent('');
     setIsSending(true);
     
@@ -895,6 +931,18 @@ const MessagesInbox = () => {
       // Rollback optimistic update on error
       queryClient.setQueryData(['allMessages', user.id], (old: any) => {
         return (old || []).filter((msg: any) => msg.id !== tempId);
+      });
+
+      setSelectedConversation((prev) => {
+        if (!prev) return prev;
+        if (prev.otherUserId !== selectedConversation.otherUserId) return prev;
+        if (prev.listingId !== selectedConversation.listingId) return prev;
+        if ((prev.transaction?.id || null) !== (selectedConversation.transaction?.id || null)) return prev;
+
+        return {
+          ...prev,
+          messages: prev.messages.filter((msg: any) => msg.id !== tempId),
+        };
       });
       
       setReplyContent(messageContent); // Restore message content
