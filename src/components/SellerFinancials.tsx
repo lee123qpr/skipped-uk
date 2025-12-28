@@ -137,7 +137,7 @@ export const SellerFinancials = () => {
 
       // Handle financial data
       if (financialResult.error) {
-        throw new Error(financialResult.error);
+        throw new Error(financialResult.error.message);
       }
 
       if (!financialResult.data?.hasStripeAccount) {
