@@ -670,7 +670,6 @@ const MessagesInbox = () => {
       );
       if (conversation) {
         setSelectedConversation(conversation);
-        // Clear the state to prevent auto-opening again on refresh
         navigate(location.pathname, { replace: true, state: {} });
         return;
       }
@@ -680,10 +679,7 @@ const MessagesInbox = () => {
     const conversationKey = searchParams.get('conversation');
     if (conversationKey) {
       const decodedKey = decodeURIComponent(conversationKey);
-      const conversation = conversationsList.find((_, index) => {
-        const key = Object.keys(conversations)[index];
-        return key === decodedKey;
-      });
+      const conversation = conversations[decodedKey];
       if (conversation) {
         setSelectedConversation(conversation);
         searchParams.delete('conversation');
@@ -719,6 +715,27 @@ const MessagesInbox = () => {
       }
     }
   }, [conversationsList, selectedConversation, searchParams, setSearchParams, conversations, location.state, location.pathname, navigate]);
+
+  const openOrphanedTransactionConversation = async (transaction: any) => {
+    try {
+      const { error } = await supabase.functions.invoke('ensure-transaction-messages', {
+        body: { transactionId: transaction.id },
+      });
+
+      if (error) throw error;
+
+      await refetchMessages();
+      await refetchTransactions();
+
+      navigate(`/dashboard?tab=messages&conversation=${encodeURIComponent(`transaction-${transaction.id}`)}`);
+    } catch (err: any) {
+      toast({
+        title: 'Unable to open transaction',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Realtime subscription for transaction updates
   useEffect(() => {
@@ -961,12 +978,7 @@ const MessagesInbox = () => {
                 <Card
                   key={transaction.id}
                   className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => {
-                    // Navigate to create a conversation for this transaction
-                    navigate(`/dashboard?tab=messages&conversation=transaction-${transaction.id}`);
-                    // Force a refresh to load the transaction
-                    refetchMessages();
-                  }}
+                  onClick={() => openOrphanedTransactionConversation(transaction)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
