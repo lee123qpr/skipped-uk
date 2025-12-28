@@ -1043,7 +1043,7 @@ const MessagesInbox = () => {
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
-                    <Avatar className="w-10 h-10 border-2 border-border">
+                    <Avatar className="w-14 h-14 border-2 border-border">
                     <AvatarImage src={selectedConversation.listing?.images?.[0] || selectedConversation.otherUserProfile?.avatar_url} />
                     <AvatarFallback>
                       {(selectedConversation.otherUserProfile?.username || selectedConversation.otherUserProfile?.display_name || 'U').charAt(0)?.toUpperCase()}
@@ -1270,7 +1270,7 @@ const MessagesInbox = () => {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    <Avatar className="w-12 h-12 flex-shrink-0 border-2 border-border">
+                    <Avatar className="w-16 h-16 flex-shrink-0 border-2 border-border">
                       <AvatarImage src={conversation.listing?.images?.[0] || conversation.otherUserProfile?.avatar_url} />
                       <AvatarFallback>
                         {(conversation.otherUserProfile?.username || conversation.otherUserProfile?.display_name || 'U').charAt(0)?.toUpperCase()}
